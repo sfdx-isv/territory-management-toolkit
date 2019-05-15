@@ -1,9 +1,0 @@
-{
-  "devHubAlias":  "DevHub-PBO",
-  "envHubAlias":  "NOT_SPECIFIED",
-  "pkgOrgAlias":  "NOT_SPECIFIED",
-  "appxProject":  {},
-  "appxDemo": {
-    "installedDemos": []
-  }
-}
