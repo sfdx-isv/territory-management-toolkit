@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Territory2Rule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <active>false</active>
+    <booleanFilter>1 OR 2</booleanFilter>
+    <name>Territory One Rule Two</name>
+    <objectType>Account</objectType>
+    <ruleItems>
+        <field>Account.BillingStreet</field>
+        <operation>contains</operation>
+        <value>Village Run</value>
+    </ruleItems>
+    <ruleItems>
+        <field>Account.BillingCity</field>
+        <operation>equals</operation>
+        <value>Encinitas</value>
+    </ruleItems>
+</Territory2Rule>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Territory2Rule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <active>false</active>
+    <name>Territory One Rule One</name>
+    <objectType>Account</objectType>
+    <ruleItems>
+        <field>Account.Phone</field>
+        <operation>equals</operation>
+        <value>555-555-5555</value>
+    </ruleItems>
+</Territory2Rule>

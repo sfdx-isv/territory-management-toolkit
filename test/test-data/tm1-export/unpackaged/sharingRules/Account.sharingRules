@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SharingRules xmlns="http://soap.sforce.com/2006/04/metadata">
+    <sharingCriteriaRules>
+        <fullName>Account_Criteria_Rule_UNRELATED_to_TM</fullName>
+        <accessLevel>Read</accessLevel>
+        <accountSettings>
+            <caseAccessLevel>None</caseAccessLevel>
+            <contactAccessLevel>Read</contactAccessLevel>
+            <opportunityAccessLevel>None</opportunityAccessLevel>
+        </accountSettings>
+        <description>This is a sample account sharing rule that has NO relationship with TM1.</description>
+        <label>Account Criteria Rule UNRELATED to TM</label>
+        <sharedTo>
+            <allInternalUsers></allInternalUsers>
+        </sharedTo>
+        <criteriaItems>
+            <field>Name</field>
+            <operation>contains</operation>
+            <value>Star Wars</value>
+        </criteriaItems>
+    </sharingCriteriaRules>
+    <sharingCriteriaRules>
+        <fullName>Account_Criteria_Sharing_Rule</fullName>
+        <accessLevel>Read</accessLevel>
+        <accountSettings>
+            <caseAccessLevel>None</caseAccessLevel>
+            <contactAccessLevel>Read</contactAccessLevel>
+            <opportunityAccessLevel>None</opportunityAccessLevel>
+        </accountSettings>
+        <description>Sample sharing rule</description>
+        <label>Account Criteria Sharing Rule</label>
+        <sharedTo>
+            <territoryAndSubordinates>West</territoryAndSubordinates>
+        </sharedTo>
+        <criteriaItems>
+            <field>BillingCity</field>
+            <operation>equals</operation>
+            <value>San Diego</value>
+        </criteriaItems>
+    </sharingCriteriaRules>
+    <sharingTerritoryRules>
+        <fullName>AccountTerritory_Sharing_Rule</fullName>
+        <accessLevel>Read</accessLevel>
+        <accountSettings>
+            <caseAccessLevel>None</caseAccessLevel>
+            <contactAccessLevel>Read</contactAccessLevel>
+            <opportunityAccessLevel>None</opportunityAccessLevel>
+        </accountSettings>
+        <description>Sample AccountTerritory sharing rule</description>
+        <label>AccountTerritory Sharing Rule</label>
+        <sharedTo>
+            <role>Global_Service</role>
+        </sharedTo>
+        <sharedFrom>
+            <territory>APAC</territory>
+        </sharedFrom>
+    </sharingTerritoryRules>
+</SharingRules>
