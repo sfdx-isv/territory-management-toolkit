@@ -7,5 +7,13 @@
     <name>West</name>
     <opportunityAccessLevel>Edit</opportunityAccessLevel>
     <parentTerritory>AMER</parentTerritory>
+    <ruleAssociations>
+        <inherited>true</inherited>
+        <ruleName>Western_Accounts</ruleName>
+    </ruleAssociations>
+    <ruleAssociations>
+        <inherited>true</inherited>
+        <ruleName>Western_Secondary_Accounts</ruleName>
+    </ruleAssociations>
     <territory2Type>Imported_Territory</territory2Type>
 </Territory2>
