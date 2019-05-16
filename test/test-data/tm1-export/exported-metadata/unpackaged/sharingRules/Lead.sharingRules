@@ -9,7 +9,7 @@
             <role>Global_Sales</role>
         </sharedTo>
         <sharedFrom>
-            <territory>London</territory>
+            <territory>EMEA_West</territory>
         </sharedFrom>
     </sharingOwnerRules>
 </SharingRules>

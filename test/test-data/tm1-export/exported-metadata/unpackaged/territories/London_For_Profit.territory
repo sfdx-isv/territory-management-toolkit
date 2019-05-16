@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Territory xmlns="http://soap.sforce.com/2006/04/metadata">
+    <caseAccessLevel>Edit</caseAccessLevel>
+    <contactAccessLevel>Edit</contactAccessLevel>
+    <description>For-profit accounts in London</description>
+    <mayForecastManagerShare>false</mayForecastManagerShare>
+    <name>For-Profit</name>
+    <opportunityAccessLevel>Edit</opportunityAccessLevel>
+    <accountAccessLevel>Edit</accountAccessLevel>
+    <parentTerritory>London</parentTerritory>
+</Territory>

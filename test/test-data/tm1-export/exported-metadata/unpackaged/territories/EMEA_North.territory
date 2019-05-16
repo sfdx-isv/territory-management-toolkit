@@ -2,9 +2,10 @@
 <Territory xmlns="http://soap.sforce.com/2006/04/metadata">
     <caseAccessLevel>Edit</caseAccessLevel>
     <contactAccessLevel>Edit</contactAccessLevel>
+    <description>Northern Europe</description>
     <mayForecastManagerShare>false</mayForecastManagerShare>
-    <name>Southeast Asia</name>
+    <name>North</name>
     <opportunityAccessLevel>Edit</opportunityAccessLevel>
-    <accountAccessLevel>Edit</accountAccessLevel>
-    <parentTerritory>APAC</parentTerritory>
+    <accountAccessLevel>All</accountAccessLevel>
+    <parentTerritory>EMEA</parentTerritory>
 </Territory>

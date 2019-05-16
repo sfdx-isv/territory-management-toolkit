@@ -1,0 +1,3 @@
+Id,AccountId,UserOrGroupId,RowCause,AccountAccessLevel,CaseAccessLevel,ContactAccessLevel,OpportunityAccessLevel,IsDeleted,LastModifiedById,LastModifiedDate
+00r2i000003f3J9AAI,0012i000002dReRAAU,00G2i000000MLNMEA4,TerritoryManual,All,Edit,Edit,Edit,false,0052i000000Frp5AAC,2019-05-07T23:59:10.000+0000
+00r2i000003f3IfAAI,0012i000002dReTAAU,00G2i000000MLNOEA4,TerritoryManual,All,Edit,Edit,Edit,false,0052i000000Frp5AAC,2019-05-07T23:54:58.000+0000

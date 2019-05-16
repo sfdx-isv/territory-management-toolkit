@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Territory xmlns="http://soap.sforce.com/2006/04/metadata">
-    <caseAccessLevel>Edit</caseAccessLevel>
+    <caseAccessLevel>Read</caseAccessLevel>
     <contactAccessLevel>Edit</contactAccessLevel>
+    <description>Southern Europe</description>
     <mayForecastManagerShare>false</mayForecastManagerShare>
-    <name>East India</name>
-    <opportunityAccessLevel>Edit</opportunityAccessLevel>
+    <name>South</name>
+    <opportunityAccessLevel>Read</opportunityAccessLevel>
     <accountAccessLevel>Edit</accountAccessLevel>
-    <parentTerritory>Southeast_Asia</parentTerritory>
+    <parentTerritory>EMEA</parentTerritory>
 </Territory>

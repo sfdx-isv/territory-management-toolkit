@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Territory xmlns="http://soap.sforce.com/2006/04/metadata">
+    <caseAccessLevel>Edit</caseAccessLevel>
+    <contactAccessLevel>Edit</contactAccessLevel>
+    <description>Eastern United States</description>
+    <mayForecastManagerShare>false</mayForecastManagerShare>
+    <name>East</name>
+    <opportunityAccessLevel>Edit</opportunityAccessLevel>
+    <accountAccessLevel>All</accountAccessLevel>
+    <parentTerritory>AMER</parentTerritory>
+</Territory>

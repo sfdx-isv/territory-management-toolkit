@@ -2,9 +2,10 @@
 <Territory xmlns="http://soap.sforce.com/2006/04/metadata">
     <caseAccessLevel>Edit</caseAccessLevel>
     <contactAccessLevel>Edit</contactAccessLevel>
+    <description>Northern United States</description>
     <mayForecastManagerShare>false</mayForecastManagerShare>
-    <name>West Australia</name>
+    <name>North</name>
     <opportunityAccessLevel>Edit</opportunityAccessLevel>
     <accountAccessLevel>Edit</accountAccessLevel>
-    <parentTerritory>Australia</parentTerritory>
+    <parentTerritory>AMER</parentTerritory>
 </Territory>

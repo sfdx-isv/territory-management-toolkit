@@ -30,7 +30,7 @@
         <description>Sample sharing rule</description>
         <label>Account Criteria Sharing Rule</label>
         <sharedTo>
-            <territoryAndSubordinates>West</territoryAndSubordinates>
+            <territoryAndSubordinates>AMER_West</territoryAndSubordinates>
         </sharedTo>
         <criteriaItems>
             <field>BillingCity</field>
@@ -38,21 +38,4 @@
             <value>San Diego</value>
         </criteriaItems>
     </sharingCriteriaRules>
-    <sharingTerritoryRules>
-        <fullName>AccountTerritory_Sharing_Rule</fullName>
-        <accessLevel>Read</accessLevel>
-        <accountSettings>
-            <caseAccessLevel>None</caseAccessLevel>
-            <contactAccessLevel>Read</contactAccessLevel>
-            <opportunityAccessLevel>None</opportunityAccessLevel>
-        </accountSettings>
-        <description>Sample AccountTerritory sharing rule</description>
-        <label>AccountTerritory Sharing Rule</label>
-        <sharedTo>
-            <role>Global_Service</role>
-        </sharedTo>
-        <sharedFrom>
-            <territory>APAC</territory>
-        </sharedFrom>
-    </sharingTerritoryRules>
 </SharingRules>

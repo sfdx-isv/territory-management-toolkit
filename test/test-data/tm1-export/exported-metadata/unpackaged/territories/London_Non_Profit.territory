@@ -2,10 +2,10 @@
 <Territory xmlns="http://soap.sforce.com/2006/04/metadata">
     <caseAccessLevel>Edit</caseAccessLevel>
     <contactAccessLevel>Edit</contactAccessLevel>
-    <description>Eastern Territory</description>
+    <description>Non-profit companies in London</description>
     <mayForecastManagerShare>false</mayForecastManagerShare>
-    <name>East</name>
+    <name>Non-Profit</name>
     <opportunityAccessLevel>Edit</opportunityAccessLevel>
-    <accountAccessLevel>All</accountAccessLevel>
-    <parentTerritory>AMER</parentTerritory>
+    <accountAccessLevel>Edit</accountAccessLevel>
+    <parentTerritory>London</parentTerritory>
 </Territory>
