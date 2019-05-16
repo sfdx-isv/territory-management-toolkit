@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Territory2 xmlns="http://soap.sforce.com/2006/04/metadata">
+    <accountAccessLevel>Edit</accountAccessLevel>
+    <caseAccessLevel>Edit</caseAccessLevel>
+    <contactAccessLevel>Edit</contactAccessLevel>
+    <description>San Diego Metro Area</description>
+    <name>San Diego</name>
+    <opportunityAccessLevel>Edit</opportunityAccessLevel>
+    <parentTerritory>AMER_West</parentTerritory>
+</Territory2>

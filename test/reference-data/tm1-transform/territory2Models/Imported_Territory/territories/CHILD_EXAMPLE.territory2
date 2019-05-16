@@ -3,12 +3,9 @@
     <accountAccessLevel>Read</accountAccessLevel>
     <caseAccessLevel>None</caseAccessLevel>
     <contactAccessLevel>Edit</contactAccessLevel>
-    <description>The Sudanese Territory</description>
-    <name>Sudan</name>
+    <description>Example of a CHILD Territory2 territory</description>
+    <name>CHILD EXAMPLE</name>
     <opportunityAccessLevel>None</opportunityAccessLevel>
-    <ruleAssociations>
-        <inherited>true</inherited>
-        <ruleName>Rule_That_Applies_to_Children</ruleName>
-    </ruleAssociations>
-    <territory2Type>Territory_Type_2</territory2Type>
+    <parentTerritory>PARENT_EXAMPLE</parentTerritory>
+    <territory2Type>Imported_Territory</territory2Type>
 </Territory2>

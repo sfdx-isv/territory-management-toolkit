@@ -3,8 +3,12 @@
     <accountAccessLevel>Read</accountAccessLevel>
     <caseAccessLevel>None</caseAccessLevel>
     <contactAccessLevel>Edit</contactAccessLevel>
-    <description>The Angola Territory</description>
-    <name>Angola</name>
+    <description>Example of a Parent Territory with assignment rules</description>
+    <name>RULES TERRITORY</name>
     <opportunityAccessLevel>None</opportunityAccessLevel>
-    <territory2Type>Territory_Type_1</territory2Type>
+    <ruleAssociations>
+        <inherited>true</inherited>
+        <ruleName>Rule_That_Applies_to_Children</ruleName>
+    </ruleAssociations>
+    <territory2Type>Imported_Territory</territory2Type>
 </Territory2>
