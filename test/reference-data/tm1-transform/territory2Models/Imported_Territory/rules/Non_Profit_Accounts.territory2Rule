@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Territory2Rule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <active>true</active>
+    <name>Non-Profit Accounts</name>
+    <objectType>Account</objectType>
+    <ruleItems>
+        <field>Account.Industry</field>
+        <operation>contains</operation>
+        <value>Not For Profit</value>
+    </ruleItems>
+</Territory2Rule>

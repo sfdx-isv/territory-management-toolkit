@@ -1,16 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Territory2Rule xmlns="http://soap.sforce.com/2006/04/metadata">
-    <active>false</active>
-    <name>Example Rule</name>
+    <active>true</active>
+    <booleanFilter>1 OR 2</booleanFilter>
+    <name>Northern Accounts</name>
     <objectType>Account</objectType>
     <ruleItems>
         <field>Account.Name</field>
-        <operation>equals</operation>
-        <value>Monster</value>
+        <operation>contains</operation>
+        <value>North</value>
     </ruleItems>
     <ruleItems>
-        <field>Account.Phone</field>
+        <field>Account.BillingCity</field>
         <operation>equals</operation>
-        <value>555-555-5555</value>
+        <value>Winterfell</value>
     </ruleItems>
 </Territory2Rule>
