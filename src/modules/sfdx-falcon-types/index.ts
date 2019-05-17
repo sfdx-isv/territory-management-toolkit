@@ -30,145 +30,6 @@ import {SfdxFalconTableData}  from  '../sfdx-falcon-util/ux';   // Interface. Re
 
 
 /**
- * Represents the local config options for an AppX Demo project.
- * TODO: Delete this interface if not used.
- */
-/*
-export interface AppxDemoLocalConfig {
-  demoValidationOrgAlias: string;
-  demoDeploymentOrgAlias: string;
-  devHubAlias:            string;
-  envHubAlias:            string;
-}//*/
-/**
- * Represents the configuration schema of an AppX Demo Project.
- */
-/*
-export interface AppxDemoProjectConfig {
-  demoAlias:        string;
-  demoConfig:       string;
-  demoTitle:        string;
-  demoType:         string;
-  demoVersion:      string;
-  gitHubUrl:        string;
-  gitRemoteUri:     string;
-  partnerAlias:     string;
-  partnerName:      string;
-  schemaVersion:    string;
-}//*/
-/**
- * Represents the sequence options for an AppX Demo project
- * TODO: Delete this if left unused.
- */
-/*
-export interface AppxDemoSequenceOptions {
-  scratchDefJson:       string;
-  rebuildValidationOrg: boolean;
-  skipActions:          [string];
-}//*/
-/**
- * Represents local config settings for an APK (AppX Package) project
- * TODO: Delete this if left unused.
- */
-/*
-export interface AppxPackageLocalConfig {
-  demoValidationOrgAlias: string;
-  demoDeploymentOrgAlias: string;
-  devHubAlias:            string;
-  envHubAlias:            string;
-}//*/
-/**
- * TODO: Delete this if left unused.
- */
-/*
-export interface AppxPackageProjectConfig {
-  gitHubUrl:          string;
-  gitRemoteUri:       string;
-  metadataPackageId:  string;
-  namespacePrefix:    string;
-  packageName:        string;
-  packageVersionId: {
-    stable: string;
-    beta:   string;
-  };
-  partnerAlias:       string;
-  partnerName:        string;
-  projectAlias:       string;
-  projectName:        string;
-  projectType:        string;
-  schemaVersion:      string;
-}//*/
-/**
- * TODO: Delete this if left unused
- */
-/*
-export interface AppxPackageSequenceOptions {
-  scratchDefJson:    string;
-}//*/
-/**
- * TODO: Delete this if left unused
- */
-/*
-export interface FalconConfig {
-  appxProject?:  AppxPackageProjectConfig;
-  appxDemo?:     AppxDemoProjectConfig;
-}//*/
-/**
- * TODO: Delete this if left unused
- */
-/*
-export interface FalconCommandContext extends FalconSequenceContext {
-  commandObserver:  any;  // tslint:disable-line: no-any
-}//*/
-/**
- * TODO: Delete this if left unused.
- */
-/*
-export interface FalconCommandHandler {
-  changeMe: string;
-}//*/
-/**
- * Delete this if left unused.
- */
-/*
-export interface FalconCommandSequence {
-  sequenceName:     string;
-  sequenceType:     string;
-  sequenceVersion:  string;
-  description:      string;
-  options:          any;  // tslint:disable-line: no-any
-  sequenceGroups:   [FalconCommandSequenceGroup];
-  handlers:         [FalconCommandHandler];
-  schemaVersion:    string;
-}//*/
-/**
- * Delete this if left unused.
- */
-/*
-export interface FalconCommandSequenceGroup {
-  groupId:        string;
-  groupName:      string;
-  description:    string;
-  sequenceSteps:  FalconCommandSequenceStep[];
-}//*/
-/**
- * Delete this if left unused.
- */
-/*
-export interface FalconCommandSequenceStep {
-  stepName:     string;
-  description:  string;
-  action:       string;
-  options:      any;  // tslint:disable-line: no-any
-  onSuccess?: {
-    handler:  string;
-  };
-  onError?: {
-    handler:  string;
-  };
-}//*/
-
-/**
  * Represents the status code and JSON result that is sent to the caller when SFDX-Falcon CLI Commands are run.
  */
 export interface SfdxFalconJsonResponse {
@@ -205,7 +66,7 @@ export interface SfdxFalconProjectConfig {
  * Interface. Represents the special, hidden "local config" file for an SFDX-Falcon project.
  */
 export interface SfdxFalconLocalConfig {
-  devHubAlias?:    string;                   // eg. 'My_DevHub'
+  devHubAlias?:   string;                   // eg. 'My_DevHub'
   envHubAlias?:   string;                   // eg. 'My_EnvHub'
   pkgOrgAlias?:   string;                   // eg. 'My_PkgOrg'
   appxPackage?:   AppxPackageLocalConfig;
@@ -689,3 +550,27 @@ export interface User extends SObject {
  * Type. Alias for an array of objects that may have "Id" and "Name" properties.
  */
 export type SObjectFindResult = Array<{Id?: string; Name?: string; }>;
+
+
+// ────────────────────────────────────────────────────────────────────────────────────────────────┐
+// CSV-Parser related interfaces and types.
+// ────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+
+/**
+ * Interface. Represents the set of options that can be provided to the parse() function implemented by "csv-parser".
+ */
+export interface CsvParserOpts {
+  escape?:        string;
+  headers?:       string[]|boolean;
+  mapHeaders?:    (header:string, index:number) => string;
+  mapValues?:     (header:string, index:number, value:string) => string;
+  newline?:       string;
+  quote?:         string;
+  raw?:           boolean;
+  separator?:     string;
+  skipComments?:  boolean;
+  skipLines?:     number;
+  maxRowBytes?:   number;
+  strict?:        boolean;
+}
