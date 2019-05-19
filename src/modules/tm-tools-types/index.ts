@@ -35,6 +35,11 @@
 export type SObjectRecordId = string;
 
 /**
+ * Type. Represents a Metadata Component's Developer Name (aka "fullName").
+ */
+export type DeveloperName = string;
+
+/**
  * Interface. Represents a baseline SObject Record.
  */
 export interface SObjectRecord {
@@ -94,6 +99,31 @@ export interface UserTerritoryRecord extends SObjectRecord {
 }
 
 /**
+ * Interface. Represents an AccountShare Record.
+ */
+export interface AccountShareRecord extends SObjectRecord {
+  AccountId?:               SObjectRecordId;
+  UserOrGroupId?:           SObjectRecordId;
+  RowCause?:                string;
+  AccountAccessLevel?:      string;
+  CaseAccessLevel?:         string;
+  ContactAccessLevel?:      string;
+  OpportunityAccessLevel?:  string;
+  IsDeleted?:               boolean;
+
+}
+
+/**
+ * Type. Represents an array of AccountShare Records.
+ */
+export type AccountShareRecords = AccountShareRecord[];
+
+/**
+ * Type. Represents an array of UserTerritory Records.
+ */
+export type UserTerritoryRecords = UserTerritoryRecord[];
+
+/**
  * Type. Represents an array of Territory Records.
  */
 export type TerritoryRecords = TerritoryRecord[];
@@ -107,6 +137,11 @@ export type TerritoryRecordsById = Map<SObjectRecordId, TerritoryRecord>;
  * Type. Represents an array of AccountTerritoryAssignmentRule Records.
  */
 export type AtaRuleRecords = AtaRuleRecord[];
+
+/**
+ * Type. Represents a map of AccountTerritoryAssignmentRule Developer Names by Rule ID.
+ */
+export type AtaRuleDevNamesByRuleId = Map<SObjectRecordId, DeveloperName>;
 
 /**
  * Type. Represents an array of AccountTerritoryAssignmentRuleItem Records.
@@ -147,5 +182,15 @@ export interface TM1Context {
   ataRuleItemRecordsByRuleId: AtaRuleItemRecordsByRuleId;
 }
 
-
+/**
+ * Interface. Represents the complete suite of CSV and Metadata file paths required to create a TM1 Context.
+ */
+export interface TM1FilePaths {
+  accountShareCsv:  string;
+  ataRuleCsv:       string;
+  ataRuleItemCsv:   string;
+  territoryCsv:     string;
+  userTerritoryCsv: string;
+  tm1MetadataDir:   string;
+}
 
