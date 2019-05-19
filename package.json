@@ -25,7 +25,7 @@
     "sfdx-falcon-appx-package-kit": "0.0.5",
     "shelljs": "0.8.3",
     "tslib": "1.9.3",
-    "unzipper": "0.9.11",
+    "unzipper": "0.9.12",
     "uuid": "3.3.2",
     "xmlbuilder": "13.0.1",
     "yeoman-environment": "2.3.4",
