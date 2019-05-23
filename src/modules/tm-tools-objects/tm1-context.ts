@@ -68,7 +68,7 @@ export class TM1Context {
     const tm1Context = new TM1Context(exportedMetadataPath, exportedRecordDataPath);
     await tm1Context.parseCsvFiles();
     await tm1Context.transformCsvFiles();
-    tm1Context._contextPrepared = true;
+    tm1Context._prepared = true;
     return tm1Context;
   }
 
@@ -83,7 +83,7 @@ export class TM1Context {
   private _ataRuleItemRecordsByRuleId:  AtaRuleItemRecordsByRuleId;
   private _ataRuleDevNamesByRuleId:     AtaRuleDevNamesByRuleId;
   private _tm1FilePaths:                TM1FilePaths;
-  private _contextPrepared:             boolean;
+  private _prepared:                    boolean;
 
   // Public Accessors
   public get territoryRecords()           { return this.contextIsPrepared() ? this._territoryRecords : undefined; }
@@ -92,10 +92,11 @@ export class TM1Context {
   public get ataRuleRecordsById()         { return this.contextIsPrepared() ? this._ataRuleRecordsById : undefined; }
   public get ataRuleItemRecords()         { return this.contextIsPrepared() ? this._ataRuleItemRecords : undefined; }
   public get ataRuleItemRecordsByRuleId() { return this.contextIsPrepared() ? this._ataRuleItemRecordsByRuleId : undefined; }
+  public get ataRuleDevNamesByRuleId()    { return this.contextIsPrepared() ? this._ataRuleDevNamesByRuleId : undefined; }
   public get userTerritoryRecords()       { return this.contextIsPrepared() ? this._userTerritoryRecords : undefined; }
   public get accountShareRecords()        { return this.contextIsPrepared() ? this._accountShareRecords : undefined; }
   public get tm1FilePaths()               { return this._tm1FilePaths; }
-  public get prepared()                   { return this._contextPrepared; }
+  public get prepared()                   { return this._prepared; }
 
   //───────────────────────────────────────────────────────────────────────────┐
   /**
@@ -129,7 +130,7 @@ export class TM1Context {
     this._ataRuleDevNamesByRuleId     = new Map<string, string>();
 
     // Mark this as an UNPREPARED context
-    this._contextPrepared = false;
+    this._prepared = false;
   }
 
   //───────────────────────────────────────────────────────────────────────────┐
@@ -155,7 +156,7 @@ export class TM1Context {
     let   counter           = 2;
     while (this.matchAtaRuleDeveloperName(newDevName)) {
       const counterString = counter.toString();
-      newDevName = newDevName.substring(0, devNameMaxLength-counterString.length-1) + counterString;
+      newDevName = baseDevName.substring(0, devNameMaxLength-counterString.length) + counterString;
       counter += 1;
     }
 
@@ -175,13 +176,13 @@ export class TM1Context {
    */
   //───────────────────────────────────────────────────────────────────────────┘
   private contextIsPrepared():boolean {
-    if (this._contextPrepared !== true) {
+    if (this._prepared !== true) {
       throw new SfdxFalconError ( `TM1 Context members are not accessible until the context is prepared`
                                 , `ContextNotPrepared`
                                 , `${dbgNs}contextIsPrepared`);
     }
     else {
-      return this._contextPrepared;
+      return this._prepared;
     }
   }
 
