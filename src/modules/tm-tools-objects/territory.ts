@@ -32,23 +32,23 @@ import {AtaRuleItemRecords} from  '../tm-tools-types';   // Type. Represents an 
 export class Territory {
 
   // Public Members
-  public  readonly  id:                         string;     // ???
-  public  readonly  parentTerritoryId:          string;     // ???
-  public  readonly  parentTerritory:            string;     // ???
-  public  readonly  developerName:              string;     // Equivalent to fullName
-  public  readonly  name:                       string;
-  public  readonly  description:                string;
+  public  readonly  id:                           string;     // ???
+  public  readonly  parentTerritoryId:            string;     // ???
+  public  readonly  parentTerritory:              string;     // ???
+  public  readonly  developerName:                string;     // Equivalent to fullName
+  public  readonly  name:                         string;     // ???
+  public  readonly  description:                  string;     // ???
 
   // Object Access Levels
-  public  readonly  accountAccessLevel:          string;     // ???
-  public  readonly  caseAccessLevel:             string;
-  public  readonly  contactAccessLevel:          string;
-  public  readonly  opportunityAccessLevel:      string;
+  public  readonly  accountAccessLevel:           string;     // ???
+  public  readonly  caseAccessLevel:              string;     // ???
+  public  readonly  contactAccessLevel:           string;     // ???
+  public  readonly  opportunityAccessLevel:       string;     // ???
 
   // Miscellaneous fields (not used by TM2)
-  public  readonly  restrictOpportunityTransfer: boolean;
-  public  readonly  forecastUserId:              string;
-  public  readonly  mayForecastManagerShare:     boolean;
+  public  readonly  restrictOpportunityTransfer:  string;     // ???
+  public  readonly  forecastUserId:               string;     // ???
+  public  readonly  mayForecastManagerShare:      string;     // ???
 
   // Public Accessors
   public get fullName():string {
