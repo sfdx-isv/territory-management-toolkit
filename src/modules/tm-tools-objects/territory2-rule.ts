@@ -10,11 +10,13 @@
  */
 //─────────────────────────────────────────────────────────────────────────────────────────────────┘
 // Import External Modules/Types
+import * as path                      from  'path';                         // Node's path library.
 
 // Import Internal Modules
 import  {SfdxFalconDebug}             from  '../sfdx-falcon-debug';         // Specialized debug provider for SFDX-Falcon code.
 import  {SfdxFalconError}             from  '../sfdx-falcon-error';         // Class. Extends SfdxError to provide specialized error structures for SFDX-Falcon modules.
 import  {Metadata}                    from  '../tm-tools-objects/metadata'; // Abstract Class. Models Salesforce "Territory2Model" metadata as needed for deployment to a TM2 org.
+import  {Territory2Model}             from  './territory2-model';           // Class. Models Salesforce "Territory2Model" metadata as needed for deployment to a TM2 org.
 
 // Import TM-Tools Types
 import  {AtaRuleRecord}               from  '../tm-tools-types';            // Interface. Represents an AccountTerritoryAssignmentRule Record.
@@ -35,7 +37,8 @@ interface Territory2RuleOptions {
   developerName:              string;
   ataRuleRecord:              AtaRuleRecord;
   ataRuleItemRecordsByRuleId: AtaRuleItemRecordsByRuleId;
-  filePath:                   string;
+  objectType:                 string;
+  territory2Model:            Territory2Model;
 }
 
 //─────────────────────────────────────────────────────────────────────────────────────────────────┐
@@ -51,6 +54,7 @@ export class Territory2Rule extends Metadata {
   // Private Members
   private _ataRuleRecord:           AtaRuleRecord;
   private _ataRuleItemRecords:      AtaRuleItemRecords;
+  private _objectType:              string;
 
   //───────────────────────────────────────────────────────────────────────────┐
   /**
@@ -83,7 +87,18 @@ export class Territory2Rule extends Metadata {
     }
     if ((opts.ataRuleItemRecordsByRuleId instanceof Map) !== true) {
       throw new SfdxFalconError ( `The ruleItemsByRuleId option must be an instance of Map. `
-                                + `The provided object was an instance of '${(opts.ataRuleItemRecordsByRuleId.constructor) ? opts.ataRuleItemRecordsByRuleId.constructor.name : 'unknown'}' instead.`
+                                + `The provided object was an instance of '${(opts.ataRuleItemRecordsByRuleId && opts.ataRuleItemRecordsByRuleId.constructor) ? opts.ataRuleItemRecordsByRuleId.constructor.name : 'unknown'}' instead.`
+                                , `TypeError`
+                                , `${dbgNs}constructor`);
+    }
+    if ((opts.territory2Model instanceof Territory2Model) !== true) {
+      throw new SfdxFalconError ( `The territory2Model option must be an instance of Territory2Model. `
+                                + `The provided object was an instance of '${(opts.territory2Model && opts.territory2Model.constructor) ? opts.territory2Model.constructor.name : 'unknown'}' instead.`
+                                , `TypeError`
+                                , `${dbgNs}constructor`);
+    }
+    if (typeof opts.objectType !== 'string' || opts.objectType === '') {
+      throw new SfdxFalconError ( `The objectType options must be a non-empty string. Got '${typeof opts.objectType}' instead.`
                                 , `TypeError`
                                 , `${dbgNs}constructor`);
     }
@@ -95,8 +110,9 @@ export class Territory2Rule extends Metadata {
         rootNode:       `Territory2Rule`,
         name:           opts.ataRuleRecord.Name,
         developerName:  opts.developerName,
+        filePath:       path.join(opts.territory2Model.filePath, 'rules'),
         fileNameSuffix: `.territory2Rule`,
-        parent:         null
+        parent:         opts.territory2Model
       }
     };
 
@@ -106,6 +122,7 @@ export class Territory2Rule extends Metadata {
     // Store references to the ATA Rule and ATA Rule Item Records.
     this._ataRuleRecord       = opts.ataRuleRecord;
     this._ataRuleItemRecords  = opts.ataRuleItemRecordsByRuleId.get(opts.ataRuleRecord.Id) || [];
+    this._objectType          = opts.objectType;
 
     // Mark this object as prepared.
     this._prepared = true;
@@ -126,10 +143,10 @@ export class Territory2Rule extends Metadata {
       this.xmlRoot.ele('booleanFilter').txt(this._ataRuleRecord.BooleanFilter);
     }
     this.xmlRoot.ele('name').txt(this.name);
-    this.xmlRoot.ele('objectType').txt('Account');
+    this.xmlRoot.ele('objectType').txt(this._objectType);
     for (const ataRuleItemRecord of this._ataRuleItemRecords) {
       const ruleItemsNode = this.xmlRoot.ele('ruleItems');
-      ruleItemsNode.ele('field').txt('Account.' + ataRuleItemRecord.Field);
+      ruleItemsNode.ele('field').txt(this._objectType + '.' + ataRuleItemRecord.Field);
       ruleItemsNode.ele('operation').txt(ataRuleItemRecord.Operation);
       ruleItemsNode.ele('value').txt(ataRuleItemRecord.Value);
     }
