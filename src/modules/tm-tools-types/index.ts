@@ -223,3 +223,36 @@ export interface TM2FilePaths {
   userTerritory2AssociationCsv:   string;
   tm2MetadataDir:                 string;
 }
+
+/**
+ * Type. Represents a specific instance of a metadata type in a package manifest (package.xml).
+ */
+export type PackageTypeMember   = string;
+
+/**
+ * Type. Represents an array of Package Type Members.
+ */
+export type PackageTypeMembers  = PackageTypeMember[];
+
+/**
+ * Type. Represents the name of a specific Metadata type (eg. "Territory2Rule").
+ */
+export type PackageTypeName     = string;
+
+/**
+ * Interface. Represents the entire grouping of a <types> node in a package manifest (package.xml).
+ */
+export interface PackageType {
+  name: PackageTypeName;
+  members:  PackageTypeMembers;
+}
+
+/**
+ * Type. Represents an array of Package Types.
+ */
+export type PackageTypes    = PackageType[];
+
+/**
+ * Type. Represents the <version> node in a package manifest (package.xml).
+ */
+export type PackageVersion  = string;
