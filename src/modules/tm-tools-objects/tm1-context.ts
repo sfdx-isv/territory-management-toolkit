@@ -20,20 +20,21 @@ import {parseFile}                from  '../sfdx-falcon-util/csv';    // Class. 
 import {createDeveloperName}      from  '../sfdx-falcon-util/mdapi';  // Function. Given any string, returns a transformed version of that string that is compatible with the Salesforce Developer Name / Full Name conventions.
 
 // Import TM-Tools Types
-import {TerritoryRecord}            from  '../tm-tools-types';   // Interface. Represents a Territory Record.
-import {TerritoryRecords}           from  '../tm-tools-types';   // Type. Represents an array of Territory Records.
-import {TerritoryRecordsById}       from  '../tm-tools-types';   // Type. Represents a map of Territory Records by Territory ID.
-import {AccountShareRecords}        from  '../tm-tools-types';   // Type. Represents an array of AccountShare Records.
-import {AtaRuleRecord}              from  '../tm-tools-types';   // Interface. Represents an AccountTerritoryAssignmentRule Record.
-import {AtaRuleRecords}             from  '../tm-tools-types';   // Type. Represents an array of AccountTerritoryAssignmentRule Records.
-import {AtaRuleRecordsById}         from  '../tm-tools-types';   // Type. Represents a map of AccountTerritoryAssignmentRule Records by Rule ID.
-import {AtaRuleDevNamesByRuleId}    from  '../tm-tools-types';   // Type. Represents a map of AccountTerritoryAssignmentRule Developer Names by Rule ID.
-//import {AtaRuleItemRecord}          from  '../tm-tools-types';   // Interface. Represents an AccountTerritoryAssignmentRuleItem Record.
-import {AtaRuleItemRecords}         from  '../tm-tools-types';   // Type. Represents an array of AccountTerritoryAssignmentRuleItem Records.
-import {AtaRuleItemRecordsByRuleId} from  '../tm-tools-types';   // Type. Represents a map of an array of AccountTerritoryAssignmentRuleItem Records by Rule ID.
-import {UserTerritoryRecords}       from  '../tm-tools-types';   // Type. Represents an array of UserTerritory Records.
-import {TM1FilePaths}               from  '../tm-tools-types';   // Interface. Represents the complete suite of CSV and Metadata file paths required to create a TM1 Context.
-//import {TerritoryNamesByTerritoryId} from  '../tm-tools-types';   // Type. Represents a map of Territory Names by Territory ID.
+import {TerritoryRecord}              from  '../tm-tools-types';   // Interface. Represents a Territory Record.
+import {TerritoryRecords}             from  '../tm-tools-types';   // Type. Represents an array of Territory Records.
+import {TerritoryRecordsById}         from  '../tm-tools-types';   // Type. Represents a map of Territory Records by Territory ID.
+import {AccountShareRecords}          from  '../tm-tools-types';   // Type. Represents an array of AccountShare Records.
+import {AtaRuleRecord}                from  '../tm-tools-types';   // Interface. Represents an AccountTerritoryAssignmentRule Record.
+import {AtaRuleRecords}               from  '../tm-tools-types';   // Type. Represents an array of AccountTerritoryAssignmentRule Records.
+import {AtaRuleRecordsById}           from  '../tm-tools-types';   // Type. Represents a map of AccountTerritoryAssignmentRule Records by Rule ID.
+import {AtaRuleRecordsByTerritoryId}  from  '../tm-tools-types';   // Type. Represents a map of an array of AccountTerritoryAssignmentRule Records by Territory ID.
+import {AtaRuleDevNamesByRuleId}      from  '../tm-tools-types';   // Type. Represents a map of AccountTerritoryAssignmentRule Developer Names by Rule ID.
+//import {AtaRuleItemRecord}            from  '../tm-tools-types';   // Interface. Represents an AccountTerritoryAssignmentRuleItem Record.
+import {AtaRuleItemRecords}           from  '../tm-tools-types';   // Type. Represents an array of AccountTerritoryAssignmentRuleItem Records.
+import {AtaRuleItemRecordsByRuleId}   from  '../tm-tools-types';   // Type. Represents a map of an array of AccountTerritoryAssignmentRuleItem Records by Rule ID.
+import {UserTerritoryRecords}         from  '../tm-tools-types';   // Type. Represents an array of UserTerritory Records.
+import {TM1FilePaths}                 from  '../tm-tools-types';   // Interface. Represents the complete suite of CSV and Metadata file paths required to create a TM1 Context.
+//import {TerritoryNamesByTerritoryId}  from  '../tm-tools-types';   // Type. Represents a map of Territory Names by Territory ID.
 
 
 // Set the File Local Debug Namespace
@@ -80,23 +81,25 @@ export class TM1Context {
   private _userTerritoryRecords:        UserTerritoryRecords;
   private _territoryRecordsById:        TerritoryRecordsById;
   private _ataRuleRecordsById:          AtaRuleRecordsById;
+  private _ataRuleRecordsByTerritoryId: AtaRuleRecordsByTerritoryId;
   private _ataRuleItemRecordsByRuleId:  AtaRuleItemRecordsByRuleId;
   private _ataRuleDevNamesByRuleId:     AtaRuleDevNamesByRuleId;
   private _tm1FilePaths:                TM1FilePaths;
   private _prepared:                    boolean;
 
   // Public Accessors
-  public get territoryRecords()           { return this.contextIsPrepared() ? this._territoryRecords : undefined; }
-  public get territoryRecordsById()       { return this.contextIsPrepared() ? this._territoryRecordsById : undefined; }
-  public get ataRuleRecords()             { return this.contextIsPrepared() ? this._ataRuleRecords : undefined; }
-  public get ataRuleRecordsById()         { return this.contextIsPrepared() ? this._ataRuleRecordsById : undefined; }
-  public get ataRuleItemRecords()         { return this.contextIsPrepared() ? this._ataRuleItemRecords : undefined; }
-  public get ataRuleItemRecordsByRuleId() { return this.contextIsPrepared() ? this._ataRuleItemRecordsByRuleId : undefined; }
-  public get ataRuleDevNamesByRuleId()    { return this.contextIsPrepared() ? this._ataRuleDevNamesByRuleId : undefined; }
-  public get userTerritoryRecords()       { return this.contextIsPrepared() ? this._userTerritoryRecords : undefined; }
-  public get accountShareRecords()        { return this.contextIsPrepared() ? this._accountShareRecords : undefined; }
-  public get tm1FilePaths()               { return this._tm1FilePaths; }
-  public get prepared()                   { return this._prepared; }
+  public get territoryRecords()             { return this.contextIsPrepared() ? this._territoryRecords : undefined; }
+  public get territoryRecordsById()         { return this.contextIsPrepared() ? this._territoryRecordsById : undefined; }
+  public get ataRuleRecords()               { return this.contextIsPrepared() ? this._ataRuleRecords : undefined; }
+  public get ataRuleRecordsById()           { return this.contextIsPrepared() ? this._ataRuleRecordsById : undefined; }
+  public get ataRuleRecordsByTerritoryId()  { return this.contextIsPrepared() ? this._ataRuleRecordsByTerritoryId : undefined; }
+  public get ataRuleItemRecords()           { return this.contextIsPrepared() ? this._ataRuleItemRecords : undefined; }
+  public get ataRuleItemRecordsByRuleId()   { return this.contextIsPrepared() ? this._ataRuleItemRecordsByRuleId : undefined; }
+  public get ataRuleDevNamesByRuleId()      { return this.contextIsPrepared() ? this._ataRuleDevNamesByRuleId : undefined; }
+  public get userTerritoryRecords()         { return this.contextIsPrepared() ? this._userTerritoryRecords : undefined; }
+  public get accountShareRecords()          { return this.contextIsPrepared() ? this._accountShareRecords : undefined; }
+  public get tm1FilePaths()                 { return this._tm1FilePaths; }
+  public get prepared()                     { return this._prepared; }
 
   //───────────────────────────────────────────────────────────────────────────┐
   /**
@@ -126,6 +129,7 @@ export class TM1Context {
     // Initialize Maps
     this._territoryRecordsById        = new Map<string, TerritoryRecord>();
     this._ataRuleRecordsById          = new Map<string, AtaRuleRecord>();
+    this._ataRuleRecordsByTerritoryId = new Map<string, AtaRuleRecords>();
     this._ataRuleItemRecordsByRuleId  = new Map<string, AtaRuleItemRecords>();
     this._ataRuleDevNamesByRuleId     = new Map<string, string>();
 
@@ -165,6 +169,38 @@ export class TM1Context {
 
     // Done! Return the new Dev Name (in case anyone cares).
     return newDevName;
+  }
+
+  //───────────────────────────────────────────────────────────────────────────┐
+  /**
+   * @method      addAtaRuleToTerritoryGroup
+   * @param       {ataRuleRecord} ataRuleRecord Required.
+   * @return      {AtaRuleRecords}  The array of ATA Rule Records that are
+   *              associated with the Territory that the ATA Rule Record we
+   *              were given is associated with.
+   * @description Given an ATA Rule Record, find out what Territory it belongs
+   *              to, then add it to the matching Array of ATA Rule Records in
+   *              the ATA Rule Records by Territory ID map. Return the Array
+   *              just in case the caller needs it.
+   * @private
+   */
+  //───────────────────────────────────────────────────────────────────────────┘
+  private addAtaRuleToTerritoryGroup(ataRuleRecord:AtaRuleRecord):AtaRuleRecords {
+    
+    // See if there is already an Array of ATA Rule Records for this Rule's associated Territory.
+    let ataRuleRecords = this._ataRuleRecordsByTerritoryId.get(ataRuleRecord.TerritoryId);
+
+    // If it's not already an array, initialize one and add it to the Map.
+    if (Array.isArray(ataRuleRecords) !== true) {
+      ataRuleRecords = [] as AtaRuleRecords;
+      this._ataRuleRecordsByTerritoryId.set(ataRuleRecord.TerritoryId, ataRuleRecords);
+    }
+
+    // Add the incoming ATA Rule Record to the array.
+    ataRuleRecords.push(ataRuleRecord);
+
+    // Return the array in case the caller needs it. (they probably won't)
+    return ataRuleRecords;
   }
 
   //───────────────────────────────────────────────────────────────────────────┐
@@ -257,6 +293,9 @@ export class TM1Context {
 
       // Create and store a Developer Name for this ATA rule.
       this.addAtaRuleDeveloperName(ataRuleRecord);
+
+      // Add this Rule Record to the appropriate map of of ATA Rules by Territory ID.
+      this.addAtaRuleToTerritoryGroup(ataRuleRecord);
 
       // Build a group of the ATA Rule Item records related to the current ATA Rule.
       const ataRuleItemRecords = [] as AtaRuleItemRecords;
