@@ -1,11 +1,11 @@
 //─────────────────────────────────────────────────────────────────────────────────────────────────┐
 /**
- * @file          commands/tmtools/tm1/export.ts
+ * @file          commands/tmtools/tm1/extract.ts
  * @copyright     Vivek M. Chawla - 2019
  * @author        Vivek M. Chawla <@VivekMChawla>
- * @summary       Implements the CLI command "tmtools:tm1:export"
- * @description   Salesforce CLI Plugin command (tmtools:tm1:export) that allows a Salesforce Admin
- *                to export Salesforce Territory Management (TM1) data and metadata from an org and
+ * @summary       Implements the CLI command "tmtools:tm1:extract"
+ * @description   Salesforce CLI Plugin command (tmtools:tm1:extract) that allows a Salesforce Admin
+ *                to extract Salesforce Territory Management (TM1) data and metadata from an org and
  *                store that data inside a local directory.
  * @version       1.0.0
  * @license       MIT
@@ -21,7 +21,6 @@ import {AnyJson}                      from  '@salesforce/ts-types'; // Safe type
 
 // Import Local Modules
 import {SfdxFalconError}              from  '../../../modules/sfdx-falcon-error';   // Class. Extends SfdxError to provide specialized error structures for SFDX-Falcon modules.
-//import {SfdxFalconProject}            from  '../../../modules/sfdx-falcon-project'; // Class. Represents an SFDX-Falcon project, including locally stored project data.
 //import {SfdxFalconResult}             from  '../../../modules/sfdx-falcon-result';  // Class. Used to communicate results of SFDX-Falcon code execution at a variety of levels.
 //import {SfdxFalconResultType}         from  '../../../modules/sfdx-falcon-result';  // Enum. Represents the different types of sources where Results might come from.
 import {SfdxFalconYeomanCommand}      from  '../../../modules/sfdx-falcon-yeoman-command';  // Base class that CLI commands in this project that use Yeoman should use.
@@ -31,35 +30,35 @@ import {SfdxFalconCommandType}        from  '../../../modules/sfdx-falcon-comman
 //import {CoreActionResultDetail}       from  '../../../modules/sfdx-falcon-recipe/engines/appx/actions'; // Interface. Represents the core set of "detail" information that every ACTION result should have.
 
 // Set the File Local Debug Namespace
-//const dbgNs     = 'COMMAND:tmtools-tm1-export:';
+//const dbgNs     = 'COMMAND:tmtools-tm1-extract:';
 
 // Use SfdxCore's Messages framework to get the message bundles for this command.
 Messages.importMessagesDirectory(__dirname);
-const commandMessages = Messages.loadMessages('territory-management-tools', 'tmtoolsTm1Export');
+const commandMessages = Messages.loadMessages('territory-management-tools', 'tmtoolsTm1Extract');
 
 
 //─────────────────────────────────────────────────────────────────────────────────────────────────┐
 /**
- * @class       TmtoolsTm1Export
+ * @class       TmtoolsTm1Extract
  * @extends     SfdxFalconYeomanCommand
- * @summary     Implements the CLI Command "tmtools:tm1:export"
- * @description The command "tmtools:tm1:export"...TODO: Add description
+ * @summary     Implements the CLI Command "tmtools:tm1:extract"
+ * @description The command "tmtools:tm1:extract"...TODO: Add description
  * @public
  */
 //─────────────────────────────────────────────────────────────────────────────────────────────────┘
-export default class TmtoolsTm1Export extends SfdxFalconYeomanCommand {
+export default class TmtoolsTm1Extract extends SfdxFalconYeomanCommand {
 
   // Define the basic properties of this CLI command.
   public static description = commandMessages.getMessage('commandDescription');
   public static hidden      = false;
   public static examples    = [
-    `$ sfdx tmtools:tm1:export`,
-    `$ sfdx tmtools:tm1:export TODO: finish this example`
+    `$ sfdx tmtools:tm1:extract`,
+    `$ sfdx tmtools:tm1:extract TODO: finish this example`
   ];
 
   //───────────────────────────────────────────────────────────────────────────┐
   // Define the flags used by this command.
-  // -d --OUTPUTDIR   Directory where TM1 metadata and data will be exported to.
+  // -d --OUTPUTDIR   Directory where TM1 metadata and data will be extracted to.
   //                  Defaults to . (current directory) if not specified.
   //───────────────────────────────────────────────────────────────────────────┘
   protected static flagsConfig = {
@@ -87,18 +86,18 @@ export default class TmtoolsTm1Export extends SfdxFalconYeomanCommand {
    * @function    run
    * @returns     {Promise<AnyJson>}  Resolves with a JSON object that the CLI
    *              will pass to the user as stdout if the --json flag was set.
-   * @description Entrypoint function for "sfdx tmtools:tm1:export".
+   * @description Entrypoint function for "sfdx tmtools:tm1:extract".
    * @public @async
    */
   //───────────────────────────────────────────────────────────────────────────┘
   public async run():Promise<AnyJson> {
 
     // Initialize the SfdxFalconCommand (required by ALL classes that extend SfdxFalconCommand).
-    this.sfdxFalconCommandInit('tmtools:tm1:export', SfdxFalconCommandType.UNKNOWN);
+    this.sfdxFalconCommandInit('tmtools:tm1:extract', SfdxFalconCommandType.UNKNOWN);
 
     // Run a Yeoman Generator to interact with and run tasks for the user.
     await super.runYeomanGenerator({
-      generatorType:    'export-tm1-data-and-metadata',
+      generatorType:    'extract-tm1-data-and-metadata',
       outputDir:        this.outputDirectory,
       options: []
     })
