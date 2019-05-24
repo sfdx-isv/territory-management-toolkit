@@ -10,37 +10,23 @@
  */
 //─────────────────────────────────────────────────────────────────────────────────────────────────┘
 // Import External Modules
-//import {JsonMap}                    from  '@salesforce/ts-types'; // Any JSON compatible object.
-import * as path          from  'path';     // Node's path library.
+import * as path                          from  'path';                                 // Node's path library.
 
 // Import Internal Modules
-import  {SfdxFalconDebug}                 from  '../sfdx-falcon-debug';             // Specialized debug provider for SFDX-Falcon code.
-import  {SfdxFalconError}                 from  '../sfdx-falcon-error';             // Class. Extends SfdxError to provide specialized error structures for SFDX-Falcon modules.
-import  {Territory2}                      from  '../tm-tools-objects/territory2';   // ???
+import  {SfdxFalconDebug}                 from  '../sfdx-falcon-debug';                 // Specialized debug provider for SFDX-Falcon code.
+import  {SfdxFalconError}                 from  '../sfdx-falcon-error';                 // Class. Extends SfdxError to provide specialized error structures for SFDX-Falcon modules.
+import  {Package}                         from  '../tm-tools-objects/package';          // ???
+import  {Territory2}                      from  '../tm-tools-objects/territory2';       // ???
 import  {Territory2Model}                 from  '../tm-tools-objects/territory2-model'; // ???
 import  {Territory2Rule}                  from  '../tm-tools-objects/territory2-rule';  // ???
 import  {Territory2Type}                  from  '../tm-tools-objects/territory2-type';  // ???
-import  {TM1Context}                      from  '../tm-tools-objects/tm1-context';  // Models the entirety of an exported set of TM1 data, including helpful transforms.
-
-//import {SfdxFalconKeyValueTable}  from  '../sfdx-falcon-util/ux'; // Class. Uses table creation code borrowed from the SFDX-Core UX library to make it easy to build "Key/Value" tables.
+import  {TM1Context}                      from  '../tm-tools-objects/tm1-context';      // Models the entirety of an exported set of TM1 data, including helpful transforms.
 
 // Import TM-Tools Types
 import  {Territory2ObjectsByDevName}      from  '../tm-tools-types';   // Type. Represents a map of Territory2 Objects by Developer Name.
 import  {Territory2ModelObjectsByDevName} from  '../tm-tools-types';   // Type. Represents a map of Territory2Model Objects by Developer Name.
 import  {Territory2RuleObjectsByDevName}  from  '../tm-tools-types';   // Type. Represents a map of Territory2Rule Objects by Developer Name.
 import  {Territory2TypeObjectsByDevName}  from  '../tm-tools-types';   // Type. Represents a map of Territory2Type Objects by Developer Name.
-
-//import  {TerritoryRecord}                 from  '../tm-tools-types';   // Interface. Represents a Territory Record.
-//import  {TerritoryRecords}                from  '../tm-tools-types';   // Type. Represents an array of Territory Records.
-//import  {TerritoryRecordsById}            from  '../tm-tools-types';   // Type. Represents a map of Territory Records by Territory ID.
-//import  {AccountShareRecords}             from  '../tm-tools-types';   // Type. Represents an array of AccountShare Records.
-//import  {AtaRuleRecord}                   from  '../tm-tools-types';   // Interface. Represents an AccountTerritoryAssignmentRule Record.
-//import  {AtaRuleRecords}                  from  '../tm-tools-types';   // Type. Represents an array of AccountTerritoryAssignmentRule Records.
-//import  {AtaRuleRecordsById}              from  '../tm-tools-types';   // Type. Represents a map of AccountTerritoryAssignmentRule Records by Rule ID.
-//import  {AtaRuleDevNamesByRuleId}         from  '../tm-tools-types';   // Type. Represents a map of AccountTerritoryAssignmentRule Developer Names by Rule ID.
-//import  {AtaRuleItemRecord}               from  '../tm-tools-types';   // Interface. Represents an AccountTerritoryAssignmentRuleItem Record.
-//import  {AtaRuleItemRecords}              from  '../tm-tools-types';   // Type. Represents an array of AccountTerritoryAssignmentRuleItem Records.
-//import  {AtaRuleItemRecordsByRuleId}      from  '../tm-tools-types';   // Type. Represents a map of an array of AccountTerritoryAssignmentRuleItem Records by Rule ID.
 import  {TM2FilePaths}                    from  '../tm-tools-types';   // Interface. Represents the complete suite of CSV and Metadata file paths required for a TM2 Transform.
 
 // Set file local globals
@@ -96,6 +82,7 @@ export class TmToolsTransform {
   // Private Members
   private _tm1Context:                      TM1Context;
   private _tm2FilePaths:                    TM2FilePaths;
+  private _package:                         Package;
   private _territory2ObjectsByDevName:      Territory2ObjectsByDevName;
   private _territory2ModelObjectsByDevName: Territory2ModelObjectsByDevName;
   private _territory2TypeObjectsByDevName:  Territory2TypeObjectsByDevName;
@@ -104,6 +91,7 @@ export class TmToolsTransform {
 
   // Public Accessors
   public get tm1Context()                       { return this.isPrepared() ? this._tm1Context : undefined; }
+  public get package()                          { return this.isPrepared() ? this._package : undefined; }
   public get territory2ObjectsByDevName()       { return this.isPrepared() ? this._territory2ObjectsByDevName : undefined; }
   public get territory2ModelObjectsByDevName()  { return this.isPrepared() ? this._territory2ModelObjectsByDevName : undefined; }
   public get territory2TypeObjectsByDevName()   { return this.isPrepared() ? this._territory2TypeObjectsByDevName : undefined; }
@@ -129,10 +117,10 @@ export class TmToolsTransform {
 
     // Define the expected TM1 file paths.
     this._tm2FilePaths = {
-      objectTerritory2AssociationCsv: path.join(transformedMetadataPath,  'ObjectTerritory2Association.csv'),
-      territory2Csv:                  path.join(transformedMetadataPath,  'Territory2Csv.csv'),
-      userTerritory2AssociationCsv:   path.join(transformedMetadataPath,  'UserTerritory2AssociationCsv.csv'),
-      tm2MetadataDir:                 path.join(transformedDataPath,      'unpackaged')
+      objectTerritory2AssociationCsv: path.join(transformedDataPath,      'ObjectTerritory2Association.csv'),
+      territory2Csv:                  path.join(transformedDataPath,      'Territory2Csv.csv'),
+      userTerritory2AssociationCsv:   path.join(transformedDataPath,      'UserTerritory2AssociationCsv.csv'),
+      tm2MetadataDir:                 path.join(transformedMetadataPath,  'unpackaged')
     };
 
     // Initialize Maps
@@ -182,8 +170,39 @@ export class TmToolsTransform {
    */
   //───────────────────────────────────────────────────────────────────────────┘
   private createPackageObject():void {
+    const packageTypes  = [];
+    const {falcon}      = require('../../../package.json'); // The version of the SFDX-Falcon plugin
 
+    // Territory2
+    packageTypes.push({
+      members:  ['*'],
+      name:     'Territory2'
+    });
 
+    // Territory2Model
+    packageTypes.push({
+      members:  ['*'],
+      name:     'Territory2Model'
+    });
+
+    // Territory2Rule
+    packageTypes.push({
+      members:  ['*'],
+      name:     'Territory2Rule'
+    });
+
+    // Territory2Type
+    packageTypes.push({
+      members:  ['*'],
+      name:     'Territory2Type'
+    });
+
+    // Create the Package object.
+    this._package = new Package({
+      types:    packageTypes,
+      version:  falcon.sfdcApiVersion,
+      filePath: this._tm2FilePaths.tm2MetadataDir
+    });
   }
 
   //───────────────────────────────────────────────────────────────────────────┐
