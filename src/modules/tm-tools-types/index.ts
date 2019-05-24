@@ -24,9 +24,11 @@
 //import {Question}             from  'yeoman-generator';         // Interface. Represents an array of Inquirer "question" objects.
 
 // Import Internal Modules/Types
-//import {SfdxFalconResult}     from  '../sfdx-falcon-result';    // Class. Implements a framework for creating results-driven, informational objects with a concept of heredity (child results) and the ability to "bubble up" both Errors (thrown exceptions) and application-defined "failures".
-//import {SfdxOrgInfo}          from  '../sfdx-falcon-util/sfdx'; // Class. Stores information about orgs that are connected to the local Salesforce CLI.
-//import {SfdxFalconTableData}  from  '../sfdx-falcon-util/ux';   // Interface. Represents and array of SfdxFalconKeyValueTableDataRow objects.
+import {Territory2}             from  '../tm-tools-objects/territory2';       // Class. Models Salesforce "Territory2" metadata as needed for deployment to a TM2 org.
+import {Territory2Model}        from  '../tm-tools-objects/territory2-model'; // Class. Models Salesforce "Territory2Model" metadata as needed for deployment to a TM2 org.
+import {Territory2Rule}         from  '../tm-tools-objects/territory2-rule';  // Class. Models Salesforce "Territory2Rule" metadata as needed for deployment to a TM2 org.
+import {Territory2Type}         from  '../tm-tools-objects/territory2-type';  // Class. Models Salesforce "Territory2Type" metadata as needed for deployment to a TM2 org.
+
 
 
 /**
@@ -63,9 +65,9 @@ export interface TerritoryRecord extends SObjectRecord {
   CaseAccessLevel?:             string;
   ContactAccessLevel?:          string;
   OpportunityAccessLevel?:      string;
-  RestrictOpportunityTransfer?: boolean;
+  RestrictOpportunityTransfer?: string;
   ForecastUserId?:              SObjectRecordId;
-  MayForecastManagerShare?:     boolean;
+  MayForecastManagerShare?:     string;
 }
 
 /**
@@ -73,8 +75,8 @@ export interface TerritoryRecord extends SObjectRecord {
  */
 export interface AtaRuleRecord extends SObjectRecord {
   TerritoryId?:   SObjectRecordId;
-  IsActive?:      boolean;
-  IsInherited?:   boolean;
+  IsActive?:      string;
+  IsInherited?:   string;
   BooleanFilter?: string;
 }
 
@@ -83,7 +85,7 @@ export interface AtaRuleRecord extends SObjectRecord {
  */
 export interface AtaRuleItemRecord extends SObjectRecord {
   RuleId?:    SObjectRecordId;
-  SortOrder?: number;
+  SortOrder?: string;
   Field?:     string;
   Operation?: string;
   Value?:     string;
@@ -95,7 +97,7 @@ export interface AtaRuleItemRecord extends SObjectRecord {
 export interface UserTerritoryRecord extends SObjectRecord {
   UserId?:      SObjectRecordId;
   TerritoryId?: SObjectRecordId;
-  IsActive?:    boolean;
+  IsActive?:    string;
 }
 
 /**
@@ -109,7 +111,7 @@ export interface AccountShareRecord extends SObjectRecord {
   CaseAccessLevel?:         string;
   ContactAccessLevel?:      string;
   OpportunityAccessLevel?:  string;
-  IsDeleted?:               boolean;
+  IsDeleted?:               string;
 
 }
 
@@ -168,7 +170,25 @@ export type AtaRuleRecordsByTerritoryId = Map<SObjectRecordId, AtaRuleRecords>;
  */
 export type TerritoryNamesByTerritoryId = Map<SObjectRecordId, string>;
 
+/**
+ * Type. Represents a map of Territory2 Objects by Developer Name.
+ */
+export type Territory2ObjectsByDevName  = Map<DeveloperName, Territory2>;
 
+/**
+ * Type. Represents a map of Territory2Model Objects by Developer Name.
+ */
+export type Territory2ModelObjectsByDevName = Map<DeveloperName, Territory2Model>;
+
+/**
+ * Type. Represents a map of Territory2Rule Objects by Developer Name.
+ */
+export type Territory2RuleObjectsByDevName = Map<DeveloperName, Territory2Rule>;
+
+/**
+ * Type. Represents a map of Territory2Type Objects by Developer Name.
+ */
+export type Territory2TypeObjectsByDevName = Map<DeveloperName, Territory2Type>;
 
 /**
  * Interface. Represents the overall grouping of Record Data required by various TM-Tools functions.
@@ -194,3 +214,12 @@ export interface TM1FilePaths {
   tm1MetadataDir:   string;
 }
 
+/**
+ * Interface. Represents the complete suite of CSV and Metadata file paths required for a TM2 Transform.
+ */
+export interface TM2FilePaths {
+  objectTerritory2AssociationCsv: string;
+  territory2Csv:                  string;
+  userTerritory2AssociationCsv:   string;
+  tm2MetadataDir:                 string;
+}
