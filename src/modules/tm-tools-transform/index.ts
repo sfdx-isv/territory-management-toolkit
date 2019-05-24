@@ -43,6 +43,9 @@ import  {Territory2TypeObjectsByDevName}  from  '../tm-tools-types';   // Type. 
 //import  {AtaRuleItemRecordsByRuleId}      from  '../tm-tools-types';   // Type. Represents a map of an array of AccountTerritoryAssignmentRuleItem Records by Rule ID.
 import  {TM2FilePaths}                    from  '../tm-tools-types';   // Interface. Represents the complete suite of CSV and Metadata file paths required for a TM2 Transform.
 
+// Set file local globals
+const territory2ModelDevName  = 'Imported_Territory';
+const territory2TypeDevName   = 'Imported_Territory';
 
 // Set the File Local Debug Namespace
 const dbgNs = 'MODULE:tm-tools-transform:';
@@ -165,6 +168,22 @@ export class TmToolsTransform {
     // Create Territory2 Objects
     this.createTerritory2Objects();
 
+    // Create Package Object
+    this.createPackageObject();
+
+  }
+
+  //───────────────────────────────────────────────────────────────────────────┐
+  /**
+   * @method      createPackageObject
+   * @return      {void}
+   * @description Creates a Package object (ie. package.xml).
+   * @private
+   */
+  //───────────────────────────────────────────────────────────────────────────┘
+  private createPackageObject():void {
+
+
   }
 
   //───────────────────────────────────────────────────────────────────────────┐
@@ -176,8 +195,26 @@ export class TmToolsTransform {
    */
   //───────────────────────────────────────────────────────────────────────────┘
   private createTerritory2Objects():void {
+    for (const territoryRecord of this._tm1Context.territoryRecords) {
+      const parentTerritoryRecord = this._tm1Context.territoryRecordsById.get(territoryRecord.ParentTerritoryId);
+      const territory2Model       = this._territory2ModelObjectsByDevName.get('Imported_Territory');
+      const territory2Type        = this._territory2TypeObjectsByDevName.get('Imported_Territory');
 
-    
+      // TODO: Validate territory2Model
+      // TODO: Validate territory2Type
+
+      this._territory2ObjectsByDevName.set(
+        territoryRecord.DeveloperName,
+        new Territory2({
+          territory2Model:            territory2Model,
+          territory2Type:             territory2Type,
+          territoryRecord:            territoryRecord,
+          parentTerritoryRecord:      parentTerritoryRecord,
+          ataRuleRecords:             this._tm1Context.ataRuleRecordsByTerritoryId.get(territoryRecord.Id) || [],
+          ataRuleDevNamesByRuleId:    this._tm1Context.ataRuleDevNamesByRuleId
+        })
+      );
+    }
   }
 
   //───────────────────────────────────────────────────────────────────────────┐
@@ -190,12 +227,12 @@ export class TmToolsTransform {
   //───────────────────────────────────────────────────────────────────────────┘
   private createTerritory2ModelObjects():void {
     this._territory2ModelObjectsByDevName.set(
-      `Imported_Territory`,
+      territory2ModelDevName,
       new Territory2Model({
         name:           `Imported Territory`,
-        developerName:  `Imported_Territory`,
+        developerName:  territory2ModelDevName,
         description:    `Auto-generated Territory Model. Created as part of the TM1 to TM2 migration process.`,
-        filePath:       path.join(this._tm2FilePaths.tm2MetadataDir, 'territory2Models')
+        filePath:       path.join(this._tm2FilePaths.tm2MetadataDir, 'territory2Models', territory2ModelDevName)
       })
     );
   }
@@ -210,14 +247,16 @@ export class TmToolsTransform {
   //───────────────────────────────────────────────────────────────────────────┘
   private createTerritory2RuleObjects():void {
     for (const ataRuleRecord of this._tm1Context.ataRuleRecords) {
-      const ataRuleDevName = this._tm1Context.ataRuleDevNamesByRuleId.get(ataRuleRecord.Id);
+      const ataRuleDevName  = this._tm1Context.ataRuleDevNamesByRuleId.get(ataRuleRecord.Id);
+      const territory2Model = this._territory2ModelObjectsByDevName.get(territory2ModelDevName);
       this._territory2RuleObjectsByDevName.set(
         ataRuleDevName,
         new Territory2Rule({
           developerName:              ataRuleDevName,
           ataRuleRecord:              ataRuleRecord,
           ataRuleItemRecordsByRuleId: this._tm1Context.ataRuleItemRecordsByRuleId,
-          filePath:                   path.join(this._tm2FilePaths.tm2MetadataDir, 'territory2Types')
+          objectType:                 'Account',
+          territory2Model:            territory2Model
         })
       );
     }
@@ -233,10 +272,10 @@ export class TmToolsTransform {
   //───────────────────────────────────────────────────────────────────────────┘
   private createTerritory2TypeObjects():void {
     this._territory2TypeObjectsByDevName.set(
-      `Imported_Territory`,
+      territory2TypeDevName,
       new Territory2Type({
         name:           `Imported Territory`,
-        developerName:  `Imported_Territory`,
+        developerName:  territory2TypeDevName,
         priority:       `1`,
         filePath:       path.join(this._tm2FilePaths.tm2MetadataDir, 'territory2Types')
       })
