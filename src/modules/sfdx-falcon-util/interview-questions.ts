@@ -236,6 +236,114 @@ export function choosePkgProjectType(pkgProjectTypeChoices:YeomanChoice[]=PKG_PR
 
 // ────────────────────────────────────────────────────────────────────────────────────────────────┐
 /**
+ * @function    chooseTm1Org
+ * @param       {YeomanChoice[]}  [targetOrgChoices]  Optional. Array of Target Org choices.
+ * @param       {YeomanChoice[]}  [scratchOrgChoices] Optional. Array of Scratch Org choices.
+ * @returns     {Question}  A single Inquirer Question.
+ * @description Prompts the user to select a target org from the list provided by targetOrgChoices.
+ * @public
+ */
+// ────────────────────────────────────────────────────────────────────────────────────────────────┘
+export function chooseTm1Org(targetOrgChoices?:YeomanChoice[], scratchOrgChoices?:YeomanChoice[]):Questions {
+
+  // Debug arguments.
+  SfdxFalconDebug.obj(`${dbgNs}chooseTm1Org:arguments:`, arguments);
+
+  // If the caller didn't supply Target Org Choices, try to grab them from Shared Data.
+  if (typeof targetOrgChoices === 'undefined') {
+    validateInterviewScope.call(this);
+    targetOrgChoices = this.sharedData['targetOrgAliasChoices'] || [];
+  }
+
+  // If the caller didn't supply Target Scratch Org Choices, try to grab them from Shared Data.
+  if (typeof scratchOrgChoices === 'undefined') {
+    validateInterviewScope.call(this);
+    scratchOrgChoices = this.sharedData['scratchOrgAliasChoices'] || [];
+  }
+
+  // By now targetOrgChoices should be an Array.
+  if (Array.isArray(targetOrgChoices) !== true) {
+    throw new SfdxFalconError( `Expected targetOrgChoices to be an Array. Got type '${typeof targetOrgChoices}' instead. `
+                             , `TypeError`
+                             , `${dbgNs}chooseTm1Org`);
+  }
+
+  // By now scratchOrgChoices should be an Array.
+  if (Array.isArray(scratchOrgChoices) !== true) {
+    throw new SfdxFalconError( `Expected scratchOrgChoices to be an Array. Got type '${typeof scratchOrgChoices}' instead. `
+                             , `TypeError`
+                             , `${dbgNs}chooseTm1Org`);
+  }
+
+  // DEBUG
+  SfdxFalconDebug.obj(`${dbgNs}chooseTm1Org:targetOrgChoices:`,   targetOrgChoices);
+  SfdxFalconDebug.obj(`${dbgNs}chooseTm1Org:scratchOrgChoices:`,  scratchOrgChoices);
+
+  // Build and return the Questions.
+  return [
+    {
+      type:     'confirm',
+      name:     'isScratchOrg',
+      message:  'Is the target a Scratch Org?',
+      default:  true,
+      when:     true
+    },
+    {
+      type:     'list',
+      name:     'targetOrgUsername',
+      message:  'From which org do you want to extract TM1 configuration?',
+      choices:  targetOrgChoices,
+      when:     answerHash => (answerHash.isScratchOrg === false && targetOrgChoices.length > 0)
+    },
+    {
+      type:     'list',
+      name:     'targetOrgUsername',
+      message:  'From which scratch org do you want to extract TM1 configuration?',
+      choices:  scratchOrgChoices,
+      when:     answerHash => (answerHash.isScratchOrg === true && scratchOrgChoices.length > 0)
+    }
+  ];
+}
+
+// ────────────────────────────────────────────────────────────────────────────────────────────────┐
+/**
+ * @function    chooseTm2Org
+ * @param       {YeomanChoice[]}  [targetOrgChoices]  Optional. Array of Target Org choices.
+ * @returns     {Question}  A single Inquirer Question.
+ * @description Prompts the user to select a target org from the list provided by targetOrgChoices.
+ * @public
+ */
+// ────────────────────────────────────────────────────────────────────────────────────────────────┘
+export function chooseTm2Org(targetOrgChoices?:YeomanChoice[]):Question {
+
+  // Debug arguments.
+  SfdxFalconDebug.obj(`${dbgNs}chooseTm2Org:`, arguments);
+
+  // If the caller didn't supply Target Org Choices, try to grab them from Shared Data.
+  if (typeof targetOrgChoices === 'undefined') {
+    validateInterviewScope.call(this);
+    targetOrgChoices = this.sharedData['targetOrgAliasChoices'];
+  }
+
+  // By now targetOrgChoices should be an Array.
+  if (Array.isArray(targetOrgChoices) !== true) {
+    throw new SfdxFalconError( `Expected targetOrgChoices to be an Array. Got type '${typeof targetOrgChoices}' instead. `
+                             , `TypeError`
+                             , `${dbgNs}chooseTm2Org`);
+  }
+
+  // Build and return the Question.
+  return {
+    type:     'list',
+    name:     'targetOrgUsername',
+    message:  'Into which org do you want to load TM2 metadata?',
+    choices:  targetOrgChoices,
+    when:     targetOrgChoices.length > 0
+  };
+}
+
+// ────────────────────────────────────────────────────────────────────────────────────────────────┐
+/**
  * @function    confirmNoDevHub
  * @returns     {Questions}  An array of Inquirer Question objects.
  * @description Warns the user that a Developer Hub must be selected if they want to continue.
@@ -462,6 +570,31 @@ export function confirmProceedRestart():Questions {
       message:  'Would you like to start again and enter new values?',
       default:  true,
       when:     answerHash => ! answerHash.proceed
+    }
+  ];
+}
+
+// ────────────────────────────────────────────────────────────────────────────────────────────────┐
+/**
+ * @function    confirmNoTm1TargetOrg
+ * @returns     {Questions}  An array of Inquirer Question objects.
+ * @description Warns the user that a Developer Hub must be selected if they want to continue.
+ * @public
+ */
+// ────────────────────────────────────────────────────────────────────────────────────────────────┘
+export function confirmNoTm1TargetOrg():Questions {
+
+  // Make sure the calling scope has the variables we expect.
+  validateInterviewScope.call(this);
+
+  // Build and return the Questions.
+  return [
+    {
+      type:     'confirm',
+      name:     'restart',
+      message:  'Selecting a TM1 source org is required. Would you like to see the choices again?',
+      default:  true,
+      when:     this.userAnswers.targetOrgUsername === 'NOT_SPECIFIED'
     }
   ];
 }
