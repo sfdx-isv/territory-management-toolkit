@@ -494,13 +494,13 @@ export default class CreateAppxPackageProject extends SfdxFalconYeomanGenerator<
   //───────────────────────────────────────────────────────────────────────────┐
   /**
    * @method      configuring
-   * @returns     {void}
+   * @returns     {Promise<void>}
    * @description STEP THREE in the Yeoman run-loop. Perform any pre-install
    *              configuration steps based on the answers provided by the User.
-   * @protected
+   * @protected @async
    */
   //───────────────────────────────────────────────────────────────────────────┘
-  protected configuring() {
+  protected async configuring():Promise<void> {
 
     // Call the default configuring() function. Replace with custom behavior if desired.
     return this._default_configuring();
@@ -509,13 +509,13 @@ export default class CreateAppxPackageProject extends SfdxFalconYeomanGenerator<
   //───────────────────────────────────────────────────────────────────────────┐
   /**
    * @method      writing
-   * @returns     {void}
+   * @returns     {Promise<void>}
    * @description STEP FOUR in the Yeoman run-loop. Typically, this is where
    *              you perform filesystem writes, git clone operations, etc.
-   * @protected
+   * @protected @async
    */
   //───────────────────────────────────────────────────────────────────────────┘
-  protected writing() {
+  protected async writing():Promise<void> {
 
     // Check if we need to abort the Yeoman interview/installation process.
     if (this.generatorStatus.aborted) {
@@ -780,14 +780,14 @@ export default class CreateAppxPackageProject extends SfdxFalconYeomanGenerator<
   //───────────────────────────────────────────────────────────────────────────┐
   /**
    * @method      end
-   * @returns     {void}
+   * @returns     {Promise<void>}
    * @description STEP SIX in the Yeoman run-loop. This is the FINAL step that
    *              Yeoman runs and it gives us a chance to do any post-Yeoman
    *              updates and/or cleanup.
-   * @protected
+   * @protected @async
    */
   //───────────────────────────────────────────────────────────────────────────┘
-  protected end() {
+  protected async end():Promise<void> {
 
     // Call the default end() function. Replace with custom behavior if desired.
     return this._default_end();
