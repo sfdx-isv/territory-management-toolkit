@@ -593,20 +593,6 @@ export function fetchAndConvertManagedPackage(aliasOrUsername:string, packageNam
   );
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // ────────────────────────────────────────────────────────────────────────────────────────────────┐
 /**
  * @function    extractTm1Config
@@ -653,24 +639,6 @@ export function extractTm1Config(aliasOrUsername:string, targetDir:string):Listr
     }
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // ────────────────────────────────────────────────────────────────────────────────────────────────┐
 /**
@@ -1595,16 +1563,16 @@ export function tm1DataFetch(aliasOrUsername:string, targetDir:string):ListrObje
   // Determine various directory locations.
   const territoryCsv      = path.join(targetDir,  'Territory.csv');
   const userTerritoryCsv  = path.join(targetDir,  'UserTerritory.csv');
-//  const accountShareCsv   = path.join(targetDir,  'AccountShare.csv');
-//  const ataRuleCsv        = path.join(targetDir,  'AccountTerritoryAssignmentRule.csv');
-//  const ataRuleItemCsv    = path.join(targetDir,  'AccountTerritoryAssignmentRuleItem.csv');
+  const accountShareCsv   = path.join(targetDir,  'AccountShare.csv');
+  const ataRuleCsv        = path.join(targetDir,  'AccountTerritoryAssignmentRule.csv');
+  const ataRuleItemCsv    = path.join(targetDir,  'AccountTerritoryAssignmentRuleItem.csv');
 
   // Build the necessary SOQL queries.
   const territorySoql     = `SELECT Id,ParentTerritoryId,DeveloperName,Name,Description,AccountAccessLevel,CaseAccessLevel,ContactAccessLevel,OpportunityAccessLevel,RestrictOpportunityTransfer,ForecastUserId,MayForecastManagerShare,LastModifiedById,LastModifiedDate,SystemModstamp FROM Territory`;
   const userTerritorySoql = `SELECT Id,UserId,TerritoryId,IsActive FROM UserTerritory`;
-//  const accountShareSoql  = `SELECT Id,AccountId,UserOrGroupId,RowCause,AccountAccessLevel,CaseAccessLevel,ContactAccessLevel,OpportunityAccessLevel,IsDeleted,LastModifiedById,LastModifiedDate FROM AccountShare WHERE RowCause='TerritoryManual'`;
-//  const ataRuleSoql       = `SELECT Id,TerritoryId,Name,IsActive,IsInherited,BooleanFilter,CreatedById,CreatedDate,LastModifiedById,LastModifiedDate,SystemModstamp FROM AccountTerritoryAssignmentRule`;
-//  const ataRuleItemSoql   = `SELECT Id,RuleId,SortOrder,Field,Operation,Value,SystemModstamp FROM AccountTerritoryAssignmentRuleItem ORDER BY RuleId, SortOrder ASC`;
+  const accountShareSoql  = `SELECT Id,AccountId,UserOrGroupId,RowCause,AccountAccessLevel,CaseAccessLevel,ContactAccessLevel,OpportunityAccessLevel,IsDeleted,LastModifiedById,LastModifiedDate FROM AccountShare WHERE RowCause='TerritoryManual'`;
+  const ataRuleSoql       = `SELECT Id,TerritoryId,Name,IsActive,IsInherited,BooleanFilter,CreatedById,CreatedDate,LastModifiedById,LastModifiedDate,SystemModstamp FROM AccountTerritoryAssignmentRule`;
+  const ataRuleItemSoql   = `SELECT Id,RuleId,SortOrder,Field,Operation,Value,SystemModstamp FROM AccountTerritoryAssignmentRuleItem ORDER BY RuleId, SortOrder ASC`;
 
   // Build and return a Listr Task Object.
   return new listr(
@@ -1618,7 +1586,7 @@ export function tm1DataFetch(aliasOrUsername:string, targetDir:string):ListrObje
     
             // Initialize an OTR (Observable Task Result).
             const otr = initObservableTaskResult(`${dbgNs}tm1DataFetch:Q1`, listrContext, thisTask, observer, this.sharedData, this.generatorResult,
-                        `Retrieving Territory data from ${aliasOrUsername} (this might take a few minutes)`);
+                        `Retrieving Territory data from ${aliasOrUsername}`);
     
             // Execute the Task Logic
             sfdxHelper.executeSoqlQuery(
@@ -1660,7 +1628,7 @@ export function tm1DataFetch(aliasOrUsername:string, targetDir:string):ListrObje
     
             // Initialize an OTR (Observable Task Result).
             const otr = initObservableTaskResult(`${dbgNs}tm1DataFetch:Q2`, listrContext, thisTask, observer, this.sharedData, this.generatorResult,
-                        `Retrieving UserTerritory data from ${aliasOrUsername} (this might take a few minutes)`);
+                        `Retrieving UserTerritory data from ${aliasOrUsername}`);
     
             // Execute the Task Logic
             sfdxHelper.executeSoqlQuery(
@@ -1693,25 +1661,33 @@ export function tm1DataFetch(aliasOrUsername:string, targetDir:string):ListrObje
             });
           });
         }
-      }
-
-
-
-      /*
+      },
       // ── SOQL Query 3 ───────────────────────────────────────────────────────────────────────────
       {
-        title:  'Retrieving Metadata...',
+        title:  'Retrieving AccountShare Data...',
         task:   (listrContext:object, thisTask:ListrTask) => {
           return new Observable(observer => {
     
             // Initialize an OTR (Observable Task Result).
-            const otr = initObservableTaskResult(`${dbgNs}metadataRetrieve`, listrContext, thisTask, observer, this.sharedData, this.generatorResult,
-                        `Retrieving metadata from ${aliasOrUsername} (this might take a few minutes)`);
+            const otr = initObservableTaskResult(`${dbgNs}tm1DataFetch:Q3`, listrContext, thisTask, observer, this.sharedData, this.generatorResult,
+                        `Retrieving AccountShare data from ${aliasOrUsername}`);
     
             // Execute the Task Logic
-            sfdxHelper.retrieveMetadata(aliasOrUsername, manifestFilePath, retrieveTargetDir)
+            sfdxHelper.executeSoqlQuery(
+              aliasOrUsername,
+              accountShareSoql,
+              {
+                resultFormat:   'csv',
+                apiVersion:     '45.0',
+                logLevel:       'warn',
+                useToolingApi:  false,
+                perfLog:        false,
+                json:           false
+              },
+              accountShareCsv
+            )
             .then((successResult:SfdxFalconResult) => {
-              SfdxFalconDebug.obj(`${dbgNs}metadataRetrieve:successResult:`, successResult);
+              SfdxFalconDebug.obj(`${dbgNs}tm1DataFetch:Q3:successResult:`, successResult);
     
               // Save the UTILITY result to Shared Data and update the task title.
               this.sharedData.metadataRetrieveResult = successResult;
@@ -1719,7 +1695,7 @@ export function tm1DataFetch(aliasOrUsername:string, targetDir:string):ListrObje
               finalizeObservableTaskResult(otr);
             })
             .catch((failureResult:SfdxFalconResult|Error) => {
-              SfdxFalconDebug.obj(`${dbgNs}metadataRetrieve:failureResult:`, failureResult);
+              SfdxFalconDebug.obj(`${dbgNs}tm1DataFetch:Q3:failureResult:`, failureResult);
     
               // We get here if no connections were found.
               thisTask.title += 'Failed';
@@ -1730,18 +1706,30 @@ export function tm1DataFetch(aliasOrUsername:string, targetDir:string):ListrObje
       },
       // ── SOQL Query 4 ───────────────────────────────────────────────────────────────────────────
       {
-        title:  'Retrieving Metadata...',
+        title:  'Retrieving AccountTerritoryAssignmentRule Data...',
         task:   (listrContext:object, thisTask:ListrTask) => {
           return new Observable(observer => {
     
             // Initialize an OTR (Observable Task Result).
-            const otr = initObservableTaskResult(`${dbgNs}metadataRetrieve`, listrContext, thisTask, observer, this.sharedData, this.generatorResult,
-                        `Retrieving metadata from ${aliasOrUsername} (this might take a few minutes)`);
+            const otr = initObservableTaskResult(`${dbgNs}tm1DataFetch:Q4`, listrContext, thisTask, observer, this.sharedData, this.generatorResult,
+                        `Retrieving AccountTerritoryAssignmentRule data from ${aliasOrUsername}`);
     
             // Execute the Task Logic
-            sfdxHelper.retrieveMetadata(aliasOrUsername, manifestFilePath, retrieveTargetDir)
+            sfdxHelper.executeSoqlQuery(
+              aliasOrUsername,
+              ataRuleSoql,
+              {
+                resultFormat:   'csv',
+                apiVersion:     '45.0',
+                logLevel:       'warn',
+                useToolingApi:  false,
+                perfLog:        false,
+                json:           false
+              },
+              ataRuleCsv
+            )
             .then((successResult:SfdxFalconResult) => {
-              SfdxFalconDebug.obj(`${dbgNs}metadataRetrieve:successResult:`, successResult);
+              SfdxFalconDebug.obj(`${dbgNs}tm1DataFetch:Q4:successResult:`, successResult);
     
               // Save the UTILITY result to Shared Data and update the task title.
               this.sharedData.metadataRetrieveResult = successResult;
@@ -1749,7 +1737,7 @@ export function tm1DataFetch(aliasOrUsername:string, targetDir:string):ListrObje
               finalizeObservableTaskResult(otr);
             })
             .catch((failureResult:SfdxFalconResult|Error) => {
-              SfdxFalconDebug.obj(`${dbgNs}metadataRetrieve:failureResult:`, failureResult);
+              SfdxFalconDebug.obj(`${dbgNs}tm1DataFetch:Q4:failureResult:`, failureResult);
     
               // We get here if no connections were found.
               thisTask.title += 'Failed';
@@ -1760,18 +1748,30 @@ export function tm1DataFetch(aliasOrUsername:string, targetDir:string):ListrObje
       },
       // ── SOQL Query 5 ───────────────────────────────────────────────────────────────────────────
       {
-        title:  'Retrieving Metadata...',
+        title:  'Retrieving AccountTerritoryAssignmentRuleItem Data...',
         task:   (listrContext:object, thisTask:ListrTask) => {
           return new Observable(observer => {
     
             // Initialize an OTR (Observable Task Result).
-            const otr = initObservableTaskResult(`${dbgNs}metadataRetrieve`, listrContext, thisTask, observer, this.sharedData, this.generatorResult,
-                        `Retrieving metadata from ${aliasOrUsername} (this might take a few minutes)`);
+            const otr = initObservableTaskResult(`${dbgNs}tm1DataFetch:Q5`, listrContext, thisTask, observer, this.sharedData, this.generatorResult,
+                        `Retrieving AccountTerritoryAssignmentRuleItem data from ${aliasOrUsername}`);
     
             // Execute the Task Logic
-            sfdxHelper.retrieveMetadata(aliasOrUsername, manifestFilePath, retrieveTargetDir)
+            sfdxHelper.executeSoqlQuery(
+              aliasOrUsername,
+              ataRuleItemSoql,
+              {
+                resultFormat:   'csv',
+                apiVersion:     '45.0',
+                logLevel:       'warn',
+                useToolingApi:  false,
+                perfLog:        false,
+                json:           false
+              },
+              ataRuleItemCsv
+            )
             .then((successResult:SfdxFalconResult) => {
-              SfdxFalconDebug.obj(`${dbgNs}metadataRetrieve:successResult:`, successResult);
+              SfdxFalconDebug.obj(`${dbgNs}tm1DataFetch:Q4:successResult:`, successResult);
     
               // Save the UTILITY result to Shared Data and update the task title.
               this.sharedData.metadataRetrieveResult = successResult;
@@ -1779,7 +1779,7 @@ export function tm1DataFetch(aliasOrUsername:string, targetDir:string):ListrObje
               finalizeObservableTaskResult(otr);
             })
             .catch((failureResult:SfdxFalconResult|Error) => {
-              SfdxFalconDebug.obj(`${dbgNs}metadataRetrieve:failureResult:`, failureResult);
+              SfdxFalconDebug.obj(`${dbgNs}tm1DataFetch:Q4:failureResult:`, failureResult);
     
               // We get here if no connections were found.
               thisTask.title += 'Failed';
@@ -1788,10 +1788,6 @@ export function tm1DataFetch(aliasOrUsername:string, targetDir:string):ListrObje
           });
         }
       }
-      //*/
-
-
-
     ],
     // TASK GROUP OPTIONS: TM1 Data Fetch Tasks
     {
@@ -1801,23 +1797,6 @@ export function tm1DataFetch(aliasOrUsername:string, targetDir:string):ListrObje
     }
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // ────────────────────────────────────────────────────────────────────────────────────────────────┐
 /**
