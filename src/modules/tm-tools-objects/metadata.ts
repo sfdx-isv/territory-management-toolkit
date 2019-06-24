@@ -10,13 +10,13 @@
  */
 //─────────────────────────────────────────────────────────────────────────────────────────────────┘
 // Import External Modules/Types
-//import  * as  fs          from  'fs';         // Node's FileStream library.
+import  * as  fse         from  'fs-extra';   // Expands on Node's core fs library.
 import  * as  path        from  'path';       // Node's path library.
-import  * as  xmlBuilder  from 'xmlbuilder';  // ???
+import  * as  xmlBuilder  from  'xmlbuilder'; // Library for building XML.
 
 // Import Internal Modules
-import {SfdxFalconDebug}          from  '../sfdx-falcon-debug';             // Specialized debug provider for SFDX-Falcon code.
-import {SfdxFalconError}          from  '../sfdx-falcon-error';             // Class. Extends SfdxError to provide specialized error structures for SFDX-Falcon modules.
+import {SfdxFalconDebug}  from  '../sfdx-falcon-debug'; // Specialized debug provider for SFDX-Falcon code.
+import {SfdxFalconError}  from  '../sfdx-falcon-error'; // Class. Extends SfdxError to provide specialized error structures for SFDX-Falcon modules.
 
 // Set the File Local Debug Namespace
 const dbgNs = 'OBJECT:metadata:';
@@ -131,16 +131,26 @@ export abstract class Metadata {
   //───────────────────────────────────────────────────────────────────────────┐
   /**
    * @method      writeXml
+   * @param       {string}  targetDir Required. Root directory into which this
+   *              component's metadata XML will be written.
    * @return      {Promise<void>}
-   * @description Builds the XML for this object and writes it to the local
-   *              filesystem at the path specified by the _filePath member var.
+   * @description Given the path to a Target Directory, builds the XML for this
+   *              object and writes it to the local filesystem at the specified
+   *              target using the path specified by the _filePath member var.
    * @public @async
    */
   //───────────────────────────────────────────────────────────────────────────┘
-  public async writeXml():Promise<void> {
+  public async writeXml(targetDir:string):Promise<void> {
 
     // Make sure this instance is Prepared.
     this.isPrepared();
+
+    // Make sure a Target Directory was provided.
+    if (typeof targetDir !== 'string' || targetDir === '') {
+      throw new SfdxFalconError ( `Expected targetDir to be a non-empty string but got '${typeof targetDir}' instead.`
+                                , `TypeError`
+                                , `${dbgNs}writeXml`);
+    }
 
     // Build the XML that we're about to write.
     await this.buildXml();
@@ -155,12 +165,21 @@ export abstract class Metadata {
       spaceBeforeSlash: ''
     });
 
+    // Build the absolute filepath to where this metadata XML should be written.
+    const absoluteFilePath = path.join(this.filePath, this.fileName);
+
     // DEBUG
-    SfdxFalconDebug.debugString(`DEVTEST:xml:`, xml, `${path.join(this.filePath, this.fileName)}:\n`);
+    SfdxFalconDebug.str(`${dbgNs}writeXml:absoluteFilePath:`, absoluteFilePath);
+    SfdxFalconDebug.str(`${dbgNs}writeXml:xml:`, xml, `${absoluteFilePath}:\n`);
 
     // Write the XML to the local filesystem.
-    // TODO: power this part up using fs.createWriteStream()
-
+    fse.outputFile(absoluteFilePath, xml)
+    .catch(fseError => {
+      throw new SfdxFalconError ( `Could not write '${absoluteFilePath}' to the local filesystem. ${fseError.message}`
+                                , `FileOutputError`
+                                , `${dbgNs}writeXml`
+                                , fseError);
+    });
   }
 
   // Abstract Methods

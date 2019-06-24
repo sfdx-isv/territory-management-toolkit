@@ -163,6 +163,39 @@ export class TmToolsTransform {
 
   //───────────────────────────────────────────────────────────────────────────┐
   /**
+   * @method      write
+   * @return      {Promise<void>}
+   * @description Writes the transformed TM2 data and metadata to the local
+   *              filesystem.
+   * @public @async
+   */
+  //───────────────────────────────────────────────────────────────────────────┘
+  public async write():Promise<void> {
+
+    await this.writeData();
+    await this.writeMetadata();
+
+
+    const targetDir = this.tm2FilePaths.tm2MetadataDir;
+
+    // DEVTEST
+    const t2Model = this.territory2ModelObjectsByDevName.get('Imported_Territory');
+    await t2Model.writeXml(targetDir);
+    const t2Type = this.territory2TypeObjectsByDevName.get('Imported_Territory');
+    await t2Type.writeXml(targetDir);
+    for (const t2Rule of this.territory2RuleObjectsByDevName.values()) {
+      await t2Rule.writeXml(targetDir);
+    }
+    for (const t2 of this.territory2ObjectsByDevName.values()) {
+      await t2.writeXml(targetDir);
+    }
+    await this.package.writeXml(targetDir);
+
+
+  }
+
+  //───────────────────────────────────────────────────────────────────────────┐
+  /**
    * @method      createPackageObject
    * @return      {void}
    * @description Creates a Package object (ie. package.xml).
@@ -321,6 +354,50 @@ export class TmToolsTransform {
     }
   }
 
+  //───────────────────────────────────────────────────────────────────────────┐
+  /**
+   * @method      writeData
+   * @return      {Promise<void>}
+   * @description Writes transformed TM2 data to the local filesystem.
+   * @private @async
+   */
+  //───────────────────────────────────────────────────────────────────────────┘
+  private async writeData():Promise<void> {
 
+    // TODO: Need to power this up.
+  }
 
+  //───────────────────────────────────────────────────────────────────────────┐
+  /**
+   * @method      writeMetadata
+   * @return      {Promise<void>}
+   * @description Writes transformed TM2 metadata to the local filesystem.
+   * @private @async
+   */
+  //───────────────────────────────────────────────────────────────────────────┘
+  private async writeMetadata():Promise<void> {
+
+    // Write package manifest (package.xml).
+    await this.package.writeXml(this.tm2FilePaths.tm2MetadataDir);
+
+    // Write Territory2Type metadata files (territory2Types/DEV_NAME.territory2Type)
+    for (const territory2Type of this.territory2TypeObjectsByDevName.values()) {
+      await territory2Type.writeXml(this.tm2FilePaths.tm2MetadataDir);
+    }
+
+    // Write Territory2Model metadata files (territory2Models/DEV_NAME/DEV_NAME.territory2Model)
+    for (const territory2Model of this.territory2ModelObjectsByDevName.values()) {
+      await territory2Model.writeXml(this.tm2FilePaths.tm2MetadataDir);
+    }
+
+    // Write Territory2Rule metadata files (territory2Models/PARENT_MODEL_DEV_NAME/rules/DEV_NAME.territory2Rule)
+    for (const territory2Rule of this.territory2RuleObjectsByDevName.values()) {
+      await territory2Rule.writeXml(this.tm2FilePaths.tm2MetadataDir);
+    }
+
+    // Write Territory2 metadata files (territory2Models/PARENT_MODEL_DEV_NAME/territories/DEV_NAME.territory2)
+    for (const territory2 of this.territory2ObjectsByDevName.values()) {
+      await territory2.writeXml(this.tm2FilePaths.tm2MetadataDir);
+    }
+  }
 }
