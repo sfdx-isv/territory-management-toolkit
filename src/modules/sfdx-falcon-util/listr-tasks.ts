@@ -519,7 +519,7 @@ function extractMdapiSource(zipFile:string, zipExtractTarget:string):ListrTask {
 
   // Build and return an OTR (Observable Listr Task).
   return {
-    title:  'Extracting MDAPI Source...',
+    title:  'Extract MDAPI Source',
     task:   (listrContext:ListrContextPkgRetExCon, thisTask:ListrTask) => {
       return new Observable(observer => {
 
@@ -531,12 +531,10 @@ function extractMdapiSource(zipFile:string, zipExtractTarget:string):ListrTask {
         zipHelper.extract(zipFile, zipExtractTarget)
         .then(() => {
           listrContext.sourceExtracted = true;
-          thisTask.title += 'Done!';
           finalizeObservableTaskResult(otr);
         })
         .catch(extractionError => {
           listrContext.sourceExtracted = false;
-          thisTask.title += 'Failed';
           finalizeObservableTaskResult(otr,
             new SfdxFalconError( `MDAPI source from ${zipFile} could not be extracted to ${zipExtractTarget}`
                                , `SourceExtractionError`
@@ -627,7 +625,7 @@ export function extractTm1Config(aliasOrUsername:string, targetDir:string):Listr
       metadataRetrieve.call(this, aliasOrUsername, manifestFilePath, retrieveTargetDir),
       extractMdapiSource.call(this, zipFile, zipExtractTarget),
       {
-        title:  `Doing crazy stuff!`,
+        title:  `Execute SOQL Queries`,
         task:   () => tm1DataFetch.call(this, aliasOrUsername, dataTargetDir)
       }
     ],
@@ -1187,7 +1185,7 @@ export function metadataRetrieve(aliasOrUsername:string, manifestFilePath:string
 
   // Build and return an OTR (Observable Listr Task).
   return {
-    title:  'Retrieving Metadata...',
+    title:  'Retrieve Metadata',
     task:   (listrContext:object, thisTask:ListrTask) => {
       return new Observable(observer => {
 
@@ -1200,16 +1198,14 @@ export function metadataRetrieve(aliasOrUsername:string, manifestFilePath:string
         .then((successResult:SfdxFalconResult) => {
           SfdxFalconDebug.obj(`${dbgNs}metadataRetrieve:successResult:`, successResult);
 
-          // Save the UTILITY result to Shared Data and update the task title.
+          // Save the UTILITY result to Shared Data and finalize the OTR as successful.
           this.sharedData.metadataRetrieveResult = successResult;
-          thisTask.title += 'Done!';
           finalizeObservableTaskResult(otr);
         })
         .catch((failureResult:SfdxFalconResult|Error) => {
           SfdxFalconDebug.obj(`${dbgNs}metadataRetrieve:failureResult:`, failureResult);
 
           // We get here if no connections were found.
-          thisTask.title += 'Failed';
           finalizeObservableTaskResult(otr, failureResult);
         });
       });
@@ -1580,7 +1576,7 @@ export function tm1DataFetch(aliasOrUsername:string, targetDir:string):ListrObje
     [
       // ── SOQL Query 1 ───────────────────────────────────────────────────────────────────────────
       {
-        title:  'Retrieving Territory Data...',
+        title:  'Retrieve Territory Data',
         task:   (listrContext:object, thisTask:ListrTask) => {
           return new Observable(observer => {
     
@@ -1605,16 +1601,14 @@ export function tm1DataFetch(aliasOrUsername:string, targetDir:string):ListrObje
             .then((successResult:SfdxFalconResult) => {
               SfdxFalconDebug.obj(`${dbgNs}tm1DataFetch:Q1:successResult:`, successResult);
     
-              // Save the UTILITY result to Shared Data and update the task title.
+              // Save the UTILITY result to Shared Data and finalize the OTR as successful.
               this.sharedData.metadataRetrieveResult = successResult;
-              thisTask.title += 'Done!';
               finalizeObservableTaskResult(otr);
             })
             .catch((failureResult:SfdxFalconResult|Error) => {
               SfdxFalconDebug.obj(`${dbgNs}tm1DataFetch:Q1:failureResult:`, failureResult);
     
               // We get here if no connections were found.
-              thisTask.title += 'Failed';
               finalizeObservableTaskResult(otr, failureResult);
             });
           });
@@ -1622,7 +1616,7 @@ export function tm1DataFetch(aliasOrUsername:string, targetDir:string):ListrObje
       },
       // ── SOQL Query 2 ───────────────────────────────────────────────────────────────────────────
       {
-        title:  'Retrieving UserTerritory Data...',
+        title:  'Retrieve UserTerritory Data',
         task:   (listrContext:object, thisTask:ListrTask) => {
           return new Observable(observer => {
     
@@ -1647,16 +1641,14 @@ export function tm1DataFetch(aliasOrUsername:string, targetDir:string):ListrObje
             .then((successResult:SfdxFalconResult) => {
               SfdxFalconDebug.obj(`${dbgNs}tm1DataFetch:Q2:successResult:`, successResult);
     
-              // Save the UTILITY result to Shared Data and update the task title.
+              // Save the UTILITY result to Shared Data and finalize the OTR as successful.
               this.sharedData.metadataRetrieveResult = successResult;
-              thisTask.title += 'Done!';
               finalizeObservableTaskResult(otr);
             })
             .catch((failureResult:SfdxFalconResult|Error) => {
               SfdxFalconDebug.obj(`${dbgNs}tm1DataFetch:Q2:failureResult:`, failureResult);
     
               // We get here if no connections were found.
-              thisTask.title += 'Failed';
               finalizeObservableTaskResult(otr, failureResult);
             });
           });
@@ -1664,7 +1656,7 @@ export function tm1DataFetch(aliasOrUsername:string, targetDir:string):ListrObje
       },
       // ── SOQL Query 3 ───────────────────────────────────────────────────────────────────────────
       {
-        title:  'Retrieving AccountShare Data...',
+        title:  'Retrieve AccountShare Data',
         task:   (listrContext:object, thisTask:ListrTask) => {
           return new Observable(observer => {
     
@@ -1689,16 +1681,14 @@ export function tm1DataFetch(aliasOrUsername:string, targetDir:string):ListrObje
             .then((successResult:SfdxFalconResult) => {
               SfdxFalconDebug.obj(`${dbgNs}tm1DataFetch:Q3:successResult:`, successResult);
     
-              // Save the UTILITY result to Shared Data and update the task title.
+              // Save the UTILITY result to Shared Data and finalize the OTR as successful.
               this.sharedData.metadataRetrieveResult = successResult;
-              thisTask.title += 'Done!';
               finalizeObservableTaskResult(otr);
             })
             .catch((failureResult:SfdxFalconResult|Error) => {
               SfdxFalconDebug.obj(`${dbgNs}tm1DataFetch:Q3:failureResult:`, failureResult);
     
               // We get here if no connections were found.
-              thisTask.title += 'Failed';
               finalizeObservableTaskResult(otr, failureResult);
             });
           });
@@ -1706,7 +1696,7 @@ export function tm1DataFetch(aliasOrUsername:string, targetDir:string):ListrObje
       },
       // ── SOQL Query 4 ───────────────────────────────────────────────────────────────────────────
       {
-        title:  'Retrieving AccountTerritoryAssignmentRule Data...',
+        title:  'Retrieve AccountTerritoryAssignmentRule Data',
         task:   (listrContext:object, thisTask:ListrTask) => {
           return new Observable(observer => {
     
@@ -1731,16 +1721,14 @@ export function tm1DataFetch(aliasOrUsername:string, targetDir:string):ListrObje
             .then((successResult:SfdxFalconResult) => {
               SfdxFalconDebug.obj(`${dbgNs}tm1DataFetch:Q4:successResult:`, successResult);
     
-              // Save the UTILITY result to Shared Data and update the task title.
+              // Save the UTILITY result to Shared Data and finalize the OTR as successful.
               this.sharedData.metadataRetrieveResult = successResult;
-              thisTask.title += 'Done!';
               finalizeObservableTaskResult(otr);
             })
             .catch((failureResult:SfdxFalconResult|Error) => {
               SfdxFalconDebug.obj(`${dbgNs}tm1DataFetch:Q4:failureResult:`, failureResult);
     
               // We get here if no connections were found.
-              thisTask.title += 'Failed';
               finalizeObservableTaskResult(otr, failureResult);
             });
           });
@@ -1748,7 +1736,7 @@ export function tm1DataFetch(aliasOrUsername:string, targetDir:string):ListrObje
       },
       // ── SOQL Query 5 ───────────────────────────────────────────────────────────────────────────
       {
-        title:  'Retrieving AccountTerritoryAssignmentRuleItem Data...',
+        title:  'Retrieve AccountTerritoryAssignmentRuleItem Data',
         task:   (listrContext:object, thisTask:ListrTask) => {
           return new Observable(observer => {
     
@@ -1773,16 +1761,14 @@ export function tm1DataFetch(aliasOrUsername:string, targetDir:string):ListrObje
             .then((successResult:SfdxFalconResult) => {
               SfdxFalconDebug.obj(`${dbgNs}tm1DataFetch:Q4:successResult:`, successResult);
     
-              // Save the UTILITY result to Shared Data and update the task title.
+              // Save the UTILITY result to Shared Data and finalize the OTR as successful.
               this.sharedData.metadataRetrieveResult = successResult;
-              thisTask.title += 'Done!';
               finalizeObservableTaskResult(otr);
             })
             .catch((failureResult:SfdxFalconResult|Error) => {
               SfdxFalconDebug.obj(`${dbgNs}tm1DataFetch:Q4:failureResult:`, failureResult);
     
               // We get here if no connections were found.
-              thisTask.title += 'Failed';
               finalizeObservableTaskResult(otr, failureResult);
             });
           });

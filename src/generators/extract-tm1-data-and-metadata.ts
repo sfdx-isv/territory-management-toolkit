@@ -38,6 +38,7 @@ const chalk = require('chalk');   // Utility for creating colorful console outpu
 
 // Set the File Local Debug Namespace
 const dbgNs = 'GENERATOR:tm1-extract:';
+SfdxFalconDebug.msg(`${dbgNs}`, `Debugging initialized for ${dbgNs}`);
 
 
 //─────────────────────────────────────────────────────────────────────────────────────────────────┐
@@ -47,6 +48,7 @@ const dbgNs = 'GENERATOR:tm1-extract:';
  */
 //─────────────────────────────────────────────────────────────────────────────────────────────────┘
 interface InterviewAnswers {
+
   // Project Settings
   targetDirectory:    string;
 
@@ -91,7 +93,7 @@ export default class Tm1Extract extends SfdxFalconYeomanGenerator<InterviewAnswe
     super(args, opts);
 
     // Initialize the "Confirmation Question".
-    this.confirmationQuestion = 'DEVTEST: Extract from this org?';
+    this.confirmationQuestion = 'Extract TM1 configuration using the above settings?';
 
     // Initialize Target/Scratch Org "Alias Choices".
     this.targetOrgAliasChoices  = new Array<YeomanChoice>();
@@ -252,8 +254,8 @@ export default class Tm1Extract extends SfdxFalconYeomanGenerator<InterviewAnswe
     // Add a success message
     this.generatorStatus.addMessage({
       type:     'success',
-      title:    `DEVTEST-TM1_EXTRACTION`,
-      message:  `DEVTEST-Success - TM1 config successfully extracted from Salesforce`
+      title:    `Extract TM1 Config`,
+      message:  `Success - TM1 configuration successfully extracted from Salesforce`
     });
 
     // Add a line break to separate the output of this section from others
@@ -340,6 +342,9 @@ export default class Tm1Extract extends SfdxFalconYeomanGenerator<InterviewAnswe
       this.finalAnswers.targetOrgAlias = scratchOrgInfoMap.get(this.finalAnswers.targetOrgUsername) ? scratchOrgInfoMap.get(this.finalAnswers.targetOrgUsername).alias : 'NOT_SPECIFIED';
     }
 
+    // Set Yeoman's DESTINATION ROOT. This will be used by our code to know where to extract config files to.
+    this.destinationRoot(path.resolve(this.finalAnswers.targetDirectory));
+
     // Extract TM1 config from the Target Org.
     if (await this._extractTm1Config() !== true) {
 
@@ -348,8 +353,13 @@ export default class Tm1Extract extends SfdxFalconYeomanGenerator<InterviewAnswe
       this.generatorStatus.abort({
         type:     'error',
         title:    `Extract TM1 Config`,
-        message:  `DEVTEST Error - Could not extract TM1 config`
+        message:  `Error - Could not extract TM1 config from Salesforce`
       });
+    }
+    else {
+
+      // TM1 config extraction was successful. Mark installComplete to TRUE to ensure the final status message is positive.
+      this.installComplete = true;
     }
 
     // Done with writing()

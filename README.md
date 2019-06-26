@@ -292,7 +292,7 @@ OPTIONS
 
 EXAMPLES
   $ sfdx tmtools:tm1:extract
-  $ sfdx tmtools:tm1:extract TODO: finish this example
+  $ sfdx tmtools:tm1:extract -d ~/custom-target-directory
 ```
 
 _See code: [src/commands/tmtools/tm1/extract.ts](https://github.com/sfdx-isv/territory-management-tools/blob/v0.0.0/src/commands/tmtools/tm1/extract.ts)_

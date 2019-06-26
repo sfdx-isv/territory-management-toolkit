@@ -18,14 +18,16 @@ import {SfdxError}                    from  '@salesforce/core';     // Generaliz
 import {AnyJson}                      from  '@salesforce/ts-types'; // Safe type for use where "any" might otherwise be used.
 
 // Import Local Modules
-import {SfdxFalconError}              from  '../../../modules/sfdx-falcon-error';   // Class. Extends SfdxError to provide specialized error structures for SFDX-Falcon modules.
-import {SfdxFalconYeomanCommand}      from  '../../../modules/sfdx-falcon-yeoman-command';  // Base class that CLI commands in this project that use Yeoman should use.
+import {SfdxFalconDebug}              from  '../../../modules/sfdx-falcon-debug';           // Class. Provides custom "debugging" services (ie. debug-style info to console.log()).
+import {SfdxFalconError}              from  '../../../modules/sfdx-falcon-error';           // Class. Extends SfdxError to provide specialized error structures for SFDX-Falcon modules.
+import {SfdxFalconYeomanCommand}      from  '../../../modules/sfdx-falcon-yeoman-command';  // Class. Base class that CLI commands in this project that use Yeoman should use.
 
 // Import Internal Types
 import {SfdxFalconCommandType}        from  '../../../modules/sfdx-falcon-command'; // Enum. Represents the types of SFDX-Falcon Commands.
 
 // Set the File Local Debug Namespace
-//const dbgNs     = 'COMMAND:tmtools-tm1-extract:';
+const dbgNs = 'COMMAND:tmtools-tm1-extract:';
+SfdxFalconDebug.msg(`${dbgNs}`, `Debugging initialized for ${dbgNs}`);
 
 // Use SfdxCore's Messages framework to get the message bundles for this command.
 Messages.importMessagesDirectory(__dirname);
@@ -37,7 +39,11 @@ const commandMessages = Messages.loadMessages('territory-management-tools', 'tmt
  * @class       TmtoolsTm1Extract
  * @extends     SfdxFalconYeomanCommand
  * @summary     Implements the CLI Command "tmtools:tm1:extract"
- * @description The command "tmtools:tm1:extract"...TODO: Add description
+ * @description The command "tmtools:tm1:extract" asks the user to specify a target org with the
+ *              desired TM1 configuration metadata/data, then proceeds to extact that data and save
+ *              it to the user's file system inside their specified directory. If no directory is
+ *              specified, extracted metadata/data will be stored at the location the command was
+ *              called from.
  * @public
  */
 //─────────────────────────────────────────────────────────────────────────────────────────────────┘
@@ -48,7 +54,7 @@ export default class TmtoolsTm1Extract extends SfdxFalconYeomanCommand {
   public static hidden      = false;
   public static examples    = [
     `$ sfdx tmtools:tm1:extract`,
-    `$ sfdx tmtools:tm1:extract TODO: finish this example`
+    `$ sfdx tmtools:tm1:extract -d ~/custom-target-directory`
   ];
 
   //───────────────────────────────────────────────────────────────────────────┐
