@@ -17,19 +17,14 @@ import {flags}                        from  '@salesforce/command';  // Allows cr
 import {Messages}                     from  '@salesforce/core';     // Messages library that simplifies using external JSON for string reuse.
 import {SfdxError}                    from  '@salesforce/core';     // Generalized SFDX error which also contains an action.
 import {AnyJson}                      from  '@salesforce/ts-types'; // Safe type for use where "any" might otherwise be used.
-//import {isEmpty}                      from  'lodash';               // Useful function for detecting empty objects.
-//import * as path                      from  'path';                 // Helps resolve local paths at runtime.
+import * as path                      from  'path';                 // Helps resolve local paths at runtime.
 
 // Import Local Modules
 import {SfdxFalconError}              from  '../../../modules/sfdx-falcon-error';   // Class. Extends SfdxError to provide specialized error structures for SFDX-Falcon modules.
-//import {SfdxFalconProject}            from  '../../../modules/sfdx-falcon-project'; // Class. Represents an SFDX-Falcon project, including locally stored project data.
-//import {SfdxFalconResult}             from  '../../../modules/sfdx-falcon-result';  // Class. Used to communicate results of SFDX-Falcon code execution at a variety of levels.
-//import {SfdxFalconResultType}         from  '../../../modules/sfdx-falcon-result';  // Enum. Represents the different types of sources where Results might come from.
 import {SfdxFalconYeomanCommand}      from  '../../../modules/sfdx-falcon-yeoman-command';  // Base class that CLI commands in this project that use Yeoman should use.
 
 // Import Internal Types
 import {SfdxFalconCommandType}        from  '../../../modules/sfdx-falcon-command'; // Enum. Represents the types of SFDX-Falcon Commands.
-//import {CoreActionResultDetail}       from  '../../../modules/sfdx-falcon-recipe/engines/appx/actions'; // Interface. Represents the core set of "detail" information that every ACTION result should have.
 
 // Set the File Local Debug Namespace
 //const dbgNs     = 'COMMAND:tmtools-tm1-transform:';
@@ -37,6 +32,18 @@ import {SfdxFalconCommandType}        from  '../../../modules/sfdx-falcon-comman
 // Use SfdxCore's Messages framework to get the message bundles for this command.
 Messages.importMessagesDirectory(__dirname);
 const commandMessages = Messages.loadMessages('territory-management-tools', 'tmtoolsTm1Transform');
+
+
+// DEVTEST
+import {SfdxFalconDebug} from '../../../modules/sfdx-falcon-debug';
+//import {createDeveloperName} from '../../../modules/sfdx-falcon-util/mdapi';
+//import {parseFile} from  '../../../modules/sfdx-falcon-util/csv';   // Class. Extends SfdxError to provide specialized error structures for SFDX-Falcon modules.
+//import {TM1Context} from '../../../modules/tm-tools-objects/tm1-context';
+import {TmToolsTransform} from '../../../modules/tm-tools-transform';
+
+
+
+
 
 
 //─────────────────────────────────────────────────────────────────────────────────────────────────┐
@@ -67,7 +74,7 @@ export default class TmtoolsTm1Transform extends SfdxFalconYeomanCommand {
   protected static flagsConfig = {
     outputdir: flags.directory({
       char: 'd',
-      required: false,
+      required: true,
       description: commandMessages.getMessage('outputdir_FlagDescription'),
       default: '.',
       hidden: false
@@ -76,6 +83,7 @@ export default class TmtoolsTm1Transform extends SfdxFalconYeomanCommand {
       char: 's',
       required: true,
       description: commandMessages.getMessage('sourcedir_FlagDescription'),
+      default: '.',
       hidden: false
     }),
 
@@ -103,6 +111,44 @@ export default class TmtoolsTm1Transform extends SfdxFalconYeomanCommand {
 
     // Initialize the SfdxFalconCommand (required by ALL classes that extend SfdxFalconCommand).
     this.sfdxFalconCommandInit('tmtools:tm1:transform', SfdxFalconCommandType.UNKNOWN);
+
+
+    // DEVTEST (BEGIN)
+    try {
+      const sourceDir = path.resolve(this.flags.sourcedir);
+      const outputDir = path.resolve(this.flags.outputdir);
+      const extractedMetadataDir    = path.join(sourceDir, 'extracted-metadata');
+      const extractedDataDir        = path.join(sourceDir, 'extracted-data');
+      const transformedMetadataDir  = path.join(outputDir, 'transformed-metadata');
+      const transformedDataDir      = path.join(outputDir, 'transformed-data');
+
+      SfdxFalconDebug.debugString('DEVTEST:sourceDir:', sourceDir);
+      SfdxFalconDebug.debugString('DEVTEST:outputDir:', outputDir);
+
+      SfdxFalconDebug.debugString('DEVTEST:extractedMetadataDir:', extractedMetadataDir);
+      SfdxFalconDebug.debugString('DEVTEST:extractedDataDir:', extractedDataDir);
+      SfdxFalconDebug.debugString('DEVTEST:transformedMetadataDir:', transformedMetadataDir);
+      SfdxFalconDebug.debugString('DEVTEST:transformedDataDir:', transformedDataDir);
+
+      const tm1Transform = await TmToolsTransform.prepare(
+        extractedMetadataDir,   // Extracted Metadata Path
+        extractedDataDir,       // Extracted Record Data Path
+        transformedMetadataDir, // Transformed Metadata Path
+        transformedDataDir      // Transformed Record Data Path
+      );
+      //SfdxFalconDebug.debugObject('DEVTEST:tm1Transform:', tm1Transform);
+      
+      await tm1Transform.execute();
+      await tm1Transform.write();
+
+
+      return {};
+    }
+    catch (error) {
+      await this.onError(error);
+    }
+    // DEVTEST (END)
+
 
     // Run a Yeoman Generator to interact with and run tasks for the user.
     await super.runYeomanGenerator({
