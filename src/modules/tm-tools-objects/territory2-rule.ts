@@ -146,7 +146,9 @@ export class Territory2Rule extends Metadata {
     this.xmlRoot.ele('objectType').txt(this._objectType);
     for (const ataRuleItemRecord of this._ataRuleItemRecords) {
       const ruleItemsNode = this.xmlRoot.ele('ruleItems');
-      ruleItemsNode.ele('field').txt(this._objectType + '.' + ataRuleItemRecord.Field);
+      // Ensure that the Field Name is always prepended by "Account."
+      const fieldName = (ataRuleItemRecord.Field.startsWith('Account.')) ? ataRuleItemRecord.Field : 'Account.' + ataRuleItemRecord.Field;
+      ruleItemsNode.ele('field').txt(fieldName);
       ruleItemsNode.ele('operation').txt(ataRuleItemRecord.Operation);
       ruleItemsNode.ele('value').txt(ataRuleItemRecord.Value);
     }
