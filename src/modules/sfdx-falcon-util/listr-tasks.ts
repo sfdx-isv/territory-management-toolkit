@@ -30,6 +30,7 @@ import {FalconProgressNotifications}  from  '../sfdx-falcon-notifications'; // C
 import {SfdxFalconResult}             from  '../sfdx-falcon-result';        // Class. Implements a framework for creating results-driven, informational objects with a concept of heredity (child results) and the ability to "bubble up" both Errors (thrown exceptions) and application-defined "failures".
 import {SfdxFalconResultType}         from  '../sfdx-falcon-result';        // Enum. Represents the different types of sources where Results might come from.
 import {waitASecond}                  from  '../sfdx-falcon-util/async';    // Function. Simple helper that introduces a delay when called inside async functions using "await".
+import {TmToolsTransform}             from  '../tm-tools-transform';        // Class. Provides TM1 to TM2 transformation services given the location of source config.
 
 // Import Falcon Types
 import {ErrorOrResult}            from  '../sfdx-falcon-types';   // Type. Alias to a combination of Error or SfdxFalconResult.
@@ -1510,34 +1511,6 @@ export function stageProjectFiles(targetDir:string):ListrTask {
   } as ListrTask;
 }
 
-
-
-
-
-// ────────────────────────────────────────────────────────────────────────────────────────────────┐
-/**
- * @function    validateFetchExtractArguments
- * @returns     {void}
- * @description Ensures that the arguments provided match an expected, ordered set.
- * @private
- */
-// ────────────────────────────────────────────────────────────────────────────────────────────────┘
-function validateFetchExtractArguments():void {
-
-  // Validate "aliasOrUsername".
-  if (typeof arguments[0] !== 'string' || arguments[0] === '') {
-    throw new SfdxFalconError( `Expected aliasOrUsername to be a non-empty string but got type '${typeof arguments[0]}' instead.`
-                             , `TypeError`
-                             , `${dbgNs}validateFetchExtractArguments`);
-  }
-  // Validate "targetDir".
-  if (typeof arguments[1] !== 'string' || arguments[1] === '') {
-    throw new SfdxFalconError( `Expected targetDir to be a non-empty string but got type '${typeof arguments[1]}' instead.`
-                             , `TypeError`
-                             , `${dbgNs}validateFetchExtractArguments`);
-  }
-}
-
 // ────────────────────────────────────────────────────────────────────────────────────────────────┐
 /**
  * @function    tm1DataFetch
@@ -1786,6 +1759,158 @@ export function tm1DataFetch(aliasOrUsername:string, targetDir:string):ListrObje
 
 // ────────────────────────────────────────────────────────────────────────────────────────────────┐
 /**
+ * @function    tm1DataTransform
+ * @param       {string}  extractedMetadataDir Required. Path to extracted TM1 metadata.
+ * @param       {string}  extractedDataDir  Required. Path to extracted TM1 data.
+ * @param       {string}  transformedMetadataDir  Required. Location where transformed metadata will
+ *              be written to.
+ * @param       {string}  transformedDataDir  Required. Location where transformed data will be
+ *              written to.
+ * @returns     {ListrObject}  A "runnable" Listr Object
+ * @description Returns a "runnable" Listr Object that attempts to transform the specified set of
+ *              TM1 metadata and data, then writes the transformed files to the local filesystem at
+ *              the specified locations.
+ * @public
+ */
+// ────────────────────────────────────────────────────────────────────────────────────────────────┘
+export function tm1DataTransform(extractedMetadataDir:string, extractedDataDir:string, transformedMetadataDir:string, transformedDataDir:string):ListrObject {
+
+  // Validate incoming arguments.
+  validateTm1DataTransformArguments.apply(null, arguments);
+
+  // Define a variable to hold the TM Tools Transformation Context.
+  let tm1Transform:TmToolsTransform = null;
+
+  // Build and return a Listr Task Object.
+  return new listr(
+    // TASK GROUP: TM1 Transformation Tasks
+    [
+      // ── Prepare TM Tools Transformation Context ────────────────────────────────────────────────
+      {
+        title:  'Prepare Environment for TM1 to TM2 Transformation',
+        task:   (listrContext:object, thisTask:ListrTask) => {
+          return new Observable(observer => {
+    
+            // Initialize an OTR (Observable Task Result).
+            const otr = initObservableTaskResult(`${dbgNs}tm1DataTransform:Prepare`, listrContext, thisTask, observer, this.sharedData, this.generatorResult,
+                        `Examining TM1 data and metadata and preparing a Transformation Context`);
+    
+            // Define the Task Logic to be executed.
+            const asyncTask = async () => {
+              tm1Transform = await TmToolsTransform.prepare(
+                extractedMetadataDir,   // Extracted Metadata Path
+                extractedDataDir,       // Extracted Record Data Path
+                transformedMetadataDir, // Transformed Metadata Path
+                transformedDataDir      // Transformed Record Data Path
+              );
+              SfdxFalconDebug.obj(`${dbgNs}stageProjectFiles:tm1Transform:`, tm1Transform);
+            };
+
+            // Execute the Task Logic.
+            asyncTask()
+              .then(async result => {
+                await waitASecond(3);
+                finalizeObservableTaskResult(otr);
+              })
+              .catch(async error => {
+                await waitASecond(3);
+                finalizeObservableTaskResult(otr, error);
+              });
+          });
+        }
+      },
+      // ── Execute the TM1 to TM2 Transformation ──────────────────────────────────────────────────
+      {
+        title:  'Transform TM1 Data/Metadata to TM2',
+        task:   (listrContext:object, thisTask:ListrTask) => {
+          return new Observable(observer => {
+    
+            // Initialize an OTR (Observable Task Result).
+            const otr = initObservableTaskResult(`${dbgNs}tm1DataTransform:Execute`, listrContext, thisTask, observer, this.sharedData, this.generatorResult,
+                        `Transforming TM1 data and metadata to TM2 data and metadata`);
+    
+            // Define the Task Logic to be executed.
+            const asyncTask = async () => {
+              await tm1Transform.execute();
+            };
+
+            // Execute the Task Logic.
+            asyncTask()
+              .then(async result => {
+                await waitASecond(3);
+                finalizeObservableTaskResult(otr);
+              })
+              .catch(async error => {
+                await waitASecond(3);
+                finalizeObservableTaskResult(otr, error);
+              });
+          });
+        }
+      },
+      // ── Write the TM1 data/metadata to disk ────────────────────────────────────────────────────
+      {
+        title:  'Write Transformed TM2 Data/Metadata to the Local Filesystem',
+        task:   (listrContext:object, thisTask:ListrTask) => {
+          return new Observable(observer => {
+    
+            // Initialize an OTR (Observable Task Result).
+            const otr = initObservableTaskResult(`${dbgNs}tm1DataTransform:Execute`, listrContext, thisTask, observer, this.sharedData, this.generatorResult,
+                        `Writing transformed data and metadata to the local filesystem`);
+    
+            // Define the Task Logic to be executed.
+            const asyncTask = async () => {
+              await tm1Transform.write();
+            };
+
+            // Execute the Task Logic.
+            asyncTask()
+              .then(async result => {
+                await waitASecond(3);
+                finalizeObservableTaskResult(otr);
+              })
+              .catch(async error => {
+                await waitASecond(3);
+                finalizeObservableTaskResult(otr, error);
+              });
+          });
+        }
+      }
+    ],
+    // TASK GROUP OPTIONS: TM1 Transformation Tasks
+    {
+      concurrent: false,
+      collapse:   false,
+      renderer:   falconUpdateRenderer
+    }
+  );
+}
+
+// ────────────────────────────────────────────────────────────────────────────────────────────────┐
+/**
+ * @function    validateFetchExtractArguments
+ * @returns     {void}
+ * @description Ensures that the arguments provided match an expected, ordered set.
+ * @private
+ */
+// ────────────────────────────────────────────────────────────────────────────────────────────────┘
+function validateFetchExtractArguments():void {
+
+  // Validate "aliasOrUsername".
+  if (typeof arguments[0] !== 'string' || arguments[0] === '') {
+    throw new SfdxFalconError( `Expected aliasOrUsername to be a non-empty string but got type '${typeof arguments[0]}' instead.`
+                             , `TypeError`
+                             , `${dbgNs}validateFetchExtractArguments`);
+  }
+  // Validate "targetDir".
+  if (typeof arguments[1] !== 'string' || arguments[1] === '') {
+    throw new SfdxFalconError( `Expected targetDir to be a non-empty string but got type '${typeof arguments[1]}' instead.`
+                             , `TypeError`
+                             , `${dbgNs}validateFetchExtractArguments`);
+  }
+}
+
+// ────────────────────────────────────────────────────────────────────────────────────────────────┐
+/**
  * @function    validateGitCloneArguments
  * @returns     {void}
  * @description Ensures that the arguments provided match an expected, ordered set.
@@ -1863,24 +1988,6 @@ export function validateGitRemote(gitRemoteUri:string=''):ListrTask {
 
 // ────────────────────────────────────────────────────────────────────────────────────────────────┐
 /**
- * @function    validateSharedData
- * @returns     {void}
- * @description Ensures that the calling scope has the special "sharedData" object.
- * @private
- */
-// ────────────────────────────────────────────────────────────────────────────────────────────────┘
-function validateSharedData():void {
-  if (typeof this.sharedData !== 'object') {
-    throw new SfdxFalconError( `Expected this.sharedData to be an object available in the calling scope. Got type '${typeof this.sharedData}' instead. `
-                             + `You must execute listr-tasks functions using the syntax: functionName.call(this). `
-                             + `You must also ensure that the calling scope has defined an object named 'sharedData'.`
-                             , `InvalidSharedData`
-                             , `${dbgNs}validateSharedData`);
-  }
-}
-
-// ────────────────────────────────────────────────────────────────────────────────────────────────┐
-/**
  * @function    validateMetadataRetrieveArguments
  * @returns     {void}
  * @description Ensures that the arguments provided match an expected, ordered set.
@@ -1936,5 +2043,59 @@ function validatePkgConversionArguments():void {
     throw new SfdxFalconError( `Expected retrieveTargetDir to be a non-empty string but got type '${typeof arguments[2]}' instead.`
                              , `TypeError`
                              , `${dbgNs}validatePkgConversionArguments`);
+  }
+}
+
+// ────────────────────────────────────────────────────────────────────────────────────────────────┐
+/**
+ * @function    validateSharedData
+ * @returns     {void}
+ * @description Ensures that the calling scope has the special "sharedData" object.
+ * @private
+ */
+// ────────────────────────────────────────────────────────────────────────────────────────────────┘
+function validateSharedData():void {
+  if (typeof this.sharedData !== 'object') {
+    throw new SfdxFalconError( `Expected this.sharedData to be an object available in the calling scope. Got type '${typeof this.sharedData}' instead. `
+                             + `You must execute listr-tasks functions using the syntax: functionName.call(this). `
+                             + `You must also ensure that the calling scope has defined an object named 'sharedData'.`
+                             , `InvalidSharedData`
+                             , `${dbgNs}validateSharedData`);
+  }
+}
+
+// ────────────────────────────────────────────────────────────────────────────────────────────────┐
+/**
+ * @function    validateTm1DataTransformArguments
+ * @returns     {void}
+ * @description Ensures that the arguments provided match an expected, ordered set.
+ * @private
+ */
+// ────────────────────────────────────────────────────────────────────────────────────────────────┘
+function validateTm1DataTransformArguments():void {
+
+  // Validate "extractedMetadataDir".
+  if (typeof arguments[0] !== 'string' || arguments[0] === '') {
+    throw new SfdxFalconError( `Expected extractedMetadataDir to be a non-empty string but got type '${typeof arguments[0]}' instead.`
+                             , `TypeError`
+                             , `${dbgNs}validateTm1DataTransformArguments`);
+  }
+  // Validate "extractedDataDir".
+  if (typeof arguments[1] !== 'string' || arguments[1] === '') {
+    throw new SfdxFalconError( `Expected extractedDataDir to be a non-empty string but got type '${typeof arguments[1]}' instead.`
+                             , `TypeError`
+                             , `${dbgNs}validateTm1DataTransformArguments`);
+  }
+  // Validate "transformedMetadataDir".
+  if (typeof arguments[2] !== 'string' || arguments[2] === '') {
+    throw new SfdxFalconError( `Expected transformedMetadataDir to be a string but got type '${typeof arguments[2]}' instead.`
+                             , `TypeError`
+                             , `${dbgNs}validateTm1DataTransformArguments`);
+  }
+  // Validate "transformedDataDir".
+  if (typeof arguments[3] !== 'string' || arguments[3] === '') {
+    throw new SfdxFalconError( `Expected transformedDataDir to be a string but got type '${typeof arguments[3]}' instead.`
+                             , `TypeError`
+                             , `${dbgNs}validateTm1DataTransformArguments`);
   }
 }

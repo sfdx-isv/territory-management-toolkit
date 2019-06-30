@@ -40,8 +40,10 @@ const dbgNs = 'MODULE:tm-tools-transform:';
 //─────────────────────────────────────────────────────────────────────────────────────────────────┐
 /**
  * @class       TmToolsTransform
- * @summary     ???
- * @description ???
+ * @summary     Provides TM1 to TM2 transformation services given the location of source config.
+ * @description If provided with the location of TM1 metadata and TM1 data, as well as the location
+ *              on disk where the transformed config (data+metadata) should go, provides the full
+ *              set of transformation services.
  * @public
  */
 //─────────────────────────────────────────────────────────────────────────────────────────────────┘

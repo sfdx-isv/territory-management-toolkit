@@ -20,30 +20,20 @@ import {AnyJson}                      from  '@salesforce/ts-types'; // Safe type
 import * as path                      from  'path';                 // Helps resolve local paths at runtime.
 
 // Import Local Modules
-import {SfdxFalconError}              from  '../../../modules/sfdx-falcon-error';   // Class. Extends SfdxError to provide specialized error structures for SFDX-Falcon modules.
+import {SfdxFalconDebug}              from  '../../../modules/sfdx-falcon-debug';           // Class. Provides custom "debugging" services (ie. debug-style info to console.log()).
+import {SfdxFalconError}              from  '../../../modules/sfdx-falcon-error';           // Class. Extends SfdxError to provide specialized error structures for SFDX-Falcon modules.
 import {SfdxFalconYeomanCommand}      from  '../../../modules/sfdx-falcon-yeoman-command';  // Base class that CLI commands in this project that use Yeoman should use.
 
 // Import Internal Types
 import {SfdxFalconCommandType}        from  '../../../modules/sfdx-falcon-command'; // Enum. Represents the types of SFDX-Falcon Commands.
 
 // Set the File Local Debug Namespace
-//const dbgNs     = 'COMMAND:tmtools-tm1-transform:';
+const dbgNs = 'COMMAND:tmtools-tm1-transform:';
+SfdxFalconDebug.msg(`${dbgNs}`, `Debugging initialized for ${dbgNs}`);
 
 // Use SfdxCore's Messages framework to get the message bundles for this command.
 Messages.importMessagesDirectory(__dirname);
 const commandMessages = Messages.loadMessages('territory-management-tools', 'tmtoolsTm1Transform');
-
-
-// DEVTEST
-import {SfdxFalconDebug} from '../../../modules/sfdx-falcon-debug';
-//import {createDeveloperName} from '../../../modules/sfdx-falcon-util/mdapi';
-//import {parseFile} from  '../../../modules/sfdx-falcon-util/csv';   // Class. Extends SfdxError to provide specialized error structures for SFDX-Falcon modules.
-//import {TM1Context} from '../../../modules/tm-tools-objects/tm1-context';
-import {TmToolsTransform} from '../../../modules/tm-tools-transform';
-
-
-
-
 
 
 //─────────────────────────────────────────────────────────────────────────────────────────────────┐
@@ -112,48 +102,15 @@ export default class TmtoolsTm1Transform extends SfdxFalconYeomanCommand {
     // Initialize the SfdxFalconCommand (required by ALL classes that extend SfdxFalconCommand).
     this.sfdxFalconCommandInit('tmtools:tm1:transform', SfdxFalconCommandType.UNKNOWN);
 
-
-    // DEVTEST (BEGIN)
-    try {
-      const sourceDir = path.resolve(this.flags.sourcedir);
-      const outputDir = path.resolve(this.flags.outputdir);
-      const extractedMetadataDir    = path.join(sourceDir, 'extracted-metadata');
-      const extractedDataDir        = path.join(sourceDir, 'extracted-data');
-      const transformedMetadataDir  = path.join(outputDir, 'transformed-metadata');
-      const transformedDataDir      = path.join(outputDir, 'transformed-data');
-
-      SfdxFalconDebug.debugString('DEVTEST:sourceDir:', sourceDir);
-      SfdxFalconDebug.debugString('DEVTEST:outputDir:', outputDir);
-
-      SfdxFalconDebug.debugString('DEVTEST:extractedMetadataDir:', extractedMetadataDir);
-      SfdxFalconDebug.debugString('DEVTEST:extractedDataDir:', extractedDataDir);
-      SfdxFalconDebug.debugString('DEVTEST:transformedMetadataDir:', transformedMetadataDir);
-      SfdxFalconDebug.debugString('DEVTEST:transformedDataDir:', transformedDataDir);
-
-      const tm1Transform = await TmToolsTransform.prepare(
-        extractedMetadataDir,   // Extracted Metadata Path
-        extractedDataDir,       // Extracted Record Data Path
-        transformedMetadataDir, // Transformed Metadata Path
-        transformedDataDir      // Transformed Record Data Path
-      );
-      //SfdxFalconDebug.debugObject('DEVTEST:tm1Transform:', tm1Transform);
-      
-      await tm1Transform.execute();
-      await tm1Transform.write();
-
-
-      return {};
-    }
-    catch (error) {
-      await this.onError(error);
-    }
-    // DEVTEST (END)
-
+    // Resolve the paths for the Source and Output directories.
+    const sourceDir = path.resolve(this.flags.sourcedir);
+    const outputDir = path.resolve(this.flags.outputdir);
 
     // Run a Yeoman Generator to interact with and run tasks for the user.
     await super.runYeomanGenerator({
-      generatorType:    'transform-tm1-data-and-metadata',
-      outputDir:        this.outputDirectory,
+      generatorType:  'transform-tm1-data-and-metadata',
+      sourceDir:      sourceDir,
+      outputDir:      outputDir,
       options: []
     })
     .then(generatorResult   => this.onSuccess(generatorResult)) // Implemented by parent class
