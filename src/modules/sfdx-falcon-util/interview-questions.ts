@@ -727,12 +727,14 @@ export function provideProjectInfo():Questions {
 // ────────────────────────────────────────────────────────────────────────────────────────────────┐
 /**
  * @function    provideTargetDirectory
+ * @param       {string}  [questionText]  Optional. Allows the caller to override the text that's
+ *              displayed when this question is asked.
  * @returns     {Questions}  An array of Inquirer Question objects.
  * @description Asks the user to provide a target directory for a project being cloned or created.
  * @public
  */
 // ────────────────────────────────────────────────────────────────────────────────────────────────┘
-export function provideTargetDirectory():Questions {
+export function provideTargetDirectory(questionText?:string):Questions {
 
   // Make sure the calling scope has the variables we expect.
   validateInterviewScope.call(this);
@@ -742,12 +744,76 @@ export function provideTargetDirectory():Questions {
     {
       type:     'input',
       name:     'targetDirectory',
-      message:  'What is the target directory for this project?',
+      message:  questionText || 'What is the target directory for this project?',
       default:  ( typeof this.userAnswers.targetDirectory !== 'undefined' )
                 ? this.userAnswers.targetDirectory        // Current Value
                 : this.defaultAnswers.targetDirectory,    // Default Value
       validate: yoValidate.targetPath,                    // Check targetPath for illegal chars
       filter:   filterLocalPath,                          // Returns a Resolved path
+      when:     true
+    }
+  ];
+}
+
+// ────────────────────────────────────────────────────────────────────────────────────────────────┐
+/**
+ * @function    provideTm1SourceDirectory
+ * @param       {string}  [questionText]  Optional. Allows the caller to override the text that's
+ *              displayed when this question is asked.
+ * @returns     {Questions}  An array of Inquirer Question objects.
+ * @description Asks the user to provide a fully qualified path to a directory that contains TM1
+ *              configuration data/metadata.
+ * @public
+ */
+// ────────────────────────────────────────────────────────────────────────────────────────────────┘
+export function provideTm1SourceDirectory(questionText?:string):Questions {
+
+  // Make sure the calling scope has the variables we expect.
+  validateInterviewScope.call(this);
+
+  // Build and return the Question.
+  return [
+    {
+      type:     'input',
+      name:     'extractedSourceDir',
+      message:  questionText || 'Path to the directory containing your extracted TM1 config?',
+      default:  ( typeof this.userAnswers.extractedSourceDir !== 'undefined' )
+                ? this.userAnswers.extractedSourceDir     // Current Value
+                : this.defaultAnswers.extractedSourceDir, // Default Value
+      validate: yoValidate.targetPath,                    // Check targetPath for illegal chars
+      filter:   filterLocalPath,                          // Returns a Resolved path
+      when:     true
+    }
+  ];
+}
+
+// ────────────────────────────────────────────────────────────────────────────────────────────────┐
+/**
+ * @function    provideTm2TransformDirectory
+ * @param       {string}  [questionText]  Optional. Allows the caller to override the text that's
+ *              displayed when this question is asked.
+ * @returns     {Questions}  An array of Inquirer Question objects.
+ * @description Asks the user to provide a fully qualified path to a directory where transformed
+ *              TM1 configuration data/metadata will be written as ready-to-deploy TM2 config.
+ * @public
+ */
+// ────────────────────────────────────────────────────────────────────────────────────────────────┘
+export function provideTm2TransformDirectory(questionText?:string):Questions {
+
+  // Make sure the calling scope has the variables we expect.
+  validateInterviewScope.call(this);
+
+  // Build and return the Question.
+  return [
+    {
+      type:     'input',
+      name:     'transformedOutputDir',
+      message:  questionText || 'Path to the directory where you\'d like the transformed TM2 config saved to?',
+      default:  ( typeof this.userAnswers.transformedOutputDir !== 'undefined' )
+                ? this.userAnswers.transformedOutputDir     // Current Value
+                : this.defaultAnswers.transformedOutputDir, // Default Value
+      validate: yoValidate.targetPath,                      // Check targetPath for illegal chars
+      filter:   filterLocalPath,                            // Returns a Resolved path
       when:     true
     }
   ];
