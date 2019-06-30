@@ -177,23 +177,6 @@ export class TmToolsTransform {
     await this.writeData();
     await this.writeMetadata();
 
-
-    const targetDir = this.tm2FilePaths.tm2MetadataDir;
-
-    // DEVTEST
-    const t2Model = this.territory2ModelObjectsByDevName.get('Imported_Territory');
-    await t2Model.writeXml(targetDir);
-    const t2Type = this.territory2TypeObjectsByDevName.get('Imported_Territory');
-    await t2Type.writeXml(targetDir);
-    for (const t2Rule of this.territory2RuleObjectsByDevName.values()) {
-      await t2Rule.writeXml(targetDir);
-    }
-    for (const t2 of this.territory2ObjectsByDevName.values()) {
-      await t2.writeXml(targetDir);
-    }
-    await this.package.writeXml(targetDir);
-
-
   }
 
   //───────────────────────────────────────────────────────────────────────────┐
