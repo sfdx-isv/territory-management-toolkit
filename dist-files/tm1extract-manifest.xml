@@ -12,10 +12,6 @@
     </types>
     <types>
         <members>*</members>
-        <name>SharingTerritoryRule</name>
-    </types>
-    <types>
-        <members>*</members>
         <name>Territory</name>
     </types>
     <version>45.0</version>
