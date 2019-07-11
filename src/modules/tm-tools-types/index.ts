@@ -203,6 +203,24 @@ export interface TM1Context {
 }
 
 /**
+ * Interface. Represents a metadata component with a dependency on TM1.
+ */
+export interface TM1Dependency {
+  componentType:  string;
+  componentName:  string;
+  dependentOn:    string;
+}
+
+/**
+ * Interface. Represents basic org information for a TM1 org
+ */
+export interface TM1OrgInfo {
+  orgId?:    string;
+  orgName?:  string;
+  orgType?:  string;
+}
+
+/**
  * Interface. Represents the complete suite of CSV and Metadata file paths required to create a TM1 Context.
  */
 export interface TM1FilePaths {
