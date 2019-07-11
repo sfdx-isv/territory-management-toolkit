@@ -13,6 +13,7 @@
  */
 //─────────────────────────────────────────────────────────────────────────────────────────────────┘
 // Import External Modules
+import {isEmpty}              from  'lodash'; // Useful function for detecting empty objects, collections, maps, and sets.
 
 // Import Internal Modules
 import * as yoValidate        from  '../sfdx-falcon-validators/yeoman-validator'; // Library of validation functions for Yeoman interview inputs, specific to SFDX-Falcon.
@@ -237,6 +238,7 @@ export function choosePkgProjectType(pkgProjectTypeChoices:YeomanChoice[]=PKG_PR
 // ────────────────────────────────────────────────────────────────────────────────────────────────┐
 /**
  * @function    chooseTm1Org
+ * @param       {string[]}  [promptText]  Optional. Array of strings used as text for each prompt.
  * @param       {YeomanChoice[]}  [targetOrgChoices]  Optional. Array of Target Org choices.
  * @param       {YeomanChoice[]}  [scratchOrgChoices] Optional. Array of Scratch Org choices.
  * @returns     {Question}  A single Inquirer Question.
@@ -244,19 +246,24 @@ export function choosePkgProjectType(pkgProjectTypeChoices:YeomanChoice[]=PKG_PR
  * @public
  */
 // ────────────────────────────────────────────────────────────────────────────────────────────────┘
-export function chooseTm1Org(targetOrgChoices?:YeomanChoice[], scratchOrgChoices?:YeomanChoice[]):Questions {
+export function chooseTm1Org(promptText?:string[], targetOrgChoices?:YeomanChoice[], scratchOrgChoices?:YeomanChoice[]):Questions {
 
   // Debug arguments.
   SfdxFalconDebug.obj(`${dbgNs}chooseTm1Org:arguments:`, arguments);
 
+  // If the caller didn't supply an array of promptText, initialize it as an empty array.
+  if (Array.isArray(promptText) !== true) {
+    promptText = [];
+  }
+
   // If the caller didn't supply Target Org Choices, try to grab them from Shared Data.
-  if (typeof targetOrgChoices === 'undefined') {
+  if (isEmpty(targetOrgChoices)) {
     validateInterviewScope.call(this);
     targetOrgChoices = this.sharedData['targetOrgAliasChoices'] || [];
   }
 
   // If the caller didn't supply Target Scratch Org Choices, try to grab them from Shared Data.
-  if (typeof scratchOrgChoices === 'undefined') {
+  if (isEmpty(scratchOrgChoices)) {
     validateInterviewScope.call(this);
     scratchOrgChoices = this.sharedData['scratchOrgAliasChoices'] || [];
   }
@@ -284,21 +291,21 @@ export function chooseTm1Org(targetOrgChoices?:YeomanChoice[], scratchOrgChoices
     {
       type:     'confirm',
       name:     'isScratchOrg',
-      message:  'Is the target a Scratch Org?',
+      message:  promptText[0] || 'Is the target a Scratch Org?',
       default:  true,
       when:     true
     },
     {
       type:     'list',
       name:     'targetOrgUsername',
-      message:  'From which org do you want to extract TM1 configuration?',
+      message:  promptText[1] || 'From which org do you want to extract TM1 configuration?',
       choices:  targetOrgChoices,
       when:     answerHash => (answerHash.isScratchOrg === false && targetOrgChoices.length > 0)
     },
     {
       type:     'list',
       name:     'targetOrgUsername',
-      message:  'From which scratch org do you want to extract TM1 configuration?',
+      message:  promptText[2] || 'From which scratch org do you want to extract TM1 configuration?',
       choices:  scratchOrgChoices,
       when:     answerHash => (answerHash.isScratchOrg === true && scratchOrgChoices.length > 0)
     }
@@ -727,14 +734,13 @@ export function provideProjectInfo():Questions {
 // ────────────────────────────────────────────────────────────────────────────────────────────────┐
 /**
  * @function    provideTargetDirectory
- * @param       {string}  [questionText]  Optional. Allows the caller to override the text that's
- *              displayed when this question is asked.
+ * @param       {string[]}  [promptText]  Optional. Array of strings used as text for each prompt.
  * @returns     {Questions}  An array of Inquirer Question objects.
  * @description Asks the user to provide a target directory for a project being cloned or created.
  * @public
  */
 // ────────────────────────────────────────────────────────────────────────────────────────────────┘
-export function provideTargetDirectory(questionText?:string):Questions {
+export function provideTargetDirectory(promptText?:string[]):Questions {
 
   // Make sure the calling scope has the variables we expect.
   validateInterviewScope.call(this);
@@ -744,7 +750,7 @@ export function provideTargetDirectory(questionText?:string):Questions {
     {
       type:     'input',
       name:     'targetDirectory',
-      message:  questionText || 'What is the target directory for this project?',
+      message:  promptText[0] || 'What is the target directory for this project?',
       default:  ( typeof this.userAnswers.targetDirectory !== 'undefined' )
                 ? this.userAnswers.targetDirectory        // Current Value
                 : this.defaultAnswers.targetDirectory,    // Default Value
