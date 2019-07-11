@@ -111,7 +111,7 @@ export class TM1Context {
    *              The end result is a fully-populated "Territory Management 1.0
    *              Context" which can be used to prepare an "import deployment"
    *              for a TM2 org.
-   * @public
+   * @private
    */
   //───────────────────────────────────────────────────────────────────────────┘
   private constructor(exportedMetadataPath:string, exportedRecordDataPath:string) {
