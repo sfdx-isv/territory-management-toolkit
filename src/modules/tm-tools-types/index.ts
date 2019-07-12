@@ -212,12 +212,29 @@ export interface TM1Dependency {
 }
 
 /**
+ * Interface. Represents a complete view of HARD TM1 dependencies in an org.
+ */
+export interface TM1HardDependencies {
+  hardTm1DependencyCount: number;
+  hardTm1Dependencies:    TM1Dependency[];
+}
+
+/**
+ * Interface. Represents a complete view of SOFT TM1 dependencies in an org.
+ */
+export interface TM1SoftDependencies {
+  softTm1DependencyCount: number;
+  softTm1Dependencies:    TM1Dependency[];
+}
+
+/**
  * Interface. Represents basic org information for a TM1 org
  */
 export interface TM1OrgInfo {
-  orgId?:    string;
-  orgName?:  string;
-  orgType?:  string;
+  username?:            string;
+  orgId?:               string;
+  loginUrl?:            string;
+  createdOrgInstance?:  string;
 }
 
 /**
