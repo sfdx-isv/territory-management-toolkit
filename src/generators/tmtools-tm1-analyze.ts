@@ -14,7 +14,8 @@
  */
 //─────────────────────────────────────────────────────────────────────────────────────────────────┘
 // Import External Libraries & Modules
-import * as path  from  'path'; // Library. Helps resolve local paths at runtime.
+import chalk      from  'chalk';  // Helps write colored text to the console.
+import * as path  from  'path';   // Library. Helps resolve local paths at runtime.
 
 // Import Internal Libraries
 import * as iq                          from  '../modules/sfdx-falcon-util/interview-questions';  // Library. Helper functions that create Interview Questions.
@@ -34,9 +35,6 @@ import {SfdxFalconYeomanGenerator}      from  '../modules/sfdx-falcon-yeoman-gen
 import {YeomanChoice}                   from  '../modules/sfdx-falcon-types';                     // Interface. Represents a Yeoman/Inquirer choice object.
 import {SfdxOrgInfoMap}                 from  '../modules/sfdx-falcon-types';                     // Type. Alias for a Map with string keys holding SfdxOrgInfo values.
 import {ScratchOrgInfoMap}              from  '../modules/sfdx-falcon-types';                     // Type. Alias for a Map with string keys holding ScratchOrgInfo values.
-
-// Requires
-const chalk = require('chalk');   // Utility for creating colorful console output.
 
 // Set the File Local Debug Namespace
 const dbgNs = 'GENERATOR:tmtools-tm1-analyze:';

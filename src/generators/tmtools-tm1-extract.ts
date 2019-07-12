@@ -1,6 +1,6 @@
 //─────────────────────────────────────────────────────────────────────────────────────────────────┐
 /**
- * @file          generators/tm1-extract.ts
+ * @file          generators/tmtools-tm1-extract.ts
  * @copyright     Vivek M. Chawla - 2019
  * @author        Vivek M. Chawla <@VivekMChawla>
  * @summary       Yeoman Generator for extracting TM1 metadata and data from an org.
@@ -12,13 +12,15 @@
  * @license       MIT
  */
 //─────────────────────────────────────────────────────────────────────────────────────────────────┘
-// Import External Modules
-import * as path  from  'path'; // Library. Helps resolve local paths at runtime.
+// Import External Libraries & Modules
+import chalk      from  'chalk';  // Helps write colored text to the console.
+import * as path  from  'path';   // Library. Helps resolve local paths at runtime.
 
-// Import Internal Modules
+// Import Internal Libraries
 import * as iq                          from  '../modules/sfdx-falcon-util/interview-questions';  // Library. Helper functions that create Interview Questions.
 import * as listrTasks                  from  '../modules/sfdx-falcon-util/listr-tasks';          // Library. Helper functions that make using Listr with SFDX-Falcon easier.
 
+// Import Internal Classes & Functions
 import {SfdxFalconDebug}                from  '../modules/sfdx-falcon-debug';                     // Class. Provides custom "debugging" services (ie. debug-style info to console.log()).
 import {SfdxFalconError}                from  '../modules/sfdx-falcon-error';                     // Class. Extends SfdxError to provide specialized error structures for SFDX-Falcon modules.
 import {SfdxFalconInterview}            from  '../modules/sfdx-falcon-interview';                 // Class. Provides a standard way of building a multi-group Interview to collect user input.
@@ -32,9 +34,6 @@ import {SfdxFalconYeomanGenerator}      from  '../modules/sfdx-falcon-yeoman-gen
 import {YeomanChoice}                   from  '../modules/sfdx-falcon-types';                     // Interface. Represents a Yeoman/Inquirer choice object.
 import {SfdxOrgInfoMap}                 from  '../modules/sfdx-falcon-types';                     // Type. Alias for a Map with string keys holding SfdxOrgInfo values.
 import {ScratchOrgInfoMap}              from  '../modules/sfdx-falcon-types';                     // Type. Alias for a Map with string keys holding ScratchOrgInfo values.
-
-// Requires
-const chalk = require('chalk');   // Utility for creating colorful console output.
 
 // Set the File Local Debug Namespace
 const dbgNs = 'GENERATOR:tmtools-tm1-extract:';
