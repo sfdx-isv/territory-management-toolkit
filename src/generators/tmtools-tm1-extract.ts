@@ -37,7 +37,7 @@ import {ScratchOrgInfoMap}              from  '../modules/sfdx-falcon-types';   
 const chalk = require('chalk');   // Utility for creating colorful console output.
 
 // Set the File Local Debug Namespace
-const dbgNs = 'GENERATOR:tm1-extract:';
+const dbgNs = 'GENERATOR:tmtools-tm1-extract:';
 SfdxFalconDebug.msg(`${dbgNs}`, `Debugging initialized for ${dbgNs}`);
 
 
