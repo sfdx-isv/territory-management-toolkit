@@ -1,4 +1,4 @@
 {
-  "commandDescription"          : "TODO: Write Description",
-  "outputdir_FlagDescription"   : "TODO: Validate need for this flag then write description"
+  "commandDescription"          : "TODO: Write Command Description",
+  "sourcedir_FlagDescription"   : "TODO: Write Flag Description"
 }

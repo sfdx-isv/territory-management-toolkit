@@ -36,7 +36,7 @@ USAGE
 * [`sfdx falcon:apk:clone [-d <directory>] [--falcondebug <array>] [--falcondebugerror] [--falcondebugsuccess] [--falcondebugdepth <number>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`](#sfdx-falconapkclone--d-directory---falcondebug-array---falcondebugerror---falcondebugsuccess---falcondebugdepth-number---json---loglevel-tracedebuginfowarnerrorfataltracedebuginfowarnerrorfatal)
 * [`sfdx falcon:apk:create [-d <directory>] [--falcondebug <array>] [--falcondebugerror] [--falcondebugsuccess] [--falcondebugdepth <number>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`](#sfdx-falconapkcreate--d-directory---falcondebug-array---falcondebugerror---falcondebugsuccess---falcondebugdepth-number---json---loglevel-tracedebuginfowarnerrorfataltracedebuginfowarnerrorfatal)
 * [`sfdx tmtools:tm1:analyze [-d <directory>] [--falcondebug <array>] [--falcondebugerror] [--falcondebugsuccess] [--falcondebugdepth <number>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`](#sfdx-tmtoolstm1analyze--d-directory---falcondebug-array---falcondebugerror---falcondebugsuccess---falcondebugdepth-number---json---loglevel-tracedebuginfowarnerrorfataltracedebuginfowarnerrorfatal)
-* [`sfdx tmtools:tm1:extract [-d <directory>] [--falcondebug <array>] [--falcondebugerror] [--falcondebugsuccess] [--falcondebugdepth <number>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`](#sfdx-tmtoolstm1extract--d-directory---falcondebug-array---falcondebugerror---falcondebugsuccess---falcondebugdepth-number---json---loglevel-tracedebuginfowarnerrorfataltracedebuginfowarnerrorfatal)
+* [`sfdx tmtools:tm1:extract [-s <directory>] [--falcondebug <array>] [--falcondebugerror] [--falcondebugsuccess] [--falcondebugdepth <number>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`](#sfdx-tmtoolstm1extract--s-directory---falcondebug-array---falcondebugerror---falcondebugsuccess---falcondebugdepth-number---json---loglevel-tracedebuginfowarnerrorfataltracedebuginfowarnerrorfatal)
 * [`sfdx tmtools:tm1:transform -d <directory> -s <directory> [--falcondebug <array>] [--falcondebugerror] [--falcondebugsuccess] [--falcondebugdepth <number>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`](#sfdx-tmtoolstm1transform--d-directory--s-directory---falcondebug-array---falcondebugerror---falcondebugsuccess---falcondebugdepth-number---json---loglevel-tracedebuginfowarnerrorfataltracedebuginfowarnerrorfatal)
 * [`sfdx tmtools:tm2:import -s <directory> [-d <directory>] [--falcondebug <array>] [--falcondebugerror] [--falcondebugsuccess] [--falcondebugdepth <number>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`](#sfdx-tmtoolstm2import--s-directory--d-directory---falcondebug-array---falcondebugerror---falcondebugsuccess---falcondebugdepth-number---json---loglevel-tracedebuginfowarnerrorfataltracedebuginfowarnerrorfatal)
 
@@ -298,19 +298,19 @@ EXAMPLES
 
 _See code: [src/commands/tmtools/tm1/analyze.ts](https://github.com/sfdx-isv/territory-management-tools/blob/v0.0.0/src/commands/tmtools/tm1/analyze.ts)_
 
-## `sfdx tmtools:tm1:extract [-d <directory>] [--falcondebug <array>] [--falcondebugerror] [--falcondebugsuccess] [--falcondebugdepth <number>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`
+## `sfdx tmtools:tm1:extract [-s <directory>] [--falcondebug <array>] [--falcondebugerror] [--falcondebugsuccess] [--falcondebugdepth <number>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`
 
-TODO: Write Description
+TODO: Write Command Description
 
 ```
 USAGE
-  $ sfdx tmtools:tm1:extract [-d <directory>] [--falcondebug <array>] [--falcondebugerror] [--falcondebugsuccess] 
+  $ sfdx tmtools:tm1:extract [-s <directory>] [--falcondebug <array>] [--falcondebugerror] [--falcondebugsuccess] 
   [--falcondebugdepth <number>] [--json] [--loglevel 
   trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]
 
 OPTIONS
-  -d, --outputdir=outputdir                                                         [default: .] TODO: Validate need for
-                                                                                    this flag then write description
+  -s, --sourcedir=sourcedir                                                         [default: .] TODO: Write Flag
+                                                                                    Description
 
   --falcondebug=falcondebug                                                         [default: ] List of debug namespaces
                                                                                     which should render output
@@ -332,7 +332,7 @@ OPTIONS
 
 EXAMPLES
   $ sfdx tmtools:tm1:extract
-  $ sfdx tmtools:tm1:extract -d ~/custom-target-directory
+  $ sfdx tmtools:tm1:extract -s ~/tm1-analysis-source-directory
 ```
 
 _See code: [src/commands/tmtools/tm1/extract.ts](https://github.com/sfdx-isv/territory-management-tools/blob/v0.0.0/src/commands/tmtools/tm1/extract.ts)_

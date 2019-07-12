@@ -36,7 +36,7 @@ import {SfdxFalconCommandType}        from  '../../../modules/sfdx-falcon-comman
 
 // Use SfdxCore's Messages framework to get the message bundles for this command.
 Messages.importMessagesDirectory(__dirname);
-const commandMessages = Messages.loadMessages('territory-management-tools', 'tmtoolsTm2Import');
+const commandMessages = Messages.loadMessages('territory-management-tools', 'tmtools-tm2-import');
 
 
 //─────────────────────────────────────────────────────────────────────────────────────────────────┐
