@@ -13,6 +13,8 @@
  */
 //─────────────────────────────────────────────────────────────────────────────────────────────────┘
 // Import External Libraries & Modules
+import {JsonMap}                from  '@salesforce/ts-types';       // Any JSON compatible object.
+import chalk                    from  'chalk';                      //
 import {isEmpty}                from  'lodash';                     // Useful function for detecting empty objects.
 import * as path                from  'path';                       // Helps resolve local paths at runtime.
 import {Observable}             from  'rxjs';                       // Class. Used to communicate status with Listr.
@@ -24,13 +26,14 @@ import * as gitHelper           from  './git';                      // Library o
 import * as zipHelper           from  './zip';                      // Library of Zip Helper functions.
 
 // Import Internal Classes & Functions
-import {SfdxFalconDebug}              from  '../sfdx-falcon-debug';         // Class. Specialized debug provider for SFDX-Falcon code.
-import {SfdxFalconError}              from  '../sfdx-falcon-error';         // Class. Extends SfdxError to provide specialized error structures for SFDX-Falcon modules.
-import {FalconProgressNotifications}  from  '../sfdx-falcon-notifications'; // Class. Manages progress notifications inside Falcon.
-import {SfdxFalconResult}             from  '../sfdx-falcon-result';        // Class. Implements a framework for creating results-driven, informational objects with a concept of heredity (child results) and the ability to "bubble up" both Errors (thrown exceptions) and application-defined "failures".
-import {SfdxFalconResultType}         from  '../sfdx-falcon-result';        // Enum. Represents the different types of sources where Results might come from.
-import {waitASecond}                  from  '../sfdx-falcon-util/async';    // Function. Simple helper that introduces a delay when called inside async functions using "await".
-import {TmToolsTransform}             from  '../tm-tools-transform';        // Class. Provides TM1 to TM2 transformation services given the location of source config.
+import {SfdxFalconDebug}              from  '../sfdx-falcon-debug';             // Class. Specialized debug provider for SFDX-Falcon code.
+import {SfdxFalconError}              from  '../sfdx-falcon-error';             // Class. Extends SfdxError to provide specialized error structures for SFDX-Falcon modules.
+import {FalconProgressNotifications}  from  '../sfdx-falcon-notifications';     // Class. Manages progress notifications inside Falcon.
+import {SfdxFalconResult}             from  '../sfdx-falcon-result';            // Class. Implements a framework for creating results-driven, informational objects with a concept of heredity (child results) and the ability to "bubble up" both Errors (thrown exceptions) and application-defined "failures".
+import {SfdxFalconResultType}         from  '../sfdx-falcon-result';            // Enum. Represents the different types of sources where Results might come from.
+import {waitASecond}                  from  '../sfdx-falcon-util/async';        // Function. Simple helper that introduces a delay when called inside async functions using "await".
+import {Tm1Analysis}                  from  '../tm-tools-objects/tm1-analysis'; // Class. Models the analysis of a TM1 org.
+import {TmToolsTransform}             from  '../tm-tools-transform';            // Class. Provides TM1 to TM2 transformation services given the location of source config.
 
 // Import Falcon Types
 import {ErrorOrResult}            from  '../sfdx-falcon-types';   // Type. Alias to a combination of Error or SfdxFalconResult.
@@ -45,6 +48,9 @@ import {RawScratchOrgInfo}        from  '../sfdx-falcon-types';   // Interface. 
 import {SfdxOrgInfoMap}           from  '../sfdx-falcon-types';   // Type. Alias for a Map with string keys holding SfdxOrgInfo values.
 import {ShellExecResult}          from  '../sfdx-falcon-types';   // Interface. Represents the result of a call to shell.execL().
 import {Subscriber}               from  '../sfdx-falcon-types';   // Type. Alias to an rxjs Subscriber<any> type.
+import {TM1OrgInfo}               from  '../tm-tools-types';      // Interface. Represents basic org information for a TM1 org
+import {TM1HardDependencies}      from  '../tm-tools-types';      // Interface. Represents a complete view of HARD TM1 dependencies in an org.
+import {TM1SoftDependencies}      from  '../tm-tools-types';      // Interface. Represents a complete view of SOFT TM1 dependencies in an org.
 
 // Requires
 const falconUpdateRenderer  = require('falcon-listr-update-renderer');  // Custom renderer for Listr
@@ -113,6 +119,468 @@ export function addGitRemote(targetDir:string, gitRemoteUri:string):ListrTask {
       });
     }
   } as ListrTask;
+}
+
+// ────────────────────────────────────────────────────────────────────────────────────────────────┐
+/**
+ * @function    analyzeTm1Config
+ * @param       {string}  aliasOrUsername Required. The alias or username associated with a
+ *              TM1 org that the Salesforce CLI is currently connected to.
+ * @param       {string}  targetDir Required. The root directory where the tm1-analyze-results.json
+ *              file will be saved to.
+ * @returns     {ListrObject}  A "runnable" Listr Object
+ * @description Returns a "runnable" Listr Object that attempts to analyze the TM1 configuration in
+ *              the org specified by the Alias or Username.
+ * @public
+ */
+// ────────────────────────────────────────────────────────────────────────────────────────────────┘
+export function analyzeTm1Config(aliasOrUsername:string, targetDir:string):ListrObject {
+
+  // Validate incoming arguments.
+  validateFetchExtractArguments.apply(null, arguments);
+
+  // Determine various directory locations.
+  const resultFile = path.join(targetDir, 'tm1-analysis.json');
+
+  // Create a TM1Analysis Object
+  const tm1Analysis = new Tm1Analysis(aliasOrUsername);
+
+  // Analyze Config
+    // 1. Get Org Information (Org Name, Org ID, Org Type ie. Sandbox/Prod/Etc)
+    // 2. Count Territories
+    // 3. Count User/Territory Assignments
+    // 4. Count ATA Rules
+    // 5. Count ATA Rule Items
+    // 6. Count "TerritoryManual" AccountShare Records
+    // 7. Count relevant Criteria-based Sharing Rules
+    // 8. Count relevant Owner-based Sharing Rules
+    // 9. Count relevant Territory-based Sharing Rules
+    // 10. Identify & Count Hard Dependencies
+    // 11. Identify & Count Soft Dependencies
+  // Write Results to Disk
+    // Preparing TM1 Analysis
+    // Writing Report to Local System
+
+  // Build and return a Listr Task Object.
+  return new listr(
+    // TASK GROUP: All TM1 Analysis and Reporting Tasks
+    [
+      {
+        title:  `Analyze TM1 Configuration`,
+        task:   () => new listr(
+          // TASK GROUP: TM1 Analysis Tasks
+          [
+            // ── ANALYSIS TASK 1 ──────────────────────────────────────────────────────────────────
+            {
+              title:  'Gather Org Information',
+              task:   (listrContext:object, thisTask:ListrTask) => {
+                return new Observable(observer => {
+
+                  // Initialize an OTR (Observable Task Result).
+                  const otr = initObservableTaskResult(`${dbgNs}analyzeTm1Config:AT1`, listrContext, thisTask, observer, this.sharedData, this.generatorResult,
+                              `Querying org for Org ID, Company Name, and Org Type`);
+          
+                  // Execute the Task Logic
+                  tm1Analysis.gatherOrgInformation()
+                  .then((successResult:TM1OrgInfo) => {
+                    SfdxFalconDebug.obj(`${dbgNs}analyzeTm1Config:AT1:successResult:`, successResult);
+          
+                    // Save the UTILITY result to Shared Data and finalize the OTR as successful.
+                    this.sharedData.orgInformation = successResult;
+                    thisTask.title += chalk.blue(` (Username: ${successResult.username} | Org ID: ${successResult.orgId})`);
+                    finalizeObservableTaskResult(otr);
+                  })
+                  .catch((failureResult:Error) => {
+                    SfdxFalconDebug.obj(`${dbgNs}tm1DataFetch:AT1:failureResult:`, failureResult);
+          
+                    // We get here if no connections were found.
+                    finalizeObservableTaskResult(otr, failureResult);
+                  });
+                });
+              }
+            },
+            // ── ANALYSIS TASK 2 ──────────────────────────────────────────────────────────────────
+            {
+              title:  'Analyze Territories',
+              task:   (listrContext:object, thisTask:ListrTask) => {
+                return new Observable(observer => {
+          
+                  // Initialize an OTR (Observable Task Result).
+                  const otr = initObservableTaskResult(`${dbgNs}analyzeTm1Config:AT2`, listrContext, thisTask, observer, this.sharedData, this.generatorResult,
+                              `SELECT count() FROM Territory`);
+          
+                  // Execute the Task Logic
+                  tm1Analysis.analyzeTerritories()
+                  .then((successResult:number) => {
+                    SfdxFalconDebug.str(`${dbgNs}analyzeTm1Config:AT2:successResult:`, `${successResult}`);
+          
+                    // Save the UTILITY result to Shared Data and finalize the OTR as successful.
+                    this.sharedData.territoryRecordCount = successResult;
+                    thisTask.title += chalk.blue(` (${successResult} Territories Found)`);
+                    finalizeObservableTaskResult(otr);
+                  })
+                  .catch((failureResult:Error) => {
+                    SfdxFalconDebug.obj(`${dbgNs}tm1DataFetch:AT2:failureResult:`, failureResult);
+          
+                    // We get here if no connections were found.
+                    finalizeObservableTaskResult(otr, failureResult);
+                  });
+                });
+              }
+            },
+            // ── ANALYSIS TASK 3 ──────────────────────────────────────────────────────────────────
+            {
+              title:  'Analyze User/Territory Assignments',
+              task:   (listrContext:object, thisTask:ListrTask) => {
+                return new Observable(observer => {
+          
+                  // Initialize an OTR (Observable Task Result).
+                  const otr = initObservableTaskResult(`${dbgNs}analyzeTm1Config:AT3`, listrContext, thisTask, observer, this.sharedData, this.generatorResult,
+                              `SELECT count() FROM UserTerritory`);
+          
+                  // Execute the Task Logic
+                  tm1Analysis.analyzeUserTerritoryAssignments()
+                  .then((successResult:number) => {
+                    SfdxFalconDebug.str(`${dbgNs}analyzeTm1Config:AT3:successResult:`, `${successResult}`);
+          
+                    // Save the UTILITY result to Shared Data and finalize the OTR as successful.
+                    this.sharedData.userTerritoryRecordCount = successResult;
+                    thisTask.title += chalk.blue(` (${successResult} User/Territory Assignments Found)`);
+                    finalizeObservableTaskResult(otr);
+                  })
+                  .catch((failureResult:Error) => {
+                    SfdxFalconDebug.obj(`${dbgNs}tm1DataFetch:AT3:failureResult:`, failureResult);
+          
+                    // We get here if no connections were found.
+                    finalizeObservableTaskResult(otr, failureResult);
+                  });
+                });
+              }
+            },
+            // ── ANALYSIS TASK 4 ──────────────────────────────────────────────────────────────────
+            {
+              title:  'Analyze Territory Assignment Rules',
+              task:   (listrContext:object, thisTask:ListrTask) => {
+                return new Observable(observer => {
+          
+                  // Initialize an OTR (Observable Task Result).
+                  const otr = initObservableTaskResult(`${dbgNs}analyzeTm1Config:AT4`, listrContext, thisTask, observer, this.sharedData, this.generatorResult,
+                              `SELECT count() FROM AccountTerritoryAssignmentRule`);
+          
+                  // Execute the Task Logic
+                  tm1Analysis.analyzeAtaRules()
+                  .then((successResult:number) => {
+                    SfdxFalconDebug.str(`${dbgNs}analyzeTm1Config:AT4:successResult:`, `${successResult}`);
+          
+                    // Save the UTILITY result to Shared Data and finalize the OTR as successful.
+                    this.sharedData.ataRuleRecordCount = successResult;
+                    thisTask.title += chalk.blue(` (${successResult} Territory Assignment Rules Found)`);
+                    finalizeObservableTaskResult(otr);
+                  })
+                  .catch((failureResult:Error) => {
+                    SfdxFalconDebug.obj(`${dbgNs}tm1DataFetch:AT4:failureResult:`, failureResult);
+          
+                    // We get here if no connections were found.
+                    finalizeObservableTaskResult(otr, failureResult);
+                  });
+                });
+              }
+            },
+            // ── ANALYSIS TASK 5 ──────────────────────────────────────────────────────────────────
+            {
+              title:  'Analyze Territory Assignment Rule Items',
+              task:   (listrContext:object, thisTask:ListrTask) => {
+                return new Observable(observer => {
+          
+                  // Initialize an OTR (Observable Task Result).
+                  const otr = initObservableTaskResult(`${dbgNs}analyzeTm1Config:AT5`, listrContext, thisTask, observer, this.sharedData, this.generatorResult,
+                              `SELECT count() FROM AccountTerritoryAssignmentRuleItem`);
+          
+                  // Execute the Task Logic
+                  tm1Analysis.analyzeAtaRuleItems()
+                  .then((successResult:number) => {
+                    SfdxFalconDebug.str(`${dbgNs}analyzeTm1Config:AT5:successResult:`, `${successResult}`);
+          
+                    // Save the UTILITY result to Shared Data and finalize the OTR as successful.
+                    this.sharedData.ataRuleItemRecordCount = successResult;
+                    thisTask.title += chalk.blue(` (${successResult} Territory Assignment Rule Items Found)`);
+                    finalizeObservableTaskResult(otr);
+                  })
+                  .catch((failureResult:Error) => {
+                    SfdxFalconDebug.obj(`${dbgNs}tm1DataFetch:AT5:failureResult:`, failureResult);
+          
+                    // We get here if no connections were found.
+                    finalizeObservableTaskResult(otr, failureResult);
+                  });
+                });
+              }
+            },
+            // ── ANALYSIS TASK 6 ──────────────────────────────────────────────────────────────────
+            {
+              title:  'Analyze AccountShares',
+              task:   (listrContext:object, thisTask:ListrTask) => {
+                return new Observable(observer => {
+          
+                  // Initialize an OTR (Observable Task Result).
+                  const otr = initObservableTaskResult(`${dbgNs}analyzeTm1Config:AT6`, listrContext, thisTask, observer, this.sharedData, this.generatorResult,
+                              `SELECT count() FROM AccountShare WHERE RowCause='TerritoryManual'`);
+          
+                  // Execute the Task Logic
+                  tm1Analysis.analyzeAccountShares()
+                  .then((successResult:number) => {
+                    SfdxFalconDebug.str(`${dbgNs}analyzeTm1Config:AT6:successResult:`, `${successResult}`);
+          
+                    // Save the UTILITY result to Shared Data and finalize the OTR as successful.
+                    this.sharedData.accountShareRecordCount = successResult;
+                    thisTask.title += chalk.blue(` (${successResult} "TerritoryManual" AccountShares)`);
+                    finalizeObservableTaskResult(otr);
+                  })
+                  .catch((failureResult:Error) => {
+                    SfdxFalconDebug.obj(`${dbgNs}tm1DataFetch:AT6:failureResult:`, failureResult);
+          
+                    // We get here if no connections were found.
+                    finalizeObservableTaskResult(otr, failureResult);
+                  });
+                });
+              }
+            },
+            // ── ANALYSIS TASK 7 ──────────────────────────────────────────────────────────────────
+            {
+              title:  'Analyze Criteria-Based Sharing Rules',
+              skip:   () => true, // TODO: To be implemented after MVP
+              task:   (listrContext:object, thisTask:ListrTask) => {
+                return new Observable(observer => {
+          
+                  // Initialize an OTR (Observable Task Result).
+                  const otr = initObservableTaskResult(`${dbgNs}analyzeTm1Config:AT7`, listrContext, thisTask, observer, this.sharedData, this.generatorResult,
+                              `TODO: Functionality Not Yet Implemented`);
+          
+                  // Execute the Task Logic
+                  tm1Analysis.analyzeSharingCriteriaRules()
+                  .then((successResult:number) => {
+                    SfdxFalconDebug.str(`${dbgNs}analyzeTm1Config:AT7:successResult:`, `${successResult}`);
+          
+                    // Save the UTILITY result to Shared Data and finalize the OTR as successful.
+                    this.sharedData.sharingCriteriaRuleCount = successResult;
+                    thisTask.title += chalk.blue(` (${successResult} Criteria-Based Sharing Rules referencing Territory/Territory & Subordinates groups)`);
+                    finalizeObservableTaskResult(otr);
+                  })
+                  .catch((failureResult:Error) => {
+                    SfdxFalconDebug.obj(`${dbgNs}tm1DataFetch:AT7:failureResult:`, failureResult);
+          
+                    // We get here if no connections were found.
+                    finalizeObservableTaskResult(otr, failureResult);
+                  });
+                });
+              }
+            },
+            // ── ANALYSIS TASK 8 ──────────────────────────────────────────────────────────────────
+            {
+              title:  'Analyze Owner-Based Sharing Rules',
+              skip:   () => true, // TODO: To be implemented after MVP
+              task:   (listrContext:object, thisTask:ListrTask) => {
+                return new Observable(observer => {
+          
+                  // Initialize an OTR (Observable Task Result).
+                  const otr = initObservableTaskResult(`${dbgNs}analyzeTm1Config:AT8`, listrContext, thisTask, observer, this.sharedData, this.generatorResult,
+                              `TODO: Functionality Not Yet Implemented`);
+          
+                  // Execute the Task Logic
+                  tm1Analysis.analyzeSharingOwnerRules()
+                  .then((successResult:number) => {
+                    SfdxFalconDebug.str(`${dbgNs}analyzeTm1Config:AT8:successResult:`, `${successResult}`);
+          
+                    // Save the UTILITY result to Shared Data and finalize the OTR as successful.
+                    this.sharedData.sharingOwnerRuleCount = successResult;
+                    thisTask.title += chalk.blue(` (${successResult} Owner-Based Sharing Rules that reference "Territory" or "Territory & Subordinates" groups)`);
+                    finalizeObservableTaskResult(otr);
+                  })
+                  .catch((failureResult:Error) => {
+                    SfdxFalconDebug.obj(`${dbgNs}tm1DataFetch:AT8:failureResult:`, failureResult);
+          
+                    // We get here if no connections were found.
+                    finalizeObservableTaskResult(otr, failureResult);
+                  });
+                });
+              }
+            },
+            // ── ANALYSIS TASK 9 ──────────────────────────────────────────────────────────────────
+            {
+              title:  'Analyze Territory-Based Sharing Rules',
+              skip:   () => true, // TODO: To be implemented after MVP
+              task:   (listrContext:object, thisTask:ListrTask) => {
+                return new Observable(observer => {
+          
+                  // Initialize an OTR (Observable Task Result).
+                  const otr = initObservableTaskResult(`${dbgNs}analyzeTm1Config:AT9`, listrContext, thisTask, observer, this.sharedData, this.generatorResult,
+                              `TODO: Functionality Not Yet Implemented`);
+          
+                  // Execute the Task Logic
+                  tm1Analysis.analyzeSharingTerritoryRules()
+                  .then((successResult:number) => {
+                    SfdxFalconDebug.str(`${dbgNs}analyzeTm1Config:AT9:successResult:`, `${successResult}`);
+          
+                    // Save the UTILITY result to Shared Data and finalize the OTR as successful.
+                    this.sharedData.sharingTerritoryRuleCount = successResult;
+                    thisTask.title += chalk.blue(` (${successResult} Territory-Based Sharing Rules)`);
+                    finalizeObservableTaskResult(otr);
+                  })
+                  .catch((failureResult:Error) => {
+                    SfdxFalconDebug.obj(`${dbgNs}tm1DataFetch:AT9:failureResult:`, failureResult);
+          
+                    // We get here if no connections were found.
+                    finalizeObservableTaskResult(otr, failureResult);
+                  });
+                });
+              }
+            },
+            // ── ANALYSIS TASK 10 ─────────────────────────────────────────────────────────────────
+            {
+              title:  'Analyze TM1 Hard Dependencies',
+              skip:   () => true, // TODO: To be implemented after MVP
+              task:   (listrContext:object, thisTask:ListrTask) => {
+                return new Observable(observer => {
+          
+                  // Initialize an OTR (Observable Task Result).
+                  const otr = initObservableTaskResult(`${dbgNs}analyzeTm1Config:AT10`, listrContext, thisTask, observer, this.sharedData, this.generatorResult,
+                              `TODO: Functionality Not Yet Implemented`);
+          
+                  // Execute the Task Logic
+                  tm1Analysis.analyzeHardTm1Dependencies()
+                  .then((successResult:TM1HardDependencies) => {
+                    SfdxFalconDebug.obj(`${dbgNs}analyzeTm1Config:AT10:successResult:`, successResult);
+          
+                    // Save the UTILITY result to Shared Data and finalize the OTR as successful.
+                    this.sharedData.tm1HardDependencies = successResult;
+                    thisTask.title += chalk.blue(` (${successResult.hardTm1DependencyCount} HARD dependencies on TM1)`);
+                    finalizeObservableTaskResult(otr);
+                  })
+                  .catch((failureResult:Error) => {
+                    SfdxFalconDebug.obj(`${dbgNs}tm1DataFetch:AT10:failureResult:`, failureResult);
+          
+                    // We get here if no connections were found.
+                    finalizeObservableTaskResult(otr, failureResult);
+                  });
+                });
+              }
+            },
+            // ── ANALYSIS TASK 11 ─────────────────────────────────────────────────────────────────
+            {
+              title:  'Analyze TM1 Soft Dependencies',
+              skip:   () => true, // TODO: To be implemented after MVP
+              task:   (listrContext:object, thisTask:ListrTask) => {
+                return new Observable(observer => {
+          
+                  // Initialize an OTR (Observable Task Result).
+                  const otr = initObservableTaskResult(`${dbgNs}analyzeTm1Config:AT11`, listrContext, thisTask, observer, this.sharedData, this.generatorResult,
+                              `TODO: Functionality Not Yet Implemented`);
+          
+                  // Execute the Task Logic
+                  tm1Analysis.analyzeSoftTm1Dependencies()
+                  .then((successResult:TM1SoftDependencies) => {
+                    SfdxFalconDebug.obj(`${dbgNs}analyzeTm1Config:AT11:successResult:`, successResult);
+          
+                    // Save the UTILITY result to Shared Data and finalize the OTR as successful.
+                    this.sharedData.tm1SoftDependencies = successResult;
+                    thisTask.title += chalk.blue(` (${successResult.softTm1DependencyCount} SOFT dependencies on TM1)`);
+                    finalizeObservableTaskResult(otr);
+                  })
+                  .catch((failureResult:Error) => {
+                    SfdxFalconDebug.obj(`${dbgNs}tm1DataFetch:AT11:failureResult:`, failureResult);
+          
+                    // We get here if no connections were found.
+                    finalizeObservableTaskResult(otr, failureResult);
+                  });
+                });
+              }
+            }
+          ],
+          // TASK GROUP Options: TM1 Analysis Tasks
+          {
+            concurrent: false,
+            collapse:   false,
+            renderer:   falconUpdateRenderer
+          }
+        )
+      },
+      {
+        title:  `Write Results to Disk`,
+        task:   () => new listr(
+          // TASK GROUP: TM1 Analyze Results Tasks
+          [
+            // ── RESULTS TASK 1 ───────────────────────────────────────────────────────────────────
+            {
+              title:  'Prepare TM1 Analysis Report',
+              task:   (listrContext:object, thisTask:ListrTask) => {
+                return new Observable(observer => {
+          
+                  // Initialize an OTR (Observable Task Result).
+                  const otr = initObservableTaskResult(`${dbgNs}analyzeTm1Config:RT1`, listrContext, thisTask, observer, this.sharedData, this.generatorResult,
+                              `Completing analysis and preparing report`);
+          
+                  // Execute the Task Logic
+                  tm1Analysis.analyzeTerritories()
+                  .then((successResult:number) => {
+                    SfdxFalconDebug.str(`${dbgNs}analyzeTm1Config:RT1:successResult:`, `${successResult}`);
+          
+                    // Save the UTILITY result to Shared Data and finalize the OTR as successful.
+                    this.sharedData.territoryRecordCount = successResult;
+                    finalizeObservableTaskResult(otr);
+                  })
+                  .catch((failureResult:Error) => {
+                    SfdxFalconDebug.obj(`${dbgNs}tm1DataFetch:RT1:failureResult:`, failureResult);
+          
+                    // We get here if no connections were found.
+                    finalizeObservableTaskResult(otr, failureResult);
+                  });
+                });
+              }
+            },
+            // ── RESULTS TASK 2 ───────────────────────────────────────────────────────────────────
+            {
+              title:  'Save Report to Local Filesystem',
+              task:   (listrContext:object, thisTask:ListrTask) => {
+                return new Observable(observer => {
+          
+                  // Initialize an OTR (Observable Task Result).
+                  const otr = initObservableTaskResult(`${dbgNs}analyzeTm1Config:RT2`, listrContext, thisTask, observer, this.sharedData, this.generatorResult,
+                              `Saving report to ${resultFile}`);
+          
+                  // Execute the Task Logic
+                  tm1Analysis.save(resultFile)
+                  .then((successResult:JsonMap) => {
+                    SfdxFalconDebug.obj(`${dbgNs}analyzeTm1Config:RT2:successResult:`, successResult);
+          
+                    // Save the UTILITY result to Shared Data and finalize the OTR as successful.
+                    this.sharedData.tm1AnalyzeReport = successResult;
+                    finalizeObservableTaskResult(otr);
+                  })
+                  .catch((failureResult:Error) => {
+                    SfdxFalconDebug.obj(`${dbgNs}tm1DataFetch:RT2:failureResult:`, failureResult);
+          
+                    // We get here if no connections were found.
+                    finalizeObservableTaskResult(otr, failureResult);
+                  });
+                });
+              }
+            }
+          ],
+          // TASK GROUP Options: TM1 Analyze Results Tasks
+          {
+            concurrent: false,
+            collapse:   false,
+            renderer:   falconUpdateRenderer
+          }
+        )
+      }
+    ],
+    // TASK GROUP OPTIONS: All TM1 Analysis and Reporting Tasks
+    {
+      concurrent: false,
+      collapse:   false,
+      renderer:   falconUpdateRenderer
+    }
+  );
 }
 
 // ────────────────────────────────────────────────────────────────────────────────────────────────┐
