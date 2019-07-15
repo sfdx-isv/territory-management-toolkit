@@ -10,14 +10,14 @@
  */
 //─────────────────────────────────────────────────────────────────────────────────────────────────┘
 // Import External Modules/Types
-//import {JsonMap}                    from  '@salesforce/ts-types'; // Any JSON compatible object.
-import * as path          from  'path';     // Node's path library.
+import * as path  from  'path';     // Node's path library.
 
 // Import Internal Modules
-import {SfdxFalconDebug}          from  '../sfdx-falcon-debug';       // Class. Specialized debug provider for SFDX-Falcon code.
-import {SfdxFalconError}          from  '../sfdx-falcon-error';       // Class. Extends SfdxError to provide specialized error structures for SFDX-Falcon modules.
-import {parseFile}                from  '../sfdx-falcon-util/csv';    // Class. Extends SfdxError to provide specialized error structures for SFDX-Falcon modules.
-import {createDeveloperName}      from  '../sfdx-falcon-util/mdapi';  // Function. Given any string, returns a transformed version of that string that is compatible with the Salesforce Developer Name / Full Name conventions.
+import {SfdxFalconDebug}              from  '../sfdx-falcon-debug';             // Class. Specialized debug provider for SFDX-Falcon code.
+import {SfdxFalconError}              from  '../sfdx-falcon-error';             // Class. Extends SfdxError to provide specialized error structures for SFDX-Falcon modules.
+import {parseFile}                    from  '../sfdx-falcon-util/csv';          // Class. Extends SfdxError to provide specialized error structures for SFDX-Falcon modules.
+import {createDeveloperName}          from  '../sfdx-falcon-util/mdapi';        // Function. Given any string, returns a transformed version of that string that is compatible with the Salesforce Developer Name / Full Name conventions.
+import {Tm1Analysis}                  from  '../tm-tools-objects/tm1-analysis'; // Class. Models the analysis of a TM1 org.
 
 // Import TM-Tools Types
 import {TerritoryRecord}              from  '../tm-tools-types';   // Interface. Represents a Territory Record.
@@ -33,29 +33,31 @@ import {AtaRuleDevNamesByRuleId}      from  '../tm-tools-types';   // Type. Repr
 import {AtaRuleItemRecords}           from  '../tm-tools-types';   // Type. Represents an array of AccountTerritoryAssignmentRuleItem Records.
 import {AtaRuleItemRecordsByRuleId}   from  '../tm-tools-types';   // Type. Represents a map of an array of AccountTerritoryAssignmentRuleItem Records by Rule ID.
 import {UserTerritoryRecords}         from  '../tm-tools-types';   // Type. Represents an array of UserTerritory Records.
+import {TM1ContextValidation}         from  '../tm-tools-types';   // Interface. Represents the structure of the return value of the Tm1Context.validate() function.
 import {TM1FilePaths}                 from  '../tm-tools-types';   // Interface. Represents the complete suite of CSV and Metadata file paths required to create a TM1 Context.
 //import {TerritoryNamesByTerritoryId}  from  '../tm-tools-types';   // Type. Represents a map of Territory Names by Territory ID.
 
-
 // Set the File Local Debug Namespace
 const dbgNs = 'MODULE:tm1-context:';
-
+SfdxFalconDebug.msg(`${dbgNs}`, `Debugging initialized for ${dbgNs}`);
 
 
 //─────────────────────────────────────────────────────────────────────────────────────────────────┐
 /**
- * @class       TM1Context
+ * @class       Tm1Context
  * @description Models the entirety of an exported set of TM1 data, including helpful transforms.
  * @public
  */
 //─────────────────────────────────────────────────────────────────────────────────────────────────┘
-export class TM1Context {
+export class Tm1Context {
 
   //───────────────────────────────────────────────────────────────────────────┐
   /**
    * @method      prepare
    * @param       {string} exportedMetadataPath
    * @param       {string} exportedRecordDataPath
+   * @returns     {Promise<Tm1Context>} A fully-populated "Territory Management
+   *              1.0 Context" object.
    * @description Given the paths to exported TM1 metadata and record data,
    *              performs a number of import and transformation operations.
    *              The end result is a fully-populated "Territory Management 1.0
@@ -64,13 +66,53 @@ export class TM1Context {
    * @public @static @async
    */
   //───────────────────────────────────────────────────────────────────────────┘
-  public static async prepare(exportedMetadataPath:string, exportedRecordDataPath:string):Promise<TM1Context> {
+  public static async prepare(exportedMetadataPath:string, exportedRecordDataPath:string):Promise<Tm1Context> {
 
-    const tm1Context = new TM1Context(exportedMetadataPath, exportedRecordDataPath);
+    const tm1Context = new Tm1Context(exportedMetadataPath, exportedRecordDataPath);
     await tm1Context.parseCsvFiles();
     await tm1Context.transformCsvFiles();
     tm1Context._prepared = true;
     return tm1Context;
+  }
+
+  //───────────────────────────────────────────────────────────────────────────┐
+  /**
+   * @method      validate
+   * @param       {Tm1Analysis} tm1Analysis Required. TM1 analysis that was the
+   *              basis for extraction.
+   * @param       {string}  tm1MetadataDir  Required. Path to location of
+   *              extracted TM1 metadata.
+   * @param       {string}  tm1DataDir  Required. Path to location of extracted
+   *              TM1 data.
+   * @description Given a TM1 Analysis object AND the paths to extracted TM1
+   *              metadata and record data, checks to make sure that the
+   *              extracted files match what was expected by the TM1 Analysis.
+   * @public @static @async
+   */
+  //───────────────────────────────────────────────────────────────────────────┘
+  public static async validate(tm1Analysis:Tm1Analysis, exportedMetadataPath:string, exportedRecordDataPath:string):Promise<TM1ContextValidation> {
+
+    // Create a new TM1 Context object and Parse the CSV Files.
+    const tm1Context = new Tm1Context(exportedMetadataPath, exportedRecordDataPath);
+    await tm1Context.parseCsvFiles();
+
+    // Compare the counts from the parsed CSV files to what the TM1 Analysis expects.
+    return {
+      records: {
+        extractedTerritoryRecords:      tm1Context._territoryRecords,
+        extractedAtaRuleRecords:        tm1Context._ataRuleRecords,
+        extractedAtaRuleItemRecords:    tm1Context._ataRuleItemRecords,
+        extractedUserTerritoryRecords:  tm1Context._userTerritoryRecords,
+        extractedAccountShareRecords:   tm1Context._accountShareRecords
+      },
+      status: {
+        territoryExtractionIsValid:     (tm1Analysis.territoryRecordCount     === tm1Context._territoryRecords.length),
+        ataRuleExtractionIsValid:       (tm1Analysis.ataRuleRecordCount       === tm1Context._ataRuleRecords.length),
+        ataRuleItemExtractionIsValid:   (tm1Analysis.ataRuleItemRecordCount   === tm1Context._ataRuleItemRecords.length),
+        userTerritoryExtractionIsValid: (tm1Analysis.userTerritoryRecordCount === tm1Context._userTerritoryRecords.length),
+        accountShareExtractionIsValid:  (tm1Analysis.accountShareRecordCount  === tm1Context._accountShareRecords.length)
+      }
+    };
   }
 
   // Private Members
@@ -103,7 +145,7 @@ export class TM1Context {
 
   //───────────────────────────────────────────────────────────────────────────┐
   /**
-   * @constructs  TM1Context
+   * @constructs  Tm1Context
    * @param       {string} exportedMetadataPath
    * @param       {string} exportedRecordDataPath
    * @description Given the paths to exported TM1 metadata and record data,
@@ -259,15 +301,14 @@ export class TM1Context {
 
     // DEBUG
     SfdxFalconDebug.obj(
-      `${dbgNs}parseCsvFiles`,
+      `${dbgNs}parseCsvFiles:parseResults:`,
       {
         _territoryRecords:      this._territoryRecords,
         _ataRuleRecords:        this._ataRuleRecords,
         _ataRuleItemRecords:    this._ataRuleItemRecords,
         _userTerritoryRecords:  this._userTerritoryRecords,
         _accountShareRecords:   this._accountShareRecords
-      },
-      `parseCsvFiles: `
+      }
     );
   }
 
