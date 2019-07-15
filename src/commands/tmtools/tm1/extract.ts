@@ -31,7 +31,7 @@ SfdxFalconDebug.msg(`${dbgNs}`, `Debugging initialized for ${dbgNs}`);
 
 // Use SfdxCore's Messages framework to get the message bundles for this command.
 Messages.importMessagesDirectory(__dirname);
-const commandMessages = Messages.loadMessages('territory-management-tools', 'tmtoolsTm1Extract');
+const commandMessages = Messages.loadMessages('territory-management-tools', 'tmtools-tm1-extract');
 
 
 //─────────────────────────────────────────────────────────────────────────────────────────────────┐
@@ -54,19 +54,19 @@ export default class TmtoolsTm1Extract extends SfdxFalconYeomanCommand {
   public static hidden      = false;
   public static examples    = [
     `$ sfdx tmtools:tm1:extract`,
-    `$ sfdx tmtools:tm1:extract -d ~/custom-target-directory`
+    `$ sfdx tmtools:tm1:extract -s ~/tm1-analysis-source-directory`
   ];
 
   //───────────────────────────────────────────────────────────────────────────┐
   // Define the flags used by this command.
-  // -d --OUTPUTDIR   Directory where TM1 metadata and data will be extracted to.
+  // -s --SOURCEDIR   Directory that contains a tm1-analysis.json file.
   //                  Defaults to . (current directory) if not specified.
   //───────────────────────────────────────────────────────────────────────────┘
   protected static flagsConfig = {
-    outputdir: flags.directory({
-      char: 'd',
+    sourcedir: flags.directory({
+      char: 's',
       required: false,
-      description: commandMessages.getMessage('outputdir_FlagDescription'),
+      description: commandMessages.getMessage('sourcedir_FlagDescription'),
       default: '.',
       hidden: false
     }),
@@ -98,8 +98,8 @@ export default class TmtoolsTm1Extract extends SfdxFalconYeomanCommand {
 
     // Run a Yeoman Generator to interact with and run tasks for the user.
     await super.runYeomanGenerator({
-      generatorType:    'extract-tm1-data-and-metadata',
-      outputDir:        this.outputDirectory,
+      generatorType:    'tmtools-tm1-extract',
+      sourceDir:        this.sourceDirectory,
       options: []
     })
     .then(generatorResult   => this.onSuccess(generatorResult)) // Implemented by parent class

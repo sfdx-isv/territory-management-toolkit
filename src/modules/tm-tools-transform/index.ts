@@ -20,7 +20,7 @@ import  {Territory2}                      from  '../tm-tools-objects/territory2'
 import  {Territory2Model}                 from  '../tm-tools-objects/territory2-model'; // ???
 import  {Territory2Rule}                  from  '../tm-tools-objects/territory2-rule';  // ???
 import  {Territory2Type}                  from  '../tm-tools-objects/territory2-type';  // ???
-import  {TM1Context}                      from  '../tm-tools-objects/tm1-context';      // Models the entirety of an exported set of TM1 data, including helpful transforms.
+import  {Tm1Context}                      from  '../tm-tools-objects/tm1-context';      // Models the entirety of an exported set of TM1 data, including helpful transforms.
 
 // Import TM-Tools Types
 import  {Territory2ObjectsByDevName}      from  '../tm-tools-types';   // Type. Represents a map of Territory2 Objects by Developer Name.
@@ -68,7 +68,7 @@ export class TmToolsTransform {
     SfdxFalconDebug.obj(`${dbgNs}prepare:arguments:`, arguments);
 
     // Create a TM1 Context.
-    const tm1Context  = await TM1Context.prepare(exportedMetadataPath, exportedRecordDataPath);
+    const tm1Context  = await Tm1Context.prepare(exportedMetadataPath, exportedRecordDataPath);
     SfdxFalconDebug.obj(`${dbgNs}prepare:tm1Context:`, tm1Context);
 
     // Build a TM Tools Transform object.
@@ -82,7 +82,7 @@ export class TmToolsTransform {
   }
 
   // Private Members
-  private _tm1Context:                      TM1Context;
+  private _tm1Context:                      Tm1Context;
   private _tm2FilePaths:                    TM2FilePaths;
   private _package:                         Package;
   private _territory2ObjectsByDevName:      Territory2ObjectsByDevName;
@@ -112,7 +112,7 @@ export class TmToolsTransform {
    * @public
    */
   //───────────────────────────────────────────────────────────────────────────┘
-  private constructor(tm1Context:TM1Context, transformedMetadataPath:string, transformedDataPath:string) {
+  private constructor(tm1Context:Tm1Context, transformedMetadataPath:string, transformedDataPath:string) {
 
     // Save the TM1 Context
     this._tm1Context = tm1Context;
