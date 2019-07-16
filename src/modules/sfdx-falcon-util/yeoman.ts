@@ -79,6 +79,40 @@ export class GeneratorStatus {
   public running:    boolean;
   public messages:   StatusMessage[];
 
+  // Public accessors
+  public get hasError():boolean {
+    for (const message of this.messages) {
+      if (message.type === 'error') {
+        return true;
+      }
+    }
+    return false;
+  }
+  public get hasInfo():boolean {
+    for (const message of this.messages) {
+      if (message.type === 'info') {
+        return true;
+      }
+    }
+    return false;
+  }
+  public get hasSuccess():boolean {
+    for (const message of this.messages) {
+      if (message.type === 'success') {
+        return true;
+      }
+    }
+    return false;
+  }
+  public get hasWarning():boolean {
+    for (const message of this.messages) {
+      if (message.type === 'warning') {
+        return true;
+      }
+    }
+    return false;
+  }
+
   //───────────────────────────────────────────────────────────────────────────┐
   /**
    * @constructs  GeneratorStatus

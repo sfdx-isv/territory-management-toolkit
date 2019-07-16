@@ -304,9 +304,6 @@ export default class Tm1Transform extends SfdxFalconYeomanGenerator<InterviewAns
       message:  `Success - TM1 configuration (data/metadata) successfully transformed to TM2`
     });
 
-    // TM1 transformation was successful. Mark installComplete to TRUE to ensure the final status message is positive.
-    this.installComplete = true;
-
     // Add a line break to separate the output of this section from others
     console.log('');
 

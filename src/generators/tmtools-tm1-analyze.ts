@@ -212,14 +212,14 @@ export default class Tm1Analyze extends SfdxFalconYeomanGenerator<InterviewAnswe
   //───────────────────────────────────────────────────────────────────────────┐
   /**
    * @method      _analyzeTm1Config
-   * @returns     {Promise<boolean>}
+   * @returns     {Promise<void>}
    * @description Uses information from the User's "Final Answers" to perform
    *              an analysis of the TM1 configuration in the Target Org as
    *              indicated by the Final Answers.
    * @protected @async
    */
   //───────────────────────────────────────────────────────────────────────────┘
-  protected async _analyzeTm1Config():Promise<boolean> {
+  protected async _analyzeTm1Config():Promise<void> {
 
     // Define tasks for fetching the packaged metadata.
     const analyzeTm1Config =
@@ -232,43 +232,49 @@ export default class Tm1Analyze extends SfdxFalconYeomanGenerator<InterviewAnswe
     
     // Run the "Fetch and Convert Package" tasks. Make sure to use await since Listr will run asynchronously.
     const tm1AnalysisResults = await analyzeTm1Config.run()
-      .catch(utilityResult => {
+    .then(listrResult => {
+      SfdxFalconDebug.obj(`${dbgNs}_analyzeTm1Config:listrResult:`, listrResult);
 
-        // DEBUG
-        SfdxFalconDebug.obj(`${dbgNs}_analyzeTm1Config:utilityResult:`, utilityResult);
-
-        // If we get an Error, just throw it.
-        if (utilityResult instanceof Error) {
-          throw utilityResult;
-        }
-
-        // If we get an SfdxFalconResult, link its Error Object to a new SfdxFalconError and throw it.
-        if (utilityResult instanceof SfdxFalconResult) {
-          throw new SfdxFalconError( `Analysis of TM1 configuration from ${this.finalAnswers.targetOrgAlias} failed.`
-                                   , `Tm1AnalysisError`
-                                   , `${dbgNs}:_analyzeTm1Config`
-                                   , utilityResult.errObj);
-        }
-
-        // If we get here, who knows what we got. Wrap it as an SfdxFalconError and throw it.
-        throw SfdxFalconError.wrap(utilityResult);
+      // Add a success message
+      this.generatorStatus.addMessage({
+        type:     'success',
+        title:    `Analyze TM1 Config`,
+        message:  `Success - TM1 configuration successfully analzyed`
       });
+      return listrResult;
+    })
+    .catch(utilityResult => {
+      SfdxFalconDebug.obj(`${dbgNs}_analyzeTm1Config:utilityResult:`, utilityResult);
+
+      // TM1 config analysis failed. Mark the request as ABORTED.
+      this.generatorStatus.abort({
+        type:     'error',
+        title:    `Analyze TM1 Config`,
+        message:  `Error - Could not analyze the TM1 config from ${this.finalAnswers.targetOrgAlias}`
+      });
+
+      // If we get an Error, just throw it.
+      if (utilityResult instanceof Error) {
+        throw utilityResult;
+      }
+
+      // If we get an SfdxFalconResult, link its Error Object to a new SfdxFalconError and throw it.
+      if (utilityResult instanceof SfdxFalconResult) {
+        throw new SfdxFalconError( `Analysis of TM1 configuration from ${this.finalAnswers.targetOrgAlias} failed.`
+                                  , `Tm1AnalysisError`
+                                  , `${dbgNs}:_analyzeTm1Config`
+                                  , utilityResult.errObj);
+      }
+
+      // If we get here, who knows what we got. Wrap it as an SfdxFalconError and throw it.
+      throw SfdxFalconError.wrap(utilityResult);
+    });
 
     // DEBUG
     SfdxFalconDebug.obj(`${dbgNs}_analyzeTm1Config:tm1AnalysisResults:`, tm1AnalysisResults);
 
-    // Add a success message
-    this.generatorStatus.addMessage({
-      type:     'success',
-      title:    `Analyze TM1 Config`,
-      message:  `Success - TM1 configuration successfully analzyed`
-    });
-
     // Add a line break to separate the output of this section from others
     console.log('');
-
-    // All done
-    return true;
   }
 
   //───────────────────────────────────────────────────────────────────────────┐
@@ -352,21 +358,7 @@ export default class Tm1Analyze extends SfdxFalconYeomanGenerator<InterviewAnswe
     this.destinationRoot(path.resolve(this.finalAnswers.targetDirectory));
 
     // Analyze the TM1 config in the Target Org.
-    if (await this._analyzeTm1Config() !== true) {
-
-      // TM1 config extraction failed. Mark the request as ABORTED.
-      this.installComplete = false;
-      this.generatorStatus.abort({
-        type:     'error',
-        title:    `Analyze TM1 Config`,
-        message:  `Error - Could not analyze the TM1 config in the target org`
-      });
-    }
-    else {
-
-      // TM1 config extraction was successful. Mark installComplete to TRUE to ensure the final status message is positive.
-      this.installComplete = true;
-    }
+    await this._analyzeTm1Config();
 
     // Done with writing()
     return;

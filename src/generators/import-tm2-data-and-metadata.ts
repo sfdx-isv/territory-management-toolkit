@@ -747,8 +747,7 @@ export default class CreateAppxPackageProject extends SfdxFalconYeomanGenerator<
         }
         else {
 
-          // Fetch/convert failed. Mark the install as INCOMPLETE and add a warning message.
-          this.installComplete = false;
+          // Fetch/convert failed. Add warning messages.
           this.generatorStatus.addMessage({
             type:     'warning',
             title:    `Fetch/Convert Project`,

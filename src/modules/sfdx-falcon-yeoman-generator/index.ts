@@ -143,7 +143,6 @@ export abstract class SfdxFalconYeomanGenerator<T extends object> extends Genera
 
     // DEBUG
     SfdxFalconDebug.str(`${dbgNs}constructor:`, this.cliCommandName,                        `this.cliCommandName: `);
-    SfdxFalconDebug.str(`${dbgNs}constructor:`, this.installComplete  as unknown as string, `this.installComplete: `);
     SfdxFalconDebug.obj(`${dbgNs}constructor:`, this.defaultAnswers   as unknown as object, `this.defaultAnswers: `);
   }
 
@@ -380,15 +379,14 @@ export abstract class SfdxFalconYeomanGenerator<T extends object> extends Genera
       });
     }
     else {
-      // Generator completed successfully. Final message depends on wheter
-      // or not a "complete install" happened.
+      // Generator completed successfully. Final message depends on presence of Generator Status Warnings.
       this.generatorStatus.complete([
         {
           type:     'success',
           title:    'Command Succeded',
-          message:  this.installComplete
-                    ? `${this.successMessage}\n`
-                    : `${this.warningMessage}\n`
+          message:  this.generatorStatus.hasWarning
+                    ? `${this.warningMessage}\n`
+                    : `${this.successMessage}\n`
         }
       ]);
     }
@@ -460,7 +458,7 @@ export abstract class SfdxFalconYeomanGenerator<T extends object> extends Genera
     this.log(chalk`{yellow Adding project to Git...}`);
 
     // Construct a Listr Task Object for the "Finalize Git" tasks.
-    const finalizeGit     = listrTasks.finalizeGit.call(this, destinationRoot, gitRemoteUri);
+    const finalizeGit = listrTasks.finalizeGit.call(this, destinationRoot, gitRemoteUri);
 
     // Try to run the "Finalize Git" tasks. Catch any errors so we can exit the broader Falcon command gracefully.
     let finalizeGitCtx = {} as ListrContextFinalizeGit;
@@ -480,7 +478,6 @@ export abstract class SfdxFalconYeomanGenerator<T extends object> extends Genera
 
     // Check if Git was installed in the local environment.
     if (finalizeGitCtx.gitInstalled !== true) {
-      this.installComplete  = false;  // Ensures the user sees WARNING in the closing status.
       this.generatorStatus.addMessage({
         type:     'warning',
         title:    `Initializing Git`,
@@ -500,7 +497,6 @@ export abstract class SfdxFalconYeomanGenerator<T extends object> extends Genera
       });
     }
     else {
-      this.installComplete  = false;  // Ensures the user sees WARNING in the closing status.
       this.generatorStatus.addMessage({
         type:     'warning',
         title:    `Git Initialization`,
@@ -520,7 +516,6 @@ export abstract class SfdxFalconYeomanGenerator<T extends object> extends Genera
       });
     }
     else {
-      this.installComplete  = false;  // Ensures the user sees WARNING in the closing status.
       this.generatorStatus.addMessage({
         type:     'warning',
         title:    `Git Commit`,
@@ -533,7 +528,6 @@ export abstract class SfdxFalconYeomanGenerator<T extends object> extends Genera
 
       // Check if the Git Remote is valid/reachable
       if (finalizeGitCtx.gitRemoteIsValid !== true) {
-        this.installComplete  = false;  // Ensures the user sees WARNING in the closing status.
         this.generatorStatus.addMessage({
           type:     'warning',
           title:    `Git Remote`,
@@ -549,7 +543,6 @@ export abstract class SfdxFalconYeomanGenerator<T extends object> extends Genera
           });
         }
         else {
-          this.installComplete  = false;  // Ensures the user sees WARNING in the closing status.
           this.generatorStatus.addMessage({
             type:     'warning',
             title:    `Git Remote`,
@@ -596,9 +589,6 @@ export abstract class SfdxFalconYeomanGenerator<T extends object> extends Genera
       message:  `.sfdx-falcon/sfdx-falcon-config.json created and customized successfully`
     });
 
-    // If we get here, it means that the install() step completed successfully.
-    this.installComplete = true;
-
     // Add a line break to separate the end of the "writing" phase from any output in the "install" phase.
     console.log('');
 
@@ -638,9 +628,6 @@ export abstract class SfdxFalconYeomanGenerator<T extends object> extends Genera
       title:    `Project Creation`,
       message:  `Success - Project created at ${this.destinationRoot()}`
     });
-
-    // If we get here, it means that the install() step completed successfully.
-    this.installComplete = true;
 
     // Add a line break to separate the end of the "writing" phase from any output in the "install" phase.
     console.log('');
