@@ -55,7 +55,7 @@ export default class TmtoolsTm1Extract extends SfdxFalconYeomanCommand {
   public static hidden      = false;
   public static examples    = [
     `$ sfdx tmtools:tm1:extract`,
-    `$ sfdx tmtools:tm1:extract -s ~/tm1-analysis-source-directory`
+    `$ sfdx tmtools:tm1:extract -s ~/tm1-analysis-directory`
   ];
 
   //───────────────────────────────────────────────────────────────────────────┐
