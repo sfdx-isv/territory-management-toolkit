@@ -1,4 +1,4 @@
 {
-  "commandDescription"          : "TODO: Write Command Description",
-  "sourcedir_FlagDescription"   : "TODO: Write Flag Description"
+  "commandDescription"          : "Given the location of a TM1 Analysis file (tm1-analysis.json), extracts all TM1 config (data & metadata) from the associated org and saves it locally.",
+  "sourcedir_FlagDescription"   : "Directory that contains a tm1-analysis.json file. Defaults to . (current directory) if not specified."
 }

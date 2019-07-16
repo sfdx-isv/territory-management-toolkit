@@ -1,5 +1,4 @@
 {
-  "commandDescription"          : "TODO: Write Description",
-  "outputdir_FlagDescription"   : "TODO: Validate need for this flag then write description",
-  "sourcedir_FlagDescription"   : "TODO: Validate need for this flag then write description"
+  "commandDescription"          : "Transforms locally stored TM1 data and metadata into bundles that can be deployed back into the source org once Enterprise Territory Management (TM2) is activated.",
+  "sourcedir_FlagDescription"   : "Directory that contains a tm1-extraction.json file. Defaults to . (current directory) if not specified."
 }

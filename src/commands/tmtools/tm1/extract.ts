@@ -5,8 +5,9 @@
  * @author        Vivek M. Chawla <@VivekMChawla>
  * @summary       Implements the CLI command "tmtools:tm1:extract"
  * @description   Salesforce CLI Plugin command (tmtools:tm1:extract) that allows a Salesforce Admin
- *                to extract Salesforce Territory Management (TM1) data and metadata from an org and
- *                store that data inside a local directory.
+ *                to extract Salesforce Territory Management (TM1) data and metadata from an org
+ *                that has previously been analyzed by tmtools:tm1:analyze, storing that data
+ *                locally on the user's filesystem.
  * @version       1.0.0
  * @license       MIT
  */
@@ -39,11 +40,11 @@ const commandMessages = Messages.loadMessages('territory-management-tools', 'tmt
  * @class       TmtoolsTm1Extract
  * @extends     SfdxFalconYeomanCommand
  * @summary     Implements the CLI Command "tmtools:tm1:extract"
- * @description The command "tmtools:tm1:extract" asks the user to specify a target org with the
- *              desired TM1 configuration metadata/data, then proceeds to extact that data and save
- *              it to the user's file system inside their specified directory. If no directory is
- *              specified, extracted metadata/data will be stored at the location the command was
- *              called from.
+ * @description The command "tmtools:tm1:extract" asks the user to specify a directory where a
+ *              previously-run TM1 Analysis (tm1-analysis.json) can be found. It then takes the
+ *              org information found there and proceeds to extract the TM1 config (data & metadata)
+ *              from that org and saves it to the user's file system in the same directory where
+ *              the tm1-analysis.json file was found.
  * @public
  */
 //─────────────────────────────────────────────────────────────────────────────────────────────────┘
