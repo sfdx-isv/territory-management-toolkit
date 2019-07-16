@@ -17,7 +17,6 @@ import {flags}                        from  '@salesforce/command';  // Allows cr
 import {Messages}                     from  '@salesforce/core';     // Messages library that simplifies using external JSON for string reuse.
 import {SfdxError}                    from  '@salesforce/core';     // Generalized SFDX error which also contains an action.
 import {AnyJson}                      from  '@salesforce/ts-types'; // Safe type for use where "any" might otherwise be used.
-import * as path                      from  'path';                 // Helps resolve local paths at runtime.
 
 // Import Local Modules
 import {SfdxFalconDebug}              from  '../../../modules/sfdx-falcon-debug';           // Class. Provides custom "debugging" services (ie. debug-style info to console.log()).
@@ -52,23 +51,15 @@ export default class TmtoolsTm1Transform extends SfdxFalconYeomanCommand {
   public static hidden      = false;
   public static examples    = [
     `$ sfdx tmtools:tm1:transform`,
-    `$ sfdx tmtools:tm1:transform TODO: finish this example`
+    `$ sfdx tmtools:tm1:transform -s ~/tm1-extraction-directory`
   ];
 
   //───────────────────────────────────────────────────────────────────────────┐
   // Define the flags used by this command.
-  // -d --OUTPUTDIR   Directory where transformed TM2 metadata and data will be
-  //                  stored. Defaults to . (current directory) if not specified.
-  // -s --SOURCEDIR   Directory where exported TM1 metadata & data can be found.
+  // -s --SOURCEDIR   Directory that contains a tm1-extraction.json file.
+  //                  Defaults to . (current directory) if not specified.
   //───────────────────────────────────────────────────────────────────────────┘
   protected static flagsConfig = {
-    outputdir: flags.directory({
-      char: 'd',
-      required: true,
-      description: commandMessages.getMessage('outputdir_FlagDescription'),
-      default: '.',
-      hidden: false
-    }),
     sourcedir: flags.directory({
       char: 's',
       required: true,
@@ -102,15 +93,10 @@ export default class TmtoolsTm1Transform extends SfdxFalconYeomanCommand {
     // Initialize the SfdxFalconCommand (required by ALL classes that extend SfdxFalconCommand).
     this.sfdxFalconCommandInit('tmtools:tm1:transform', SfdxFalconCommandType.UNKNOWN);
 
-    // Resolve the paths for the Source and Output directories.
-    const sourceDir = path.resolve(this.flags.sourcedir);
-    const outputDir = path.resolve(this.flags.outputdir);
-
     // Run a Yeoman Generator to interact with and run tasks for the user.
     await super.runYeomanGenerator({
-      generatorType:  'transform-tm1-data-and-metadata',
-      sourceDir:      sourceDir,
-      outputDir:      outputDir,
+      generatorType:  'tmtools-tm1-transform',
+      sourceDir:      this.sourceDirectory,
       options: []
     })
     .then(generatorResult   => this.onSuccess(generatorResult)) // Implemented by parent class
