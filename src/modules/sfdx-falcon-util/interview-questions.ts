@@ -12,13 +12,18 @@
  * @license       MIT
  */
 //─────────────────────────────────────────────────────────────────────────────────────────────────┘
-// Import External Modules
-import {isEmpty}              from  'lodash'; // Useful function for detecting empty objects, collections, maps, and sets.
+// Import External Libraries & Modules
+import {AuthInfo}             from  '@salesforce/core';     // Handles persistence and fetching of user authentication information using JWT, OAuth, or refresh tokens.
+import {fs}                   from  '@salesforce/core';     // File System utility from the Core SFDX library.
+import {JsonMap}              from  '@salesforce/ts-types'; // Any JSON compatible object.
+import {isEmpty}              from  'lodash';               // Useful function for detecting empty objects, collections, maps, and sets.
+import * as path              from  'path';                 // Library. Helps resolve local paths at runtime.
 
 // Import Internal Modules
 import * as yoValidate        from  '../sfdx-falcon-validators/yeoman-validator'; // Library of validation functions for Yeoman interview inputs, specific to SFDX-Falcon.
 import * as gitHelper         from  './git';                                      // Library of Git Helper functions specific to SFDX-Falcon.
 
+// Import Internal Classes and Functions
 import {SfdxFalconDebug}      from  '../sfdx-falcon-debug';       // Specialized debug provider for SFDX-Falcon code.
 import {SfdxFalconError}      from  '../sfdx-falcon-error';       // Class. Extends SfdxError to provide specialized error structures for SFDX-Falcon modules.
 import {filterLocalPath}      from  '../sfdx-falcon-util/yeoman'; // Function. Yeoman filter which takes a local Path value and resolves it using path.resolve().
@@ -31,8 +36,12 @@ import {Questions}            from  '../sfdx-falcon-types';       // Interface. 
 import {ShellExecResult}      from  '../sfdx-falcon-types';       // Interface. Represents the result of a call to shell.execL().
 import {YeomanChoice}         from  '../sfdx-falcon-types';       // Interface. Represents a Yeoman/Inquirer choice object.
 
+// Import TM-Tools Types
+import {TM1OrgInfo}           from  '../tm-tools-types';          // Interface. Represents basic org information for a TM1 org
+
 // Set the File Local Debug Namespace
 const dbgNs = 'UTILITY:inquirer-questions:';
+SfdxFalconDebug.msg(`${dbgNs}`, `Debugging initialized for ${dbgNs}`);
 
 // Set file-global defaults
 const PKG_PROJECT_TYPE_CHOICES = [
@@ -757,6 +766,87 @@ export function provideTargetDirectory(promptText?:string[]):Questions {
       validate: yoValidate.targetPath,                    // Check targetPath for illegal chars
       filter:   filterLocalPath,                          // Returns a Resolved path
       when:     true
+    }
+  ];
+}
+
+// ────────────────────────────────────────────────────────────────────────────────────────────────┐
+/**
+ * @function    provideTm1AnalysisDirectory
+ * @param       {string[]}  [promptText]  Optional. Array of strings used as text for each prompt.
+ * @returns     {Questions}  An array of Inquirer Question objects.
+ * @description Asks the user to provide a fully qualified path to a directory that contains a TM1
+ *              Analysis file (tm1-analysis.json).
+ * @public
+ */
+// ────────────────────────────────────────────────────────────────────────────────────────────────┘
+export function provideTm1AnalysisDirectory(promptText?:string[]):Questions {
+
+  // Make sure the calling scope has the variables we expect.
+  validateInterviewScope.call(this);
+
+  // Build and return the Question.
+  return [
+    {
+      type:     'input',
+      name:     'analysisDirectory',
+      message:  promptText[0] || 'Path to the directory containing tm1-analysis.json?',
+      default:  ( typeof this.userAnswers.analysisDirectory !== 'undefined' )
+                ? this.userAnswers.analysisDirectory      // Current Value
+                : this.defaultAnswers.analysisDirectory,  // Default Value
+      filter:   filterLocalPath,                          // Returns a Resolved path
+      when:     true,
+      validate: async userInput => {
+
+        // Try to read the tm1-analysis.json file inside the folder specified by the user.
+        const tm1AnalysisReportFilePath = path.join(userInput, 'tm1-analysis.json');
+        const tm1AnalysisReport = await fs.readJsonMap(tm1AnalysisReportFilePath, true)
+        .catch(readJsonMapError => {
+          SfdxFalconDebug.obj(`${dbgNs}provideTm1SourceDirectory:readJsonMapError:`, readJsonMapError);
+          return;
+        }) as JsonMap;
+
+        // Make sure a file was actually found and read into JSON.
+        let foundValidFile = true;
+        if (typeof tm1AnalysisReport !== 'object' || typeof tm1AnalysisReport.orgInfo !== 'object') {
+          foundValidFile = false;
+        }
+        else {
+          const orgInfo   = tm1AnalysisReport.orgInfo as TM1OrgInfo;
+          SfdxFalconDebug.obj(`${dbgNs}provideTm1SourceDirectory:orgInfo:`, orgInfo);
+
+          // Get the Auth Info for the associated Username.
+          const authInfo  = await AuthInfo.create({username: orgInfo.username})
+          .catch(authInfoError => {
+            SfdxFalconDebug.obj(`${dbgNs}provideTm1SourceDirectory:authInfoError:`, authInfoError);
+            return;
+          }) as AuthInfo;
+
+          // Make sure that AuthInfo can be found for the specified username.
+          if (typeof authInfo === 'undefined') {
+            foundValidFile = false;
+          }
+          else {
+
+            // Make sure that the AuthInfo's AuthFields has the same Org ID as in the TM1 Analysis JSON.
+            SfdxFalconDebug.obj(`${dbgNs}provideTm1SourceDirectory:authInfo.AuthFields:`, authInfo.getFields());
+            if (authInfo.getFields().orgId !== tm1AnalysisReport.orgInfo['orgId']) {
+              foundValidFile = false;
+            }
+          }
+        }
+
+        // Test whether a Valid File was found. If not, return an error message.
+        if (foundValidFile !== true) {
+          return 'Directory does not contain a valid tm1-analysis.json file';
+        }
+        else {
+          
+          // Path to a valid TM1 Analysis was provided. Save it to Shared Data and allow the user to proceed.
+          this.sharedData['tm1AnalysisReport']  = tm1AnalysisReport;
+          return true;
+        }
+      }
     }
   ];
 }
