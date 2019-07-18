@@ -253,6 +253,15 @@ export interface SharingRules {
 }
 
 /**
+ * Interface. Represents a collection of information that tracks the count of Criteria, Owner, and Territory-based Sharing Rules.
+ */
+export interface SharingRulesCount extends JsonMap {
+  sharingCriteriaRulesCount:   number;
+  sharingOwnerRulesCount:      number;
+  sharingTerritoryRulesCount?: number;
+}
+
+/**
  * Interface. Represents the mapping of a Territory developer name and record ID to a Territory2 developer name and record ID.
  */
 export interface TerritoryDevNameMapping extends JsonMap {
@@ -279,6 +288,7 @@ export type TerritoryDevNameMappings = TerritoryDevNameMapping[];
 export interface TM1AnalysisReport extends JsonMap {
   orgInfo:              TM1OrgInfo;
   tm1RecordCounts:      TM1RecordCounts;
+  tm1MetadataCounts:    TM1MetadataCounts;
   hardTm1Dependencies:  TM1HardDependencies;
   softTm1Dependencies:  TM1SoftDependencies;
 }
@@ -308,6 +318,8 @@ export interface TM1ContextValidation extends JsonMap {
   };
   expectedRecordCounts:             TM1RecordCounts;
   actualRecordCounts:               TM1RecordCounts;
+  expectedMetadataCounts:           TM1MetadataCounts;
+  actualMetadataCounts:             TM1MetadataCounts;
   status: {
     territoryExtractionIsValid:     boolean;
     ataRuleExtractionIsValid:       boolean;
@@ -374,6 +386,15 @@ export interface TM1FilePaths extends JsonMap {
 }
 
 /**
+ * Interface. Represents the complete set of Metadata Object Counts that are relevant to the config in a TM1 org.
+ */
+export interface TM1MetadataCounts extends JsonMap {
+  accountSharingRulesCount:     SharingRulesCount;
+  leadSharingRulesCount:        SharingRulesCount;
+  opportunitySharingRulesCount: SharingRulesCount;
+}
+
+/**
  * Interface. Represents the complete set of Record Counts that are relevant to the config in a TM1 org.
  */
 export interface TM1RecordCounts extends JsonMap {
@@ -382,9 +403,6 @@ export interface TM1RecordCounts extends JsonMap {
   ataRuleRecordCount:         number;
   ataRuleItemRecordCount:     number;
   accountShareRecordCount:    number;
-  sharingCriteriaRuleCount:   number;
-  sharingOwnerRuleCount:      number;
-  sharingTerritoryRuleCount:  number;
 }
 
 /**

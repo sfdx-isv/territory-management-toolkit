@@ -118,20 +118,44 @@ export class Tm1Context {
         ataRuleRecordCount:         tm1AnalysisReport.tm1RecordCounts.ataRuleRecordCount,
         ataRuleItemRecordCount:     tm1AnalysisReport.tm1RecordCounts.ataRuleItemRecordCount,
         userTerritoryRecordCount:   tm1AnalysisReport.tm1RecordCounts.userTerritoryRecordCount,
-        accountShareRecordCount:    tm1AnalysisReport.tm1RecordCounts.accountShareRecordCount,
-        sharingCriteriaRuleCount:   tm1AnalysisReport.tm1RecordCounts.sharingCriteriaRuleCount,
-        sharingOwnerRuleCount:      tm1AnalysisReport.tm1RecordCounts.sharingOwnerRuleCount,
-        sharingTerritoryRuleCount:  tm1AnalysisReport.tm1RecordCounts.sharingTerritoryRuleCount
+        accountShareRecordCount:    tm1AnalysisReport.tm1RecordCounts.accountShareRecordCount
       },
       actualRecordCounts: {
         territoryRecordCount:       tm1Context._territoryRecords.length,
         ataRuleRecordCount:         tm1Context._ataRuleRecords.length,
         ataRuleItemRecordCount:     tm1Context._ataRuleItemRecords.length,
         userTerritoryRecordCount:   tm1Context._userTerritoryRecords.length,
-        accountShareRecordCount:    tm1Context._accountShareRecords.length,
-        sharingCriteriaRuleCount:   -1, // NOT_IMPLEMENTED
-        sharingOwnerRuleCount:      -1, // NOT_IMPLEMENTED
-        sharingTerritoryRuleCount:  -1  // NOT_IMPLEMENTED
+        accountShareRecordCount:    tm1Context._accountShareRecords.length
+      },
+      expectedMetadataCounts: {
+        accountSharingRulesCount: {
+          sharingCriteriaRulesCount:  tm1AnalysisReport.tm1MetadataCounts.accountSharingRulesCount.sharingCriteriaRulesCount,
+          sharingOwnerRulesCount:     tm1AnalysisReport.tm1MetadataCounts.accountSharingRulesCount.sharingOwnerRulesCount,
+          sharingTerritoryRulesCount: tm1AnalysisReport.tm1MetadataCounts.accountSharingRulesCount.sharingTerritoryRulesCount
+        },
+        leadSharingRulesCount: {
+          sharingCriteriaRulesCount:  tm1AnalysisReport.tm1MetadataCounts.leadSharingRulesCount.sharingCriteriaRulesCount,
+          sharingOwnerRulesCount:     tm1AnalysisReport.tm1MetadataCounts.leadSharingRulesCount.sharingOwnerRulesCount
+        },
+        opportunitySharingRulesCount: {
+          sharingCriteriaRulesCount:  tm1AnalysisReport.tm1MetadataCounts.opportunitySharingRulesCount.sharingCriteriaRulesCount,
+          sharingOwnerRulesCount:     tm1AnalysisReport.tm1MetadataCounts.opportunitySharingRulesCount.sharingOwnerRulesCount
+        }
+      },
+      actualMetadataCounts: {
+        accountSharingRulesCount: {
+          sharingCriteriaRulesCount:  tm1Context._accountSharingRules.sharingCriteriaRules.length,
+          sharingOwnerRulesCount:     tm1Context._accountSharingRules.sharingOwnerRules.length,
+          sharingTerritoryRulesCount: tm1Context._accountSharingRules.sharingTerritoryRules.length
+        },
+        leadSharingRulesCount: {
+          sharingCriteriaRulesCount:  tm1Context._leadSharingRules.sharingCriteriaRules.length,
+          sharingOwnerRulesCount:     tm1Context._leadSharingRules.sharingOwnerRules.length
+        },
+        opportunitySharingRulesCount: {
+          sharingCriteriaRulesCount:  tm1Context._opportunitySharingRules.sharingCriteriaRules.length,
+          sharingOwnerRulesCount:     tm1Context._opportunitySharingRules.sharingOwnerRules.length
+        }
       },
       status: {
         territoryExtractionIsValid:     (tm1AnalysisReport.tm1RecordCounts.territoryRecordCount     === tm1Context._territoryRecords.length),

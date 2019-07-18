@@ -27,6 +27,7 @@ import {SfdxFalconResult}         from  '../sfdx-falcon-result';      // Class. 
 import {waitASecond}              from  '../sfdx-falcon-util/async';  // Function. Allows for a simple "wait" to execute.
 
 // Import TM-Tools Types
+import {SharingRulesCount}        from  '../tm-tools-types';   // Interface. Represents a collection of information that tracks the count of Criteria, Owner, and Territory-based Sharing Rules.
 import {TM1Dependency}            from  '../tm-tools-types';   // Interface. Represents a metadata component with a dependency on TM1.
 import {TM1HardDependencies}      from  '../tm-tools-types';   // Interface. Represents a complete view of HARD TM1 dependencies in an org.
 import {TM1SoftDependencies}      from  '../tm-tools-types';   // Interface. Represents a complete view of SOFT TM1 dependencies in an org.
@@ -71,23 +72,23 @@ export class Tm1Analysis {
   }
 
   // Private Members
-  private _accountShareRecordCount:     number;
-  private _ataRuleRecordCount:          number;
-  private _ataRuleItemRecordCount:      number;
-  private _hardTm1DependencyCount:      number;
-  private _softTm1DependencyCount:      number;
-  private _hardTm1Dependencies:         TM1Dependency[];
-  private _softTm1Dependencies:         TM1Dependency[];
-  private _sharingCriteriaRuleCount:    number;
-  private _sharingOwnerRuleCount:       number;
-  private _sharingTerritoryRuleCount:   number;
-  private _territoryRecordCount:        number;
-  private _userTerritoryRecordCount:    number;
-  private _dateAnalyzed:                string;
-  private _orgInfo:                     TM1OrgInfo;
-  private _aliasOrUsername:             string;
-  private _defaultDelay:                number;
-  private _prepared:                    boolean;
+  private _accountShareRecordCount:       number;
+  private _ataRuleRecordCount:            number;
+  private _ataRuleItemRecordCount:        number;
+  private _hardTm1DependencyCount:        number;
+  private _softTm1DependencyCount:        number;
+  private _hardTm1Dependencies:           TM1Dependency[];
+  private _softTm1Dependencies:           TM1Dependency[];
+  private _accountSharingRulesCount:      SharingRulesCount;
+  private _leadSharingRulesCount:         SharingRulesCount;
+  private _opportunitySharingRulesCount:  SharingRulesCount;
+  private _territoryRecordCount:          number;
+  private _userTerritoryRecordCount:      number;
+  private _dateAnalyzed:                  string;
+  private _orgInfo:                       TM1OrgInfo;
+  private _aliasOrUsername:               string;
+  private _defaultDelay:                  number;
+  private _prepared:                      boolean;
 
   // Public Accessors
   public get accountShareRecordCount()      { this.checkPrepared(); return this._accountShareRecordCount; }
@@ -100,9 +101,9 @@ export class Tm1Analysis {
   public get dateAnalyzed()                 { this.checkPrepared(); return this._dateAnalyzed; }
   public get orgInfo()                      { this.checkPrepared(); return this._orgInfo; }
   public get aliasOrUsername()              { this.checkPrepared(); return this._aliasOrUsername; }
-  public get sharingCriteriaRuleCount()     { this.checkPrepared(); return this._sharingCriteriaRuleCount; }
-  public get sharingOwnerRuleCount()        { this.checkPrepared(); return this._sharingOwnerRuleCount; }
-  public get sharingTerritoryRuleCount()    { this.checkPrepared(); return this._sharingTerritoryRuleCount; }
+  public get accountSharingRulesCount()     { this.checkPrepared(); return this._accountSharingRulesCount; }
+  public get leadSharingRulesCount()        { this.checkPrepared(); return this._leadSharingRulesCount; }
+  public get opportunitySharingRulesCount() { this.checkPrepared(); return this._opportunitySharingRulesCount; }
   public get territoryRecordCount()         { this.checkPrepared(); return this._territoryRecordCount; }
   public get userTerritoryRecordCount()     { this.checkPrepared(); return this._userTerritoryRecordCount; }
   public get prepared()                     { return this._prepared; }
@@ -127,11 +128,21 @@ export class Tm1Analysis {
     this._ataRuleRecordCount        = -1;
     this._hardTm1DependencyCount    = -1;
     this._softTm1DependencyCount    = -1;
-    this._sharingCriteriaRuleCount  = -1;
-    this._sharingOwnerRuleCount     = -1;
-    this._sharingTerritoryRuleCount = -1;
     this._territoryRecordCount      = -1;
     this._userTerritoryRecordCount  = -1;
+    this._accountSharingRulesCount  = {
+      sharingCriteriaRulesCount:  -1,
+      sharingOwnerRulesCount:     -1,
+      sharingTerritoryRulesCount: -1
+    };
+    this._leadSharingRulesCount = {
+      sharingCriteriaRulesCount:  -1,
+      sharingOwnerRulesCount:     -1
+    };
+    this._opportunitySharingRulesCount  = {
+      sharingCriteriaRulesCount:    -1,
+      sharingOwnerRulesCount:       -1
+    };
 
     // Initialize the Hard and Soft TM1 Dependency arrays.
     this._hardTm1Dependencies = [];
@@ -391,15 +402,16 @@ export class Tm1Analysis {
 
   //───────────────────────────────────────────────────────────────────────────┐
   /**
-   * @method      analyzeSharingCriteriaRules
-   * @return      {number}  Number of SharingCriteriaRules in the org that
-   *              are shared TO or FROM a TM1 Territory or TM1 "Territories
-   *              and Subordinates" group.
+   * @method      analyzeAccountSharingRules
+   * @return      {Promise<SharingRulesCount>} Criteria, Owner, and Territory
+   *              Sharing Rule counts for the ACCOUNT object that are shared
+   *              TO or FROM a TM1 Territory or TM1 "Territories and
+   *              Subordinates" group.
    * @description ???
    * @public @async
    */
   //───────────────────────────────────────────────────────────────────────────┘
-  public async analyzeSharingCriteriaRules():Promise<number> {
+  public async analyzeAccountSharingRules():Promise<SharingRulesCount> {
 
     // Make sure we have a UserName
     this.checkAliasOrUsername();
@@ -410,20 +422,21 @@ export class Tm1Analysis {
     // Do stuff...
 
     // Return the result.
-    return this._sharingCriteriaRuleCount;
+    return this._accountSharingRulesCount;
   }
 
   //───────────────────────────────────────────────────────────────────────────┐
   /**
-   * @method      analyzeSharingOwnerRules
-   * @return      {number}  Number of SharingOwnerRules in the org that
-   *              are shared TO or FROM a TM1 Territory or TM1 "Territories
-   *              and Subordinates" group.
+   * @method      analyzeLeadSharingRules
+   * @return      {Promise<SharingRulesCount>} Criteria, Owner, and Territory
+   *              based Sharing Rule counts for the LEAD object that are shared
+   *              TO or FROM a TM1 Territory or TM1 "Territories and
+   *              Subordinates" group.
    * @description ???
    * @public @async
    */
   //───────────────────────────────────────────────────────────────────────────┘
-  public async analyzeSharingOwnerRules():Promise<number> {
+  public async analyzeLeadSharingRules():Promise<SharingRulesCount> {
 
     // Make sure we have a UserName
     this.checkAliasOrUsername();
@@ -434,18 +447,21 @@ export class Tm1Analysis {
     // Do stuff...
 
     // Return the result.
-    return this._sharingOwnerRuleCount;
+    return this._leadSharingRulesCount;
   }
 
   //───────────────────────────────────────────────────────────────────────────┐
   /**
-   * @method      analyzeSharingTerritoryRules
-   * @return      {number}  Number of SharingTerritoryRules in the org.
+   * @method      analyzeOpportunitySharingRules
+   * @return      {Promise<SharingRulesCount>} Criteria, Owner, and Territory
+   *              based Sharing Rule counts for the OPPORTUNITY object that
+   *              are shared TO or FROM a TM1 Territory or TM1 "Territories and
+   *              Subordinates" group.
    * @description ???
    * @public @async
    */
   //───────────────────────────────────────────────────────────────────────────┘
-  public async analyzeSharingTerritoryRules():Promise<number> {
+  public async analyzeOpportunitySharingRules():Promise<SharingRulesCount> {
 
     // Make sure we have a UserName
     this.checkAliasOrUsername();
@@ -456,7 +472,7 @@ export class Tm1Analysis {
     // Do stuff...
 
     // Return the result.
-    return this._sharingTerritoryRuleCount;
+    return this._opportunitySharingRulesCount;
   }
 
   //───────────────────────────────────────────────────────────────────────────┐
@@ -627,10 +643,22 @@ export class Tm1Analysis {
         userTerritoryRecordCount:   this._userTerritoryRecordCount,
         ataRuleRecordCount:         this._ataRuleRecordCount,
         ataRuleItemRecordCount:     this._ataRuleItemRecordCount,
-        accountShareRecordCount:    this._accountShareRecordCount,
-        sharingCriteriaRuleCount:   this._sharingCriteriaRuleCount,
-        sharingOwnerRuleCount:      this._sharingOwnerRuleCount,
-        sharingTerritoryRuleCount:  this._sharingTerritoryRuleCount
+        accountShareRecordCount:    this._accountShareRecordCount
+      },
+      tm1MetadataCounts: {
+        accountSharingRulesCount: {
+          sharingCriteriaRulesCount:  this._accountSharingRulesCount.sharingCriteriaRulesCount,     // NOT_FULLY_IMPLEMENTED
+          sharingOwnerRulesCount:     this._accountSharingRulesCount.sharingOwnerRulesCount,        // NOT_FULLY_IMPLEMENTED
+          sharingTerritoryRulesCount: this._accountSharingRulesCount.sharingTerritoryRulesCount     // NOT_FULLY_IMPLEMENTED
+        },
+        leadSharingRulesCount: {
+          sharingCriteriaRulesCount:  this._leadSharingRulesCount.sharingCriteriaRulesCount,        // NOT_FULLY_IMPLEMENTED
+          sharingOwnerRulesCount:     this._leadSharingRulesCount.sharingOwnerRulesCount            // NOT_FULLY_IMPLEMENTED
+        },
+        opportunitySharingRulesCount: {
+          sharingCriteriaRulesCount:  this._opportunitySharingRulesCount.sharingCriteriaRulesCount, // NOT_FULLY_IMPLEMENTED
+          sharingOwnerRulesCount:     this._opportunitySharingRulesCount.sharingOwnerRulesCount     // NOT_FULLY_IMPLEMENTED
+        }
       },
       hardTm1Dependencies: {
         hardTm1DependencyCount: this._hardTm1DependencyCount,
