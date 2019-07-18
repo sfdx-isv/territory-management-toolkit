@@ -473,7 +473,7 @@ export class Tm1Context {
 
     // Write a function to test whether a Sharing Rule references "Territory" or "Territory and Subordinates" groups.
     const isTerritoryRelated = (sharingRuleToTest:object):boolean => {
-      SfdxFalconDebug.debugObject(`${dbgNs}parseSharingRulesFromXml:isTerritoryRelated:sharingRuleToTest:`, sharingRuleToTest);
+      SfdxFalconDebug.obj(`${dbgNs}parseSharingRulesFromXml:isTerritoryRelated:sharingRuleToTest:`, sharingRuleToTest);
       return (
         (
           typeof sharingRuleToTest === 'object' && sharingRuleToTest['sharedTo']
@@ -527,7 +527,7 @@ export class Tm1Context {
       if (Array.isArray(sharingCriteriaRules) !== true) {
         sharingCriteriaRules = [sharingCriteriaRules];
       }
-      SfdxFalconDebug.debugObject(`${dbgNs}parseSharingRulesFromXml:sharingCriteriaRules:`, sharingCriteriaRules);
+      SfdxFalconDebug.obj(`${dbgNs}parseSharingRulesFromXml:sharingCriteriaRules:`, sharingCriteriaRules);
 
       // Iterate over the array of CRITERIA-based sharing rules and extract any that reference "Territory" or "Territory and Subordinates" groups.
       for (const sharingCriteriaRule of sharingCriteriaRules) {
@@ -578,7 +578,7 @@ export class Tm1Context {
       if (Array.isArray(sharingOwnerRules) !== true) {
         sharingOwnerRules = [sharingOwnerRules];
       }
-      SfdxFalconDebug.debugObject(`${dbgNs}parseSharingRulesFromXml:sharingOwnerRules:`, sharingOwnerRules);
+      SfdxFalconDebug.obj(`${dbgNs}parseSharingRulesFromXml:sharingOwnerRules:`, sharingOwnerRules);
 
       // Iterate over the array of OWNER-based sharing rules and extract any that reference "Territory" or "Territory and Subordinates" groups.
       for (const sharingOwnerRule of sharingOwnerRules) {
@@ -610,7 +610,7 @@ export class Tm1Context {
       if (Array.isArray(sharingTerritoryRules) !== true) {
         sharingTerritoryRules = [sharingTerritoryRules];
       }
-      SfdxFalconDebug.debugObject(`${dbgNs}parseSharingRulesFromXml:sharingTerritoryRules:`, sharingTerritoryRules);
+      SfdxFalconDebug.obj(`${dbgNs}parseSharingRulesFromXml:sharingTerritoryRules:`, sharingTerritoryRules);
 
       // Iterate over the array of TERRITORY-based sharing rules and extract any that reference "Territory" or "Territory and Subordinates" groups.
       for (const sharingTerritoryRule of sharingTerritoryRules) {
