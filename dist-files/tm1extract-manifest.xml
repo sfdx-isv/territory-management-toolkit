@@ -3,12 +3,20 @@
     <types>
         <members>Account.*</members>
         <members>Lead.*</members>
+        <members>Opportunity.*</members>
         <name>SharingCriteriaRule</name>
     </types>
     <types>
         <members>Account.*</members>
         <members>Lead.*</members>
+        <members>Opportunity.*</members>
         <name>SharingOwnerRule</name>
+    </types>
+    <types>
+        <members>Account.*</members>
+        <members>Lead.*</members>
+        <members>Opportunity.*</members>
+        <name>SharingTerritoryRule</name>
     </types>
     <types>
         <members>*</members>
