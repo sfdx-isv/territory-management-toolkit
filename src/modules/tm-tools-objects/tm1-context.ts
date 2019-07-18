@@ -416,53 +416,9 @@ export class Tm1Context {
     }
 
     // DEBUG
-    SfdxFalconDebug.obj(
-      `${dbgNs}parseXmlFiles:parseResults:`,
-      {
-        accountSharingRules:     this._accountSharingRules,
-        leadSharingRules:        this._leadSharingRules,
-        opportunitySharingRules: this._opportunitySharingRules
-      }
-    );
-  }
-
-  //───────────────────────────────────────────────────────────────────────────┐
-  /**
-   * @method      transformCsvFiles
-   * @return      {Promise<void>}
-   * @description Returns true if the transformations are successful, throws
-   *              error otherwise.
-   * @private @async
-   */
-  //───────────────────────────────────────────────────────────────────────────┘
-  private async transformCsvFiles():Promise<void> {
-
-    // Build TerritoryRecordsById Map.
-    for (const territoryRecord of this._territoryRecords) {
-      this._territoryRecordsById.set(territoryRecord.Id, territoryRecord);
-    }
-
-    // Build AtaRuleRecordsById Map.
-    for (const ataRuleRecord of this._ataRuleRecords) {
-      this._ataRuleRecordsById.set(ataRuleRecord.Id, ataRuleRecord);
-
-      // Create and store a Developer Name for this ATA rule.
-      this.addAtaRuleDeveloperName(ataRuleRecord);
-
-      // Add this Rule Record to the appropriate map of of ATA Rules by Territory ID.
-      this.addAtaRuleToTerritoryGroup(ataRuleRecord);
-
-      // Build a group of the ATA Rule Item records related to the current ATA Rule.
-      const ataRuleItemRecords = [] as AtaRuleItemRecords;
-      for (const ataRuleItemRecord of this._ataRuleItemRecords) {
-        if (ataRuleItemRecord.RuleId === ataRuleRecord.Id) {
-          ataRuleItemRecords.push(ataRuleItemRecord);
-        }
-      }
-
-      // Add the group of related ATA Rule Item records to the AtaRuleItemRecordsByRuleId Map.
-      this._ataRuleItemRecordsByRuleId.set(ataRuleRecord.Id, ataRuleItemRecords);
-    }
+    SfdxFalconDebug.obj(`${dbgNs}parseXmlFiles:parseResults:_accountSharingRules`,      this._accountSharingRules);
+    SfdxFalconDebug.obj(`${dbgNs}parseXmlFiles:parseResults:_leadSharingRules`,         this._leadSharingRules);
+    SfdxFalconDebug.obj(`${dbgNs}parseXmlFiles:parseResults:_opportunitySharingRules`,  this._opportunitySharingRules);
   }
 
   //───────────────────────────────────────────────────────────────────────────┐
@@ -563,14 +519,13 @@ export class Tm1Context {
       }
     };
 
-
     // Parse CRITERIA-based sharing rules.
     if (sharingRules['sharingCriteriaRules']) {
 
       // Normalize all results as an Array of CRITERIA-based sharing rules.
       let sharingCriteriaRules = sharingRules['sharingCriteriaRules'];
       if (Array.isArray(sharingCriteriaRules) !== true) {
-        sharingCriteriaRules = sharingRules['sharingCriteriaRules'];
+        sharingCriteriaRules = [sharingCriteriaRules];
       }
       SfdxFalconDebug.debugObject(`${dbgNs}parseSharingRulesFromXml:sharingCriteriaRules:`, sharingCriteriaRules);
 
@@ -681,5 +636,44 @@ export class Tm1Context {
 
     // Send back the parsed Sharing Rules.
     return parsedSharingRules;
+  }
+
+  //───────────────────────────────────────────────────────────────────────────┐
+  /**
+   * @method      transformCsvFiles
+   * @return      {Promise<void>}
+   * @description Returns true if the transformations are successful, throws
+   *              error otherwise.
+   * @private @async
+   */
+  //───────────────────────────────────────────────────────────────────────────┘
+  private async transformCsvFiles():Promise<void> {
+
+    // Build TerritoryRecordsById Map.
+    for (const territoryRecord of this._territoryRecords) {
+      this._territoryRecordsById.set(territoryRecord.Id, territoryRecord);
+    }
+
+    // Build AtaRuleRecordsById Map.
+    for (const ataRuleRecord of this._ataRuleRecords) {
+      this._ataRuleRecordsById.set(ataRuleRecord.Id, ataRuleRecord);
+
+      // Create and store a Developer Name for this ATA rule.
+      this.addAtaRuleDeveloperName(ataRuleRecord);
+
+      // Add this Rule Record to the appropriate map of of ATA Rules by Territory ID.
+      this.addAtaRuleToTerritoryGroup(ataRuleRecord);
+
+      // Build a group of the ATA Rule Item records related to the current ATA Rule.
+      const ataRuleItemRecords = [] as AtaRuleItemRecords;
+      for (const ataRuleItemRecord of this._ataRuleItemRecords) {
+        if (ataRuleItemRecord.RuleId === ataRuleRecord.Id) {
+          ataRuleItemRecords.push(ataRuleItemRecord);
+        }
+      }
+
+      // Add the group of related ATA Rule Item records to the AtaRuleItemRecordsByRuleId Map.
+      this._ataRuleItemRecordsByRuleId.set(ataRuleRecord.Id, ataRuleItemRecords);
+    }
   }
 }
