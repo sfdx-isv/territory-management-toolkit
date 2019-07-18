@@ -48,7 +48,7 @@ SfdxFalconDebug.msg(`${dbgNs}`, `Debugging initialized for ${dbgNs}`);
  */
 //─────────────────────────────────────────────────────────────────────────────────────────────────┘
 interface InterviewAnswers {
-  analysisDirectory:    string;
+  analysisDirectory:  string;
 }
 
 //─────────────────────────────────────────────────────────────────────────────────────────────────┐
@@ -64,9 +64,11 @@ interface InterviewAnswers {
 export default class Tm1Extract extends SfdxFalconYeomanGenerator<InterviewAnswers> {
 
   // Define class members specific to this Generator.
-  protected tm1AnalysisReport:          TM1AnalysisReport;  // Report data created by a previously executed TM1 Analysis.
+  protected extractedDataDir:           string;             // Fully qualified path to location where extracted source DATA (ie. CSV files) will be stored.
+  protected extractedMetadataDir:       string;             // Fully qualified path to location where extracted source METADATA (ie. package manifest and other XML) will be stored.
   protected tm1AnalysisFilePath:        string;             // Complete path to the tm1-analysis.json file that will drive this extraction.
-  protected tm1ExtractionFilePath:      string;             // Complete path to the tm1-transformation.json file that will be created
+  protected tm1AnalysisReport:          TM1AnalysisReport;  // Report data created by a previously executed TM1 Analysis.
+  protected tm1ExtractionFilePath:      string;             // Complete path to the tm1-extraction.json file that will be created
 
   //───────────────────────────────────────────────────────────────────────────┐
   /**
@@ -85,11 +87,19 @@ export default class Tm1Extract extends SfdxFalconYeomanGenerator<InterviewAnswe
     // Initialize the "Confirmation Question".
     this.confirmationQuestion = 'Extract TM1 configuration using the above settings?';
 
+    // Initialize member variables.
+    this.extractedDataDir       = '';
+    this.extractedMetadataDir   = '';
+    this.tm1AnalysisFilePath    = '';
+    this.tm1AnalysisReport      = null;
+    this.tm1ExtractionFilePath  = '';
+
     // Initialize DEFAULT Interview Answers.
     this.defaultAnswers.analysisDirectory = path.resolve(opts.sourceDir as string);
 
     // Initialize Shared Data.
-    this.sharedData['cliCommandName'] = this.cliCommandName;
+    this.sharedData['cliCommandName']     = this.cliCommandName;  // ???
+    this.sharedData['tm1AnalysisReport']  = {};                   // ???
   }
 
   //───────────────────────────────────────────────────────────────────────────┐
@@ -115,7 +125,7 @@ export default class Tm1Extract extends SfdxFalconYeomanGenerator<InterviewAnswe
       sharedData:         this.sharedData
     });
 
-    // Group 0: Provide a target directory for this project.
+    // Group 0: Specify the directory containing the TM1 org analysis.
     interview.createGroup({
       title:        chalk.yellow('\nTM1 Analysis Directory:'),
       questions:    iq.provideTm1AnalysisDirectory
@@ -174,19 +184,12 @@ export default class Tm1Extract extends SfdxFalconYeomanGenerator<InterviewAnswe
   //───────────────────────────────────────────────────────────────────────────┘
   protected async _extractTm1Config():Promise<void> {
 
-    // Determine where the extracted TM1 config (metadata and data) will go.
-    const tm1MetadataDir  = path.join(this.destinationRoot(), 'tm1-extraction', 'extracted-metadata');
-    const tm1DataDir      = path.join(this.destinationRoot(), 'tm1-extraction', 'extracted-data');
-    
-    // Define where the TM1 Extraction Report will be saved to.
-    const tm1ExtractionReportPath = path.join(this.destinationRoot(), 'tm1-extraction.json');
-
     // Define tasks for fetching the packaged metadata.
     const extractTm1Config =
       listrTasks.extractTm1Config.call(this,
                                        this.tm1AnalysisReport,
-                                       tm1MetadataDir,
-                                       tm1DataDir);
+                                       this.extractedMetadataDir,
+                                       this.extractedDataDir);
 
     // Show a message to the User letting them know we're going to start these tasks.
     console.log(chalk`{yellow Extracting TM1 Configuration From the Target Org...}`);
@@ -238,9 +241,9 @@ export default class Tm1Extract extends SfdxFalconYeomanGenerator<InterviewAnswe
     const tm1ExtractionValidation =
       listrTasks.validateTm1Extraction.call(this,
                                             this.tm1AnalysisReport,
-                                            tm1MetadataDir,
-                                            tm1DataDir,
-                                            tm1ExtractionReportPath);
+                                            this.extractedMetadataDir,
+                                            this.extractedDataDir,
+                                            this.tm1ExtractionFilePath);
 
     // Show a message to the User letting them know we're going to start these tasks.
     console.log(chalk`{yellow \nValidating the Extracted TM1 Configuration...}`);
@@ -354,11 +357,14 @@ export default class Tm1Extract extends SfdxFalconYeomanGenerator<InterviewAnswe
       return;
     }
 
-    // Set Yeoman's DESTINATION ROOT. This will be used by our code to know where to extract config files to.
-    this.destinationRoot(path.resolve(this.finalAnswers.analysisDirectory));
+    // Define paths for all Target directories and files.
+    this.tm1AnalysisFilePath    = path.join(this.finalAnswers.analysisDirectory,  'tm1-analysis.json');
+    this.tm1ExtractionFilePath  = path.join(this.finalAnswers.analysisDirectory,  'tm1-extraction.json');
+    this.extractedDataDir       = path.join(this.finalAnswers.analysisDirectory,  'tm1-extraction', 'extracted-data');
+    this.extractedMetadataDir   = path.join(this.finalAnswers.analysisDirectory,  'tm1-extraction', 'extracted-metadata');
 
     // Save the TM1 Analysis that surfaced during the interview to a member variable.
-    this.tm1AnalysisReport = this.sharedData['tm1AnalysisReport'];
+    this.tm1AnalysisReport = this.sharedData['tm1AnalysisReport'] as TM1AnalysisReport;
 
     // Extract TM1 config from the Target Org.
     await this._extractTm1Config();

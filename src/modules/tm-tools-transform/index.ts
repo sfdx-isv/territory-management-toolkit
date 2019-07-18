@@ -9,10 +9,10 @@
  * @license       MIT
  */
 //─────────────────────────────────────────────────────────────────────────────────────────────────┘
-// Import External Modules
+// Import External Libraries & Modules
 import * as path                          from  'path';                                 // Node's path library.
 
-// Import Internal Modules
+// Import Internal Classes & Functions
 import  {SfdxFalconDebug}                 from  '../sfdx-falcon-debug';                 // Specialized debug provider for SFDX-Falcon code.
 import  {SfdxFalconError}                 from  '../sfdx-falcon-error';                 // Class. Extends SfdxError to provide specialized error structures for SFDX-Falcon modules.
 import  {Package}                         from  '../tm-tools-objects/package';          // ???
@@ -35,6 +35,7 @@ const territory2TypeDevName   = 'Imported_Territory';
 
 // Set the File Local Debug Namespace
 const dbgNs = 'MODULE:tm-tools-transform:';
+SfdxFalconDebug.msg(`${dbgNs}`, `Debugging initialized for ${dbgNs}`);
 
 
 //─────────────────────────────────────────────────────────────────────────────────────────────────┐
@@ -52,27 +53,28 @@ export class TmToolsTransform {
   //───────────────────────────────────────────────────────────────────────────┐
   /**
    * @method      prepare
-   * @param       {string} exportedMetadataPath
-   * @param       {string} exportedRecordDataPath
-   * @param       {string} transformedMetadataPath
-   * @param       {string} transformedDataPath
+   * @param       {string}  extractedMetadataDir  Required.
+   * @param       {string}  extractedDataDir  Required.
+   * @param       {string}  transformedMetadataDir  Required.
+   * @param       {string}  transformedDataDir  Required.
+   * @param       {string}  intermediateFilesDir  Required.
    * @description Given the paths to exported TM1 metadata and record data,
    *              prepares a "Territory Management 1.0 Context" and makes ready
    *              to perform the actual transformation.
    * @public @static @async
    */
   //───────────────────────────────────────────────────────────────────────────┘
-  public static async prepare(exportedMetadataPath:string, exportedRecordDataPath:string, transformedMetadataPath:string, transformedDataPath:string):Promise<TmToolsTransform> {
+  public static async prepare(extractedMetadataDir:string, extractedDataDir:string, transformedMetadataDir:string, transformedDataDir:string, intermediateFilesDir:string):Promise<TmToolsTransform> {
 
     // Debug incoming arguments
     SfdxFalconDebug.obj(`${dbgNs}prepare:arguments:`, arguments);
 
     // Create a TM1 Context.
-    const tm1Context  = await Tm1Context.prepare(exportedMetadataPath, exportedRecordDataPath);
+    const tm1Context  = await Tm1Context.prepare(extractedMetadataDir, extractedDataDir);
     SfdxFalconDebug.obj(`${dbgNs}prepare:tm1Context:`, tm1Context);
 
     // Build a TM Tools Transform object.
-    const tmToolsTransform = new TmToolsTransform(tm1Context, transformedMetadataPath, transformedDataPath);
+    const tmToolsTransform = new TmToolsTransform(tm1Context, transformedMetadataDir, transformedDataDir, intermediateFilesDir);
 
     // Mark the instantiated obeject as "prepared".
     tmToolsTransform._prepared = true;
@@ -104,25 +106,32 @@ export class TmToolsTransform {
   //───────────────────────────────────────────────────────────────────────────┐
   /**
    * @constructs  TmToolsTransform
-   * @param       {string} transformedMetadataPath  Required.
-   * @param       {string} transformedDataPath  Required.
    * @param       {TM1Context}  tm1Context  Required.
-   * @description Given the paths to locations where transformed TM2 metadata
-   *              and record data will be saved...
+   * @param       {string}  transformedMetadataDir  Required.
+   * @param       {string}  transformedDataDir  Required.
+   * @param       {string}  intermediateFilesDir  Required.
+   * @description Takes a Prepared TM1 Context and the directory paths where
+   *              transformed TM2 metadata, record data, and intermediate files
+   *              will be written.  After construction, the object is NOT ready
+   *              for consumption so its "prepared" value is always FALSE on
+   *              instantiation.
    * @public
    */
   //───────────────────────────────────────────────────────────────────────────┘
-  private constructor(tm1Context:Tm1Context, transformedMetadataPath:string, transformedDataPath:string) {
+  private constructor(tm1Context:Tm1Context, transformedMetadataDir:string, transformedDataDir:string, interintermediateFilesDir:string) {
 
     // Save the TM1 Context
     this._tm1Context = tm1Context;
 
     // Define the expected TM1 file paths.
     this._tm2FilePaths = {
-      objectTerritory2AssociationCsv: path.join(transformedDataPath,      'ObjectTerritory2Association.csv'),
-      territory2Csv:                  path.join(transformedDataPath,      'Territory2Csv.csv'),
-      userTerritory2AssociationCsv:   path.join(transformedDataPath,      'UserTerritory2AssociationCsv.csv'),
-      tm2MetadataDir:                 path.join(transformedMetadataPath,  'unpackaged')
+      tm2DataDir:                     path.resolve(transformedDataDir),
+      tm2MetadataDir:                 path.resolve(transformedMetadataDir),
+      intermediateFilesDir:           path.resolve(interintermediateFilesDir),
+      tm2MetadataPackageDir:          path.join(transformedMetadataDir,     'unpackaged'),
+      territory2Csv:                  path.join(interintermediateFilesDir,  'Territory2.csv'),
+      objectTerritory2AssociationCsv: path.join(interintermediateFilesDir,  'ObjectTerritory2Association.csv'),
+      userTerritory2AssociationCsv:   path.join(interintermediateFilesDir,  'UserTerritory2Association.csv')
     };
 
     // Initialize Maps
@@ -158,9 +167,11 @@ export class TmToolsTransform {
     // Create Territory2 Objects
     this.createTerritory2Objects();
 
+    // Create SharingRule Objects
+    this.createSharingRuleObjects();
+
     // Create Package Object
     this.createPackageObject();
-
   }
 
   //───────────────────────────────────────────────────────────────────────────┐
@@ -221,6 +232,26 @@ export class TmToolsTransform {
       version:  falcon.sfdcApiVersion,
       filePath: this._tm2FilePaths.tm2MetadataDir
     });
+  }
+
+  //───────────────────────────────────────────────────────────────────────────┐
+  /**
+   * @method      createSharingRuleObjects
+   * @return      {void}
+   * @description Creates all required SharingRule objects.
+   * @private
+   */
+  //───────────────────────────────────────────────────────────────────────────┘
+  private createSharingRuleObjects():void {
+    this._territory2ModelObjectsByDevName.set(
+      territory2ModelDevName,
+      new Territory2Model({
+        name:           `Imported Territory`,
+        developerName:  territory2ModelDevName,
+        description:    `Auto-generated Territory Model. Created as part of the TM1 to TM2 migration process.`,
+        filePath:       path.join(this._tm2FilePaths.tm2MetadataDir, 'territory2Models', territory2ModelDevName)
+      })
+    );
   }
 
   //───────────────────────────────────────────────────────────────────────────┐

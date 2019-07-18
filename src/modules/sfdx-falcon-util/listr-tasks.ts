@@ -1045,9 +1045,9 @@ export function fetchAndConvertManagedPackage(aliasOrUsername:string, packageNam
 // ────────────────────────────────────────────────────────────────────────────────────────────────┐
 /**
  * @function    extractTm1Config
- * @param       {TM1Analysis} tm1Analysis Required. TM1 analysis that will be the basis for this
- *              extraction.  It is assumed that the value provided for the aliasOrUsername argument
- *              will match what is in the TM1Analysis.username property.
+ * @param       {TM1AnalysisReport} tm1AnalysisReport Required. TM1 analysis that will be the basis
+ *              for the extraction.  It is assumed that the value provided for the aliasOrUsername
+ *              argument will match what is in the TM1Analysis.username property.
  * @param       {string}  tm1MetadataDir  Required. Path to the location for extracted TM1 metadata.
  * @param       {string}  tm1DataDir  Required. Path to the location for extracted TM1 data.
  * @returns     {ListrObject}  A "runnable" Listr Object
@@ -1056,16 +1056,16 @@ export function fetchAndConvertManagedPackage(aliasOrUsername:string, packageNam
  * @public
  */
 // ────────────────────────────────────────────────────────────────────────────────────────────────┘
-export function extractTm1Config(tm1Analysis:Tm1Analysis, tm1MetadataDir:string, tm1DataDir:string):ListrObject {
+export function extractTm1Config(tm1AnalysisReport:TM1AnalysisReport, tm1MetadataDir:string, tm1DataDir:string):ListrObject {
 
   // Validate incoming arguments.
   validateTm1ExtractionArguments.apply(null, arguments);
 
   // Set the path to the MDAPI Retrieval Zip file.
-  const zipFile             = path.join(tm1MetadataDir, 'unpackaged.zip');
+  const zipFile = path.join(tm1MetadataDir, 'unpackaged.zip');
 
   // Grab the Username out of the Org Info in the TM1 Analysis.
-  const aliasOrUsername     = tm1Analysis.orgInfo.username;
+  const aliasOrUsername = tm1AnalysisReport.orgInfo.username;
 
   // Get the TM1 Extract package manifest path.
   const manifestFilePath = require.resolve('../../../dist-files/tm1extract-manifest.xml');
@@ -2212,12 +2212,15 @@ export function tm1DataFetch(aliasOrUsername:string, targetDir:string):ListrObje
 // ────────────────────────────────────────────────────────────────────────────────────────────────┐
 /**
  * @function    tm1DataTransform
+ * @param       {TM1ExtractionReport} tm1ExtractionReport Required. Report on target TM1 config.
  * @param       {string}  extractedMetadataDir Required. Path to extracted TM1 metadata.
  * @param       {string}  extractedDataDir  Required. Path to extracted TM1 data.
  * @param       {string}  transformedMetadataDir  Required. Location where transformed metadata will
  *              be written to.
  * @param       {string}  transformedDataDir  Required. Location where transformed data will be
  *              written to.
+ * @param       {string}  intermediateFilesDir  Required. Path to directory that will hold special
+ *              "intermediate data" which can only be fully transformed AFTER TM2 deployment occurs.
  * @returns     {ListrObject}  A "runnable" Listr Object
  * @description Returns a "runnable" Listr Object that attempts to transform the specified set of
  *              TM1 metadata and data, then writes the transformed files to the local filesystem at
@@ -2225,7 +2228,7 @@ export function tm1DataFetch(aliasOrUsername:string, targetDir:string):ListrObje
  * @public
  */
 // ────────────────────────────────────────────────────────────────────────────────────────────────┘
-export function tm1DataTransform(extractedMetadataDir:string, extractedDataDir:string, transformedMetadataDir:string, transformedDataDir:string):ListrObject {
+export function tm1DataTransform(tm1ExtractionReport:TM1ExtractionReport, extractedMetadataDir:string, extractedDataDir:string, transformedMetadataDir:string, transformedDataDir:string, intermediateFilesDir:string):ListrObject {
 
   // Validate incoming arguments.
   validateTm1DataTransformArguments.apply(null, arguments);
@@ -2253,7 +2256,8 @@ export function tm1DataTransform(extractedMetadataDir:string, extractedDataDir:s
                 extractedMetadataDir,   // Extracted Metadata Path
                 extractedDataDir,       // Extracted Record Data Path
                 transformedMetadataDir, // Transformed Metadata Path
-                transformedDataDir      // Transformed Record Data Path
+                transformedDataDir,     // Transformed Record Data Path
+                intermediateFilesDir
               );
               SfdxFalconDebug.obj(`${dbgNs}stageProjectFiles:tm1Transform:`, tm1Transform);
             };
@@ -2544,27 +2548,39 @@ function validateTm1DataTransformArguments():void {
   // Debug incoming arguments
   SfdxFalconDebug.obj(`${dbgNs}validateTm1DataTransformArguments:arguments:`, arguments);
 
+  // Validate "tm1ExtractionReport".
+  if (typeof arguments[0] !== 'object' || arguments[0] === null) {
+    throw new SfdxFalconError( `Expected tm1ExtractionReport to be a non-null object but got type '${typeof arguments[0]}' instead.`
+                             , `TypeError`
+                             , `${dbgNs}validateTm1DataTransformArguments`);
+  }
   // Validate "extractedMetadataDir".
-  if (typeof arguments[0] !== 'string' || arguments[0] === '') {
-    throw new SfdxFalconError( `Expected extractedMetadataDir to be a non-empty string but got type '${typeof arguments[0]}' instead.`
+  if (typeof arguments[1] !== 'string' || arguments[1] === '') {
+    throw new SfdxFalconError( `Expected extractedMetadataDir to be a non-empty string but got type '${typeof arguments[1]}' instead.`
                              , `TypeError`
                              , `${dbgNs}validateTm1DataTransformArguments`);
   }
   // Validate "extractedDataDir".
-  if (typeof arguments[1] !== 'string' || arguments[1] === '') {
-    throw new SfdxFalconError( `Expected extractedDataDir to be a non-empty string but got type '${typeof arguments[1]}' instead.`
+  if (typeof arguments[2] !== 'string' || arguments[2] === '') {
+    throw new SfdxFalconError( `Expected extractedDataDir to be a non-empty string but got type '${typeof arguments[2]}' instead.`
                              , `TypeError`
                              , `${dbgNs}validateTm1DataTransformArguments`);
   }
   // Validate "transformedMetadataDir".
-  if (typeof arguments[2] !== 'string' || arguments[2] === '') {
-    throw new SfdxFalconError( `Expected transformedMetadataDir to be a string but got type '${typeof arguments[2]}' instead.`
+  if (typeof arguments[3] !== 'string' || arguments[3] === '') {
+    throw new SfdxFalconError( `Expected transformedMetadataDir to be a non-empty string but got type '${typeof arguments[3]}' instead.`
                              , `TypeError`
                              , `${dbgNs}validateTm1DataTransformArguments`);
   }
   // Validate "transformedDataDir".
-  if (typeof arguments[3] !== 'string' || arguments[3] === '') {
-    throw new SfdxFalconError( `Expected transformedDataDir to be a string but got type '${typeof arguments[3]}' instead.`
+  if (typeof arguments[4] !== 'string' || arguments[4] === '') {
+    throw new SfdxFalconError( `Expected transformedDataDir to be a non-empty string but got type '${typeof arguments[4]}' instead.`
+                             , `TypeError`
+                             , `${dbgNs}validateTm1DataTransformArguments`);
+  }
+  // Validate "intermediateFilesDir".
+  if (typeof arguments[5] !== 'string' || arguments[5] === '') {
+    throw new SfdxFalconError( `Expected intermediateFilesDir to be a non-empty string but got type '${typeof arguments[5]}' instead.`
                              , `TypeError`
                              , `${dbgNs}validateTm1DataTransformArguments`);
   }
