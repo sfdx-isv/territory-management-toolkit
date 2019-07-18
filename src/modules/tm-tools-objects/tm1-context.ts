@@ -10,32 +10,35 @@
  */
 //─────────────────────────────────────────────────────────────────────────────────────────────────┘
 // Import External Modules/Types
-import * as path  from  'path';     // Node's path library.
+import {fs}         from  '@salesforce/core'; // ???
+import * as path    from  'path';             // Node's path library.
+import * as convert from  'xml-js';           // Convert XML text to Javascript object / JSON text (and vice versa).
 
 // Import Internal Modules
-import {SfdxFalconDebug}              from  '../sfdx-falcon-debug';             // Class. Specialized debug provider for SFDX-Falcon code.
-import {SfdxFalconError}              from  '../sfdx-falcon-error';             // Class. Extends SfdxError to provide specialized error structures for SFDX-Falcon modules.
-import {parseFile}                    from  '../sfdx-falcon-util/csv';          // Class. Extends SfdxError to provide specialized error structures for SFDX-Falcon modules.
-import {createDeveloperName}          from  '../sfdx-falcon-util/mdapi';        // Function. Given any string, returns a transformed version of that string that is compatible with the Salesforce Developer Name / Full Name conventions.
+import {SfdxFalconDebug}              from  '../sfdx-falcon-debug';       // Class. Specialized debug provider for SFDX-Falcon code.
+import {SfdxFalconError}              from  '../sfdx-falcon-error';       // Class. Extends SfdxError to provide specialized error structures for SFDX-Falcon modules.
+import {parseFile}                    from  '../sfdx-falcon-util/csv';    // Class. Extends SfdxError to provide specialized error structures for SFDX-Falcon modules.
+import {createDeveloperName}          from  '../sfdx-falcon-util/mdapi';  // Function. Given any string, returns a transformed version of that string that is compatible with the Salesforce Developer Name / Full Name conventions.
 
 // Import TM-Tools Types
-import {TerritoryRecord}              from  '../tm-tools-types';   // Interface. Represents a Territory Record.
-import {TerritoryRecords}             from  '../tm-tools-types';   // Type. Represents an array of Territory Records.
-import {TerritoryRecordsById}         from  '../tm-tools-types';   // Type. Represents a map of Territory Records by Territory ID.
 import {AccountShareRecords}          from  '../tm-tools-types';   // Type. Represents an array of AccountShare Records.
+import {AtaRuleDevNamesByRuleId}      from  '../tm-tools-types';   // Type. Represents a map of AccountTerritoryAssignmentRule Developer Names by Rule ID.
+import {AtaRuleItemRecords}           from  '../tm-tools-types';   // Type. Represents an array of AccountTerritoryAssignmentRuleItem Records.
+import {AtaRuleItemRecordsByRuleId}   from  '../tm-tools-types';   // Type. Represents a map of an array of AccountTerritoryAssignmentRuleItem Records by Rule ID.
 import {AtaRuleRecord}                from  '../tm-tools-types';   // Interface. Represents an AccountTerritoryAssignmentRule Record.
 import {AtaRuleRecords}               from  '../tm-tools-types';   // Type. Represents an array of AccountTerritoryAssignmentRule Records.
 import {AtaRuleRecordsById}           from  '../tm-tools-types';   // Type. Represents a map of AccountTerritoryAssignmentRule Records by Rule ID.
 import {AtaRuleRecordsByTerritoryId}  from  '../tm-tools-types';   // Type. Represents a map of an array of AccountTerritoryAssignmentRule Records by Territory ID.
-import {AtaRuleDevNamesByRuleId}      from  '../tm-tools-types';   // Type. Represents a map of AccountTerritoryAssignmentRule Developer Names by Rule ID.
-//import {AtaRuleItemRecord}            from  '../tm-tools-types';   // Interface. Represents an AccountTerritoryAssignmentRuleItem Record.
-import {AtaRuleItemRecords}           from  '../tm-tools-types';   // Type. Represents an array of AccountTerritoryAssignmentRuleItem Records.
-import {AtaRuleItemRecordsByRuleId}   from  '../tm-tools-types';   // Type. Represents a map of an array of AccountTerritoryAssignmentRuleItem Records by Rule ID.
-import {UserTerritoryRecords}         from  '../tm-tools-types';   // Type. Represents an array of UserTerritory Records.
+import {FilterItem}                   from  '../tm-tools-types';   // Interface. Represents a single filter item. Usually used as part an array of Filter Items.
+import {SharingGroup}                 from  '../tm-tools-types';   // Interface. Represents a Sharing Group inside Salesforce.
+import {SharingRules}                 from  '../tm-tools-types';   // Interface. Represents a collection of Criteria, Ownership, and Territory-based Sharing Rules
+import {TerritoryRecord}              from  '../tm-tools-types';   // Interface. Represents a Territory Record.
+import {TerritoryRecords}             from  '../tm-tools-types';   // Type. Represents an array of Territory Records.
+import {TerritoryRecordsById}         from  '../tm-tools-types';   // Type. Represents a map of Territory Records by Territory ID.
 import {TM1AnalysisReport}            from  '../tm-tools-types';   // Interface. Represents the data that is generated by a TM1 Analysis Report.
 import {TM1ContextValidation}         from  '../tm-tools-types';   // Interface. Represents the structure of the return value of the Tm1Context.validate() function.
 import {TM1FilePaths}                 from  '../tm-tools-types';   // Interface. Represents the complete suite of CSV and Metadata file paths required to create a TM1 Context.
-//import {TerritoryNamesByTerritoryId}  from  '../tm-tools-types';   // Type. Represents a map of Territory Names by Territory ID.
+import {UserTerritoryRecords}         from  '../tm-tools-types';   // Type. Represents an array of UserTerritory Records.
 
 // Set the File Local Debug Namespace
 const dbgNs = 'MODULE:tm1-context:';
@@ -71,6 +74,7 @@ export class Tm1Context {
     const tm1Context = new Tm1Context(exportedMetadataPath, exportedRecordDataPath);
     await tm1Context.parseCsvFiles();
     await tm1Context.transformCsvFiles();
+    await tm1Context.parseXmlFiles();
     tm1Context._prepared = true;
     return tm1Context;
   }
@@ -95,9 +99,10 @@ export class Tm1Context {
     // Debug incoming arguments.
     SfdxFalconDebug.obj(`${dbgNs}validate:arguments:`, arguments);
 
-    // Create a new TM1 Context object and Parse the CSV Files.
+    // Create a new TM1 Context object and Parse the CSV and XML Files.
     const tm1Context = new Tm1Context(tm1MetadataDir, tm1DataDir);
     await tm1Context.parseCsvFiles();
+    await tm1Context.parseXmlFiles();
 
     // Compare the counts from the parsed CSV files to what the TM1 Analysis expects.
     const tm1ContextValidation:TM1ContextValidation = {
@@ -146,30 +151,37 @@ export class Tm1Context {
 
   // Private Members
   private _accountShareRecords:         AccountShareRecords;
+  private _accountSharingRules:         SharingRules;
   private _ataRuleRecords:              AtaRuleRecords;
   private _ataRuleItemRecords:          AtaRuleItemRecords;
-  private _territoryRecords:            TerritoryRecords;
-  private _userTerritoryRecords:        UserTerritoryRecords;
-  private _territoryRecordsById:        TerritoryRecordsById;
   private _ataRuleRecordsById:          AtaRuleRecordsById;
   private _ataRuleRecordsByTerritoryId: AtaRuleRecordsByTerritoryId;
   private _ataRuleItemRecordsByRuleId:  AtaRuleItemRecordsByRuleId;
   private _ataRuleDevNamesByRuleId:     AtaRuleDevNamesByRuleId;
+  private _leadSharingRules:            SharingRules;
+  private _opportunitySharingRules:     SharingRules;
+  private _territoryRecords:            TerritoryRecords;
+  private _territoryRecordsById:        TerritoryRecordsById;
   private _tm1FilePaths:                TM1FilePaths;
+  private _userTerritoryRecords:        UserTerritoryRecords;
   private _prepared:                    boolean;
 
+  
   // Public Accessors
-  public get territoryRecords()             { return this.contextIsPrepared() ? this._territoryRecords : undefined; }
-  public get territoryRecordsById()         { return this.contextIsPrepared() ? this._territoryRecordsById : undefined; }
+  public get accountShareRecords()          { return this.contextIsPrepared() ? this._accountShareRecords : undefined; }
+  public get accountSharingRules()          { return this.contextIsPrepared() ? this._accountSharingRules : undefined; }
   public get ataRuleRecords()               { return this.contextIsPrepared() ? this._ataRuleRecords : undefined; }
   public get ataRuleRecordsById()           { return this.contextIsPrepared() ? this._ataRuleRecordsById : undefined; }
   public get ataRuleRecordsByTerritoryId()  { return this.contextIsPrepared() ? this._ataRuleRecordsByTerritoryId : undefined; }
   public get ataRuleItemRecords()           { return this.contextIsPrepared() ? this._ataRuleItemRecords : undefined; }
   public get ataRuleItemRecordsByRuleId()   { return this.contextIsPrepared() ? this._ataRuleItemRecordsByRuleId : undefined; }
   public get ataRuleDevNamesByRuleId()      { return this.contextIsPrepared() ? this._ataRuleDevNamesByRuleId : undefined; }
-  public get userTerritoryRecords()         { return this.contextIsPrepared() ? this._userTerritoryRecords : undefined; }
-  public get accountShareRecords()          { return this.contextIsPrepared() ? this._accountShareRecords : undefined; }
+  public get leadSharingRules()             { return this.contextIsPrepared() ? this._leadSharingRules : undefined; }
+  public get opportunitySharingRules()      { return this.contextIsPrepared() ? this._opportunitySharingRules : undefined; }
+  public get territoryRecords()             { return this.contextIsPrepared() ? this._territoryRecords : undefined; }
+  public get territoryRecordsById()         { return this.contextIsPrepared() ? this._territoryRecordsById : undefined; }
   public get tm1FilePaths()                 { return this._tm1FilePaths; }
+  public get userTerritoryRecords()         { return this.contextIsPrepared() ? this._userTerritoryRecords : undefined; }
   public get prepared()                     { return this._prepared; }
 
   //───────────────────────────────────────────────────────────────────────────┐
@@ -203,6 +215,23 @@ export class Tm1Context {
     this._ataRuleRecordsByTerritoryId = new Map<string, AtaRuleRecords>();
     this._ataRuleItemRecordsByRuleId  = new Map<string, AtaRuleItemRecords>();
     this._ataRuleDevNamesByRuleId     = new Map<string, string>();
+
+    // Initialize Arrays
+    this._accountSharingRules = {
+      sharingCriteriaRules:   [],
+      sharingOwnerRules:      [],
+      sharingTerritoryRules:  []
+    };
+    this._leadSharingRules = {
+      sharingCriteriaRules:   [],
+      sharingOwnerRules:      [],
+      sharingTerritoryRules:  []
+    };
+    this._opportunitySharingRules = {
+      sharingCriteriaRules:   [],
+      sharingOwnerRules:      [],
+      sharingTerritoryRules:  []
+    };
 
     // Mark this as an UNPREPARED context
     this._prepared = false;
@@ -343,6 +372,62 @@ export class Tm1Context {
 
   //───────────────────────────────────────────────────────────────────────────┐
   /**
+   * @method      parseXmlFiles
+   * @return      {Promise<void>}
+   * @description Returns true if the context is prepared, throws error otherwise.
+   * @private @async
+   */
+  //───────────────────────────────────────────────────────────────────────────┘
+  private async parseXmlFiles():Promise<void> {
+
+    // Read Account, Lead, and Opportunity SharingRules XML
+    const accountSharingRulesXml = await fs.readFile(path.join(this._tm1FilePaths.tm1MetadataDir, 'sharingRules', 'Account.sharingRules'), 'utf8')
+    .catch(asrFileReadError => {
+      SfdxFalconDebug.obj(`${dbgNs}parseXmlFiles:asrFileReadError:`, asrFileReadError);
+      return undefined;
+    }) as string;
+    const leadSharingRulesXml = await fs.readFile(path.join(this._tm1FilePaths.tm1MetadataDir, 'sharingRules', 'Lead.sharingRules'), 'utf8')
+    .catch(lsrFileReadError => {
+      SfdxFalconDebug.obj(`${dbgNs}parseXmlFiles:lsrFileReadError:`, lsrFileReadError);
+      return undefined;
+    }) as string;
+    const opportunitySharingRulesXml = await fs.readFile(path.join(this._tm1FilePaths.tm1MetadataDir, 'sharingRules', 'Opportunity.sharingRules'), 'utf8')
+    .catch(osrFileReadError => {
+      SfdxFalconDebug.obj(`${dbgNs}parseXmlFiles:osrFileReadError:`, osrFileReadError);
+      return undefined;
+    }) as string;
+
+    // Parse Account SharingRules XML and make note of any rules that reference "Territory" or "Territory and Subordinates" groups.
+    if (accountSharingRulesXml) {
+      this._accountSharingRules = this.parseSharingRulesFromXml(accountSharingRulesXml);
+      SfdxFalconDebug.obj(`${dbgNs}parseXmlFiles:this._accountSharingRules:`, this._accountSharingRules);
+    }
+
+    // Parse Lead SharingRules XML and make note of any rules that reference "Territory" or "Territory and Subordinates" groups.
+    if (leadSharingRulesXml) {
+      this._leadSharingRules = this.parseSharingRulesFromXml(leadSharingRulesXml);
+      SfdxFalconDebug.obj(`${dbgNs}parseXmlFiles:this._leadSharingRules:`, this._leadSharingRules);
+    }
+
+    // Parse Opportunity SharingRules XML and make note of any rules that reference "Territory" or "Territory and Subordinates" groups.
+    if (opportunitySharingRulesXml) {
+      this._opportunitySharingRules = this.parseSharingRulesFromXml(opportunitySharingRulesXml);
+      SfdxFalconDebug.obj(`${dbgNs}parseXmlFiles:this._opportunitySharingRules:`, this._opportunitySharingRules);
+    }
+
+    // DEBUG
+    SfdxFalconDebug.obj(
+      `${dbgNs}parseXmlFiles:parseResults:`,
+      {
+        accountSharingRules:     this._accountSharingRules,
+        leadSharingRules:        this._leadSharingRules,
+        opportunitySharingRules: this._opportunitySharingRules
+      }
+    );
+  }
+
+  //───────────────────────────────────────────────────────────────────────────┐
+  /**
    * @method      transformCsvFiles
    * @return      {Promise<void>}
    * @description Returns true if the transformations are successful, throws
@@ -378,5 +463,223 @@ export class Tm1Context {
       // Add the group of related ATA Rule Item records to the AtaRuleItemRecordsByRuleId Map.
       this._ataRuleItemRecordsByRuleId.set(ataRuleRecord.Id, ataRuleItemRecords);
     }
+  }
+
+  //───────────────────────────────────────────────────────────────────────────┐
+  /**
+   * @method      parseSharingRulesFromXml
+   * @param       {string}  sharingRulesXml
+   * @return      {SharingRules}
+   * @description Given
+   * @private
+   */
+  //───────────────────────────────────────────────────────────────────────────┘
+  private parseSharingRulesFromXml(sharingRulesXml:string):SharingRules {
+
+    // Debug incoming arguments.
+    SfdxFalconDebug.obj(`${dbgNs}parseSharingRulesFromXml:arguments:`, arguments);
+
+    // Validate sharingRulesXml.
+    if (typeof sharingRulesXml !== 'string' || sharingRulesXml === '') {
+      throw new SfdxFalconError( `Expected sharingRulesXml to be a non-empty string but got type '${typeof sharingRulesXml}' instead.`
+                               , `TypeError`
+                               , `${dbgNs}parseSharingRulesFromXml`);
+    }
+
+    // Initialize the return value.
+    const parsedSharingRules:SharingRules = {
+      sharingCriteriaRules: [],
+      sharingOwnerRules: [],
+      sharingTerritoryRules: []
+    };
+
+    // Set options for the XML to JS Object conversion
+    const xml2jsOptions = {
+      compact:          true,
+      nativeType:       true,
+      ignoreAttributes: true,
+      alwaysArray:      false
+    } as convert.Options.XML2JS;
+
+    // Convert the Sharing Rules XML into JSON.
+    const sharingRulesJson = convert.xml2js(sharingRulesXml, xml2jsOptions);
+    SfdxFalconDebug.obj(`${dbgNs}parseSharingRulesFromXml:sharingRulesJson:`, sharingRulesJson);
+
+    // Focus on just the SharingRules key.
+    const sharingRules = sharingRulesJson['SharingRules'];
+
+    // Make sure there actually was a SharingRules key.
+    if (typeof sharingRules !== 'object') {
+      throw new SfdxFalconError( `Expected Sharing Rules XML to JSON conversion to yield a sharingRules object but got type '${typeof sharingRules}' instead.`
+                               , `Xml2JsonParsingError`
+                               , `${dbgNs}parseSharingRulesFromXml`);
+    }
+
+    // Write a function to test whether a Sharing Rule references "Territory" or "Territory and Subordinates" groups.
+    const isTerritoryRelated = (sharingRuleToTest:object):boolean => {
+      SfdxFalconDebug.debugObject(`${dbgNs}parseSharingRulesFromXml:isTerritoryRelated:sharingRuleToTest:`, sharingRuleToTest);
+      return (
+        (
+          typeof sharingRuleToTest === 'object' && sharingRuleToTest['sharedTo']
+            &&
+          (
+            (sharingRuleToTest['sharedTo']['territory'] || sharingRuleToTest['sharedTo']['territoryAndSubordinates'])
+          )
+        )
+          ||
+        (
+          typeof sharingRuleToTest === 'object' && sharingRuleToTest['sharedFrom']
+            &&
+          (
+            (sharingRuleToTest['sharedFrom']['territory'] || sharingRuleToTest['sharedFrom']['territoryAndSubordinates'])
+          )
+        )
+      );
+    };
+
+    // Write a function to extract the Shared From group from a Sharing Rule.
+    const extractSharedFromGroup = (sharingRule:object):SharingGroup => {
+      if (typeof sharingRule === 'object' && typeof sharingRule['sharedFrom'] === 'object') {
+        return {
+          groupType:    Object.keys(sharingRule['sharedFrom'])[0],
+          groupMembers: sharingRule['sharedFrom'][Object.keys(sharingRule['sharedFrom'])[0]]['_text']
+        };
+      }
+      else {
+        return undefined;
+      }
+    };
+
+    // Write a function to extract the Shared From group from a Sharing Rule.
+    const extractSharedToGroup = (sharingRule:object):SharingGroup => {
+      if (typeof sharingRule === 'object' && typeof sharingRule['sharedTo'] === 'object') {
+        return {
+          groupType:    Object.keys(sharingRule['sharedTo'])[0],
+          groupMembers: sharingRule['sharedTo'][Object.keys(sharingRule['sharedTo'])[0]]['_text']
+        };
+      }
+      else {
+        return undefined;
+      }
+    };
+
+
+    // Parse CRITERIA-based sharing rules.
+    if (sharingRules['sharingCriteriaRules']) {
+
+      // Normalize all results as an Array of CRITERIA-based sharing rules.
+      let sharingCriteriaRules = sharingRules['sharingCriteriaRules'];
+      if (Array.isArray(sharingCriteriaRules) !== true) {
+        sharingCriteriaRules = sharingRules['sharingCriteriaRules'];
+      }
+      SfdxFalconDebug.debugObject(`${dbgNs}parseSharingRulesFromXml:sharingCriteriaRules:`, sharingCriteriaRules);
+
+      // Iterate over the array of CRITERIA-based sharing rules and extract any that reference "Territory" or "Territory and Subordinates" groups.
+      for (const sharingCriteriaRule of sharingCriteriaRules) {
+        if (isTerritoryRelated(sharingCriteriaRule)) {
+
+          // Extract the Criteria Items
+          const criteriaItems:FilterItem[] = [];
+
+          // Normalize all criteria items as an Array.
+          let   criteriaItemsJson = sharingCriteriaRule['criteriaItems'];
+          if (Array.isArray(criteriaItemsJson) !== true) {
+            criteriaItemsJson = [criteriaItemsJson];
+          }
+          for (const criteriaItemJson of criteriaItemsJson) {
+            criteriaItems.push({
+              field:      criteriaItemJson['field']       ? criteriaItemJson['field']['_text']      : undefined,
+              operation:  criteriaItemJson['operation']   ? criteriaItemJson['operation']['_text']  : undefined,
+              value:      criteriaItemJson['value']       ? criteriaItemJson['value']['_text']      : undefined,
+              valueField: criteriaItemJson['valueField']  ? criteriaItemJson['valueField']['_text'] : undefined
+            });
+          }
+
+          // Create a SharingCriteriaRule object literal and add it to the Sharing Criteria Rules array.
+          parsedSharingRules.sharingCriteriaRules.push({
+            fullName:     sharingCriteriaRule['fullName']     ? sharingCriteriaRule['fullName']['_text']    : undefined,
+            accessLevel:  sharingCriteriaRule['accessLevel']  ? sharingCriteriaRule['accessLevel']['_text'] : undefined,
+            accountSettings: {
+              caseAccessLevel:        (sharingCriteriaRule['accountSettings'] && sharingCriteriaRule['accountSettings']['caseAccessLevel'])         ? sharingCriteriaRule['accountSettings']['caseAccessLevel']['_text']        : undefined,
+              contactAccessLevel:     (sharingCriteriaRule['accountSettings'] && sharingCriteriaRule['accountSettings']['contactAccessLevel'])      ? sharingCriteriaRule['accountSettings']['contactAccessLevel']['_text']     : undefined,
+              opportunityAccessLevel: (sharingCriteriaRule['accountSettings'] && sharingCriteriaRule['accountSettings']['opportunityAccessLevel'])  ? sharingCriteriaRule['accountSettings']['opportunityAccessLevel']['_text'] : undefined
+            },
+            description:   sharingCriteriaRule['description']   ? sharingCriteriaRule['description']['_text']     : undefined,
+            label:          sharingCriteriaRule['label']          ? sharingCriteriaRule['label']['_text']         : undefined,
+            sharedTo:       extractSharedToGroup(sharingCriteriaRule),
+            booleanFilter:  sharingCriteriaRule['booleanFilter']  ? sharingCriteriaRule['booleanFilter']['_text'] : undefined,
+            criteriaItems:  criteriaItems
+          });
+        }
+      }
+      SfdxFalconDebug.obj(`${dbgNs}parseSharingRulesFromXml:parsedSharingCriteriaRules`, parsedSharingRules.sharingCriteriaRules);
+    }
+
+    // Parse OWNER-based sharing rules.
+    if (sharingRules['sharingOwnerRules']) {
+
+      // Normalize all results as an Array of OWNER-based sharing rules.
+      let sharingOwnerRules = sharingRules['sharingOwnerRules'];
+      if (Array.isArray(sharingOwnerRules) !== true) {
+        sharingOwnerRules = [sharingOwnerRules];
+      }
+      SfdxFalconDebug.debugObject(`${dbgNs}parseSharingRulesFromXml:sharingOwnerRules:`, sharingOwnerRules);
+
+      // Iterate over the array of OWNER-based sharing rules and extract any that reference "Territory" or "Territory and Subordinates" groups.
+      for (const sharingOwnerRule of sharingOwnerRules) {
+        if (isTerritoryRelated(sharingOwnerRule)) {
+          parsedSharingRules.sharingOwnerRules.push({
+            fullName:     sharingOwnerRule['fullName']     ? sharingOwnerRule['fullName']['_text']    : undefined,
+            accessLevel:  sharingOwnerRule['accessLevel']  ? sharingOwnerRule['accessLevel']['_text'] : undefined,
+            accountSettings: {
+              caseAccessLevel:        (sharingOwnerRule['accountSettings'] && sharingOwnerRule['accountSettings']['caseAccessLevel'])         ? sharingOwnerRule['accountSettings']['caseAccessLevel']['_text']        : undefined,
+              contactAccessLevel:     (sharingOwnerRule['accountSettings'] && sharingOwnerRule['accountSettings']['contactAccessLevel'])      ? sharingOwnerRule['accountSettings']['contactAccessLevel']['_text']     : undefined,
+              opportunityAccessLevel: (sharingOwnerRule['accountSettings'] && sharingOwnerRule['accountSettings']['opportunityAccessLevel'])  ? sharingOwnerRule['accountSettings']['opportunityAccessLevel']['_text'] : undefined
+            },
+            description:    sharingOwnerRule['description']   ? sharingOwnerRule['description']['_text']    : undefined,
+            label:          sharingOwnerRule['label']         ? sharingOwnerRule['label']['_text']          : undefined,
+            sharedFrom:     extractSharedFromGroup(sharingOwnerRule),
+            sharedTo:       extractSharedToGroup(sharingOwnerRule),
+            booleanFilter:  sharingOwnerRule['booleanFilter'] ? sharingOwnerRule['booleanFilter']['_text']  : undefined
+          });
+        }
+      }
+      SfdxFalconDebug.obj(`${dbgNs}parseSharingRulesFromXml:parsedSharingOwnerRules`, parsedSharingRules.sharingOwnerRules);
+    }
+
+    // Parse TERRITORY-based sharing rules.
+    if (sharingRules['sharingTerritoryRules']) {
+
+      // Normalize all results as an Array of TERRITORY-based sharing rules.
+      let sharingTerritoryRules = sharingRules['sharingTerritoryRules'];
+      if (Array.isArray(sharingTerritoryRules) !== true) {
+        sharingTerritoryRules = [sharingTerritoryRules];
+      }
+      SfdxFalconDebug.debugObject(`${dbgNs}parseSharingRulesFromXml:sharingTerritoryRules:`, sharingTerritoryRules);
+
+      // Iterate over the array of TERRITORY-based sharing rules and extract any that reference "Territory" or "Territory and Subordinates" groups.
+      for (const sharingTerritoryRule of sharingTerritoryRules) {
+        if (isTerritoryRelated(sharingTerritoryRule)) {
+          parsedSharingRules.sharingTerritoryRules.push({
+            fullName:     sharingTerritoryRule['fullName']     ? sharingTerritoryRule['fullName']['_text']    : undefined,
+            accessLevel:  sharingTerritoryRule['accessLevel']  ? sharingTerritoryRule['accessLevel']['_text'] : undefined,
+            accountSettings: {
+              caseAccessLevel:        (sharingTerritoryRule['accountSettings'] && sharingTerritoryRule['accountSettings']['caseAccessLevel'])         ? sharingTerritoryRule['accountSettings']['caseAccessLevel']['_text']        : undefined,
+              contactAccessLevel:     (sharingTerritoryRule['accountSettings'] && sharingTerritoryRule['accountSettings']['contactAccessLevel'])      ? sharingTerritoryRule['accountSettings']['contactAccessLevel']['_text']     : undefined,
+              opportunityAccessLevel: (sharingTerritoryRule['accountSettings'] && sharingTerritoryRule['accountSettings']['opportunityAccessLevel'])  ? sharingTerritoryRule['accountSettings']['opportunityAccessLevel']['_text'] : undefined
+            },
+            description:    sharingTerritoryRule['description']   ? sharingTerritoryRule['description']['_text']    : undefined,
+            label:          sharingTerritoryRule['label']         ? sharingTerritoryRule['label']['_text']          : undefined,
+            sharedFrom:     extractSharedFromGroup(sharingTerritoryRule),
+            sharedTo:       extractSharedToGroup(sharingTerritoryRule),
+            booleanFilter:  sharingTerritoryRule['booleanFilter'] ? sharingTerritoryRule['booleanFilter']['_text']  : undefined
+          });
+        }
+      }
+      SfdxFalconDebug.obj(`${dbgNs}parseSharingRulesFromXml:parsedSharingTerritoryRules`, parsedSharingRules.sharingTerritoryRules);
+    }
+
+    // Send back the parsed Sharing Rules.
+    return parsedSharingRules;
   }
 }
