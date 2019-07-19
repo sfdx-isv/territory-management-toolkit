@@ -790,13 +790,13 @@ export function provideTm1AnalysisDirectory(promptText?:string[]):Questions {
   return [
     {
       type:     'input',
-      name:     'analysisDirectory',
+      name:     'baseDirectory',
       message:  promptText[0] || 'Path to the directory containing tm1-analysis.json?',
-      default:  ( typeof this.userAnswers.analysisDirectory !== 'undefined' )
-                ? this.userAnswers.analysisDirectory      // Current Value
-                : this.defaultAnswers.analysisDirectory,  // Default Value
-      filter:   filterLocalPath,                          // Returns a Resolved path
-      when:     true,                                     // Always show this question
+      default:  ( typeof this.userAnswers.baseDirectory !== 'undefined' )
+                ? this.userAnswers.baseDirectory      // Current Value
+                : this.defaultAnswers.baseDirectory,  // Default Value
+      filter:   filterLocalPath,                      // Returns a Resolved path
+      when:     true,                                 // Always show this question
       validate: async userInput => {
 
         // Try to read the tm1-analysis.json file inside the folder specified by the user.
@@ -871,13 +871,13 @@ export function provideTm1ExtractionDirectory(promptText?:string[]):Questions {
   return [
     {
       type:     'input',
-      name:     'extractionDirectory',
+      name:     'baseDirectory',
       message:  promptText[0] || 'Path to the directory containing tm1-extraction.json?',
-      default:  ( typeof this.userAnswers.extractionDirectory !== 'undefined' )
-                ? this.userAnswers.extractionDirectory      // Current Value
-                : this.defaultAnswers.extractionDirectory,  // Default Value
-      filter:   filterLocalPath,                            // Returns a Resolved path
-      when:     true,                                       // Always show this question
+      default:  ( typeof this.userAnswers.baseDirectory !== 'undefined' )
+                ? this.userAnswers.baseDirectory      // Current Value
+                : this.defaultAnswers.baseDirectory,  // Default Value
+      filter:   filterLocalPath,                      // Returns a Resolved path
+      when:     true,                                 // Always show this question
       validate: async userInput => {
 
         // Try to read the tm1-extraction.json file inside the folder specified by the user.
