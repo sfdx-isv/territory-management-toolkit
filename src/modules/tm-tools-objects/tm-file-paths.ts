@@ -70,8 +70,8 @@ SfdxFalconDebug.msg(`${dbgNs}`, `Debugging initialized for ${dbgNs}`);
 //─────────────────────────────────────────────────────────────────────────────────────────────────┐
 /**
  * @class       TmFilePaths
- * @summary     ???
- * @description ???
+ * @summary     Utility class for generatig File Paths required by various TM-Tools commands.
+ * @description Utility class for generatig File Paths required by various TM-Tools commands.
  * @public
  */
 //─────────────────────────────────────────────────────────────────────────────────────────────────┘
