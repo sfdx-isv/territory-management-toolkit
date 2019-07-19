@@ -58,6 +58,7 @@ import {TM1ExtractionReport}      from  '../tm-tools-types';      // Interface. 
 import {TM1HardDependencies}      from  '../tm-tools-types';      // Interface. Represents a complete view of HARD TM1 dependencies in an org.
 import {TM1OrgInfo}               from  '../tm-tools-types';      // Interface. Represents basic org information for a TM1 org
 import {TM1SoftDependencies}      from  '../tm-tools-types';      // Interface. Represents a complete view of SOFT TM1 dependencies in an org.
+import {TM1TransformFilePaths}    from  '../tm-tools-types';      // Interface. Represents the complete suite of file paths required by the TM1 Transform command.
 
 // Requires
 const falconUpdateRenderer  = require('falcon-listr-update-renderer');  // Custom renderer for Listr
@@ -202,7 +203,7 @@ export function analyzeTm1Config(aliasOrUsername:string, targetDir:string):Listr
                     finalizeObservableTaskResult(otr);
                   })
                   .catch((failureResult:Error) => {
-                    SfdxFalconDebug.obj(`${dbgNs}tm1DataFetch:AT1:failureResult:`, failureResult);
+                    SfdxFalconDebug.obj(`${dbgNs}analyzeTm1Config:AT1:failureResult:`, failureResult);
           
                     // We get here if no connections were found.
                     finalizeObservableTaskResult(otr, failureResult);
@@ -231,7 +232,7 @@ export function analyzeTm1Config(aliasOrUsername:string, targetDir:string):Listr
                     finalizeObservableTaskResult(otr);
                   })
                   .catch((failureResult:Error) => {
-                    SfdxFalconDebug.obj(`${dbgNs}tm1DataFetch:AT2:failureResult:`, failureResult);
+                    SfdxFalconDebug.obj(`${dbgNs}analyzeTm1Config:AT2:failureResult:`, failureResult);
           
                     // We get here if no connections were found.
                     finalizeObservableTaskResult(otr, failureResult);
@@ -260,7 +261,7 @@ export function analyzeTm1Config(aliasOrUsername:string, targetDir:string):Listr
                     finalizeObservableTaskResult(otr);
                   })
                   .catch((failureResult:Error) => {
-                    SfdxFalconDebug.obj(`${dbgNs}tm1DataFetch:AT3:failureResult:`, failureResult);
+                    SfdxFalconDebug.obj(`${dbgNs}analyzeTm1Config:AT3:failureResult:`, failureResult);
           
                     // We get here if no connections were found.
                     finalizeObservableTaskResult(otr, failureResult);
@@ -289,7 +290,7 @@ export function analyzeTm1Config(aliasOrUsername:string, targetDir:string):Listr
                     finalizeObservableTaskResult(otr);
                   })
                   .catch((failureResult:Error) => {
-                    SfdxFalconDebug.obj(`${dbgNs}tm1DataFetch:AT4:failureResult:`, failureResult);
+                    SfdxFalconDebug.obj(`${dbgNs}analyzeTm1Config:AT4:failureResult:`, failureResult);
           
                     // We get here if no connections were found.
                     finalizeObservableTaskResult(otr, failureResult);
@@ -318,7 +319,7 @@ export function analyzeTm1Config(aliasOrUsername:string, targetDir:string):Listr
                     finalizeObservableTaskResult(otr);
                   })
                   .catch((failureResult:Error) => {
-                    SfdxFalconDebug.obj(`${dbgNs}tm1DataFetch:AT5:failureResult:`, failureResult);
+                    SfdxFalconDebug.obj(`${dbgNs}analyzeTm1Config:AT5:failureResult:`, failureResult);
           
                     // We get here if no connections were found.
                     finalizeObservableTaskResult(otr, failureResult);
@@ -347,7 +348,7 @@ export function analyzeTm1Config(aliasOrUsername:string, targetDir:string):Listr
                     finalizeObservableTaskResult(otr);
                   })
                   .catch((failureResult:Error) => {
-                    SfdxFalconDebug.obj(`${dbgNs}tm1DataFetch:AT6:failureResult:`, failureResult);
+                    SfdxFalconDebug.obj(`${dbgNs}analyzeTm1Config:AT6:failureResult:`, failureResult);
           
                     // We get here if no connections were found.
                     finalizeObservableTaskResult(otr, failureResult);
@@ -377,7 +378,7 @@ export function analyzeTm1Config(aliasOrUsername:string, targetDir:string):Listr
                     finalizeObservableTaskResult(otr);
                   })
                   .catch((failureResult:Error) => {
-                    SfdxFalconDebug.obj(`${dbgNs}tm1DataFetch:AT7:failureResult:`, failureResult);
+                    SfdxFalconDebug.obj(`${dbgNs}analyzeTm1Config:AT7:failureResult:`, failureResult);
           
                     // We get here if no connections were found.
                     finalizeObservableTaskResult(otr, failureResult);
@@ -407,7 +408,7 @@ export function analyzeTm1Config(aliasOrUsername:string, targetDir:string):Listr
                     finalizeObservableTaskResult(otr);
                   })
                   .catch((failureResult:Error) => {
-                    SfdxFalconDebug.obj(`${dbgNs}tm1DataFetch:AT8:failureResult:`, failureResult);
+                    SfdxFalconDebug.obj(`${dbgNs}analyzeTm1Config:AT8:failureResult:`, failureResult);
           
                     // We get here if no connections were found.
                     finalizeObservableTaskResult(otr, failureResult);
@@ -437,7 +438,7 @@ export function analyzeTm1Config(aliasOrUsername:string, targetDir:string):Listr
                     finalizeObservableTaskResult(otr);
                   })
                   .catch((failureResult:Error) => {
-                    SfdxFalconDebug.obj(`${dbgNs}tm1DataFetch:AT9:failureResult:`, failureResult);
+                    SfdxFalconDebug.obj(`${dbgNs}analyzeTm1Config:AT9:failureResult:`, failureResult);
           
                     // We get here if no connections were found.
                     finalizeObservableTaskResult(otr, failureResult);
@@ -467,7 +468,7 @@ export function analyzeTm1Config(aliasOrUsername:string, targetDir:string):Listr
                     finalizeObservableTaskResult(otr);
                   })
                   .catch((failureResult:Error) => {
-                    SfdxFalconDebug.obj(`${dbgNs}tm1DataFetch:AT10:failureResult:`, failureResult);
+                    SfdxFalconDebug.obj(`${dbgNs}analyzeTm1Config:AT10:failureResult:`, failureResult);
           
                     // We get here if no connections were found.
                     finalizeObservableTaskResult(otr, failureResult);
@@ -497,7 +498,7 @@ export function analyzeTm1Config(aliasOrUsername:string, targetDir:string):Listr
                     finalizeObservableTaskResult(otr);
                   })
                   .catch((failureResult:Error) => {
-                    SfdxFalconDebug.obj(`${dbgNs}tm1DataFetch:AT11:failureResult:`, failureResult);
+                    SfdxFalconDebug.obj(`${dbgNs}analyzeTm1Config:AT11:failureResult:`, failureResult);
           
                     // We get here if no connections were found.
                     finalizeObservableTaskResult(otr, failureResult);
@@ -539,7 +540,7 @@ export function analyzeTm1Config(aliasOrUsername:string, targetDir:string):Listr
                     finalizeObservableTaskResult(otr);
                   })
                   .catch((failureResult:Error) => {
-                    SfdxFalconDebug.obj(`${dbgNs}tm1DataFetch:RT1:failureResult:`, failureResult);
+                    SfdxFalconDebug.obj(`${dbgNs}analyzeTm1Config:RT1:failureResult:`, failureResult);
           
                     // We get here if no connections were found.
                     finalizeObservableTaskResult(otr, failureResult);
@@ -1079,7 +1080,7 @@ export function extractTm1Config(tm1AnalysisReport:TM1AnalysisReport, tm1Metadat
       extractMdapiSource.call(this, zipFile, tm1MetadataDir),
       {
         title:  `Execute SOQL Queries`,
-        task:   () => tm1DataFetch.call(this, aliasOrUsername, tm1DataDir)
+        task:   () => fetchTm1Data.call(this, aliasOrUsername, tm1DataDir)
       }
     ],
     // TASK GROUP OPTIONS: TM1 Config Extraction Tasks
@@ -1966,7 +1967,7 @@ export function stageProjectFiles(targetDir:string):ListrTask {
 
 // ────────────────────────────────────────────────────────────────────────────────────────────────┐
 /**
- * @function    tm1DataFetch
+ * @function    fetchTm1Data
  * @param       {string}  aliasOrUsername Required. The alias or username associated with a
  *              TM1 org that the Salesforce CLI is currently connected to.
  * @param       {string}  targetDir Required. The root directory where TM1 data (and ONLY data)
@@ -1977,7 +1978,7 @@ export function stageProjectFiles(targetDir:string):ListrTask {
  * @public
  */
 // ────────────────────────────────────────────────────────────────────────────────────────────────┘
-export function tm1DataFetch(aliasOrUsername:string, targetDir:string):ListrObject {
+export function fetchTm1Data(aliasOrUsername:string, targetDir:string):ListrObject {
 
   // Validate incoming arguments.
   validateFetchExtractArguments.apply(null, arguments);
@@ -2007,7 +2008,7 @@ export function tm1DataFetch(aliasOrUsername:string, targetDir:string):ListrObje
           return new Observable(observer => {
     
             // Initialize an OTR (Observable Task Result).
-            const otr = initObservableTaskResult(`${dbgNs}tm1DataFetch:Q1`, listrContext, thisTask, observer, this.sharedData, this.generatorResult,
+            const otr = initObservableTaskResult(`${dbgNs}fetchTm1Data:Q1`, listrContext, thisTask, observer, this.sharedData, this.generatorResult,
                         `Retrieving Territory data from ${aliasOrUsername}`);
     
             // Execute the Task Logic
@@ -2025,14 +2026,14 @@ export function tm1DataFetch(aliasOrUsername:string, targetDir:string):ListrObje
               territoryCsv
             )
             .then((successResult:SfdxFalconResult) => {
-              SfdxFalconDebug.obj(`${dbgNs}tm1DataFetch:Q1:successResult:`, successResult);
+              SfdxFalconDebug.obj(`${dbgNs}fetchTm1Data:Q1:successResult:`, successResult);
     
               // Save the UTILITY result to Shared Data and finalize the OTR as successful.
               this.sharedData.metadataRetrieveResult = successResult;
               finalizeObservableTaskResult(otr);
             })
             .catch((failureResult:SfdxFalconResult|Error) => {
-              SfdxFalconDebug.obj(`${dbgNs}tm1DataFetch:Q1:failureResult:`, failureResult);
+              SfdxFalconDebug.obj(`${dbgNs}fetchTm1Data:Q1:failureResult:`, failureResult);
     
               // We get here if no connections were found.
               finalizeObservableTaskResult(otr, failureResult);
@@ -2047,7 +2048,7 @@ export function tm1DataFetch(aliasOrUsername:string, targetDir:string):ListrObje
           return new Observable(observer => {
     
             // Initialize an OTR (Observable Task Result).
-            const otr = initObservableTaskResult(`${dbgNs}tm1DataFetch:Q2`, listrContext, thisTask, observer, this.sharedData, this.generatorResult,
+            const otr = initObservableTaskResult(`${dbgNs}fetchTm1Data:Q2`, listrContext, thisTask, observer, this.sharedData, this.generatorResult,
                         `Retrieving UserTerritory data from ${aliasOrUsername}`);
     
             // Execute the Task Logic
@@ -2065,14 +2066,14 @@ export function tm1DataFetch(aliasOrUsername:string, targetDir:string):ListrObje
               userTerritoryCsv
             )
             .then((successResult:SfdxFalconResult) => {
-              SfdxFalconDebug.obj(`${dbgNs}tm1DataFetch:Q2:successResult:`, successResult);
+              SfdxFalconDebug.obj(`${dbgNs}fetchTm1Data:Q2:successResult:`, successResult);
     
               // Save the UTILITY result to Shared Data and finalize the OTR as successful.
               this.sharedData.metadataRetrieveResult = successResult;
               finalizeObservableTaskResult(otr);
             })
             .catch((failureResult:SfdxFalconResult|Error) => {
-              SfdxFalconDebug.obj(`${dbgNs}tm1DataFetch:Q2:failureResult:`, failureResult);
+              SfdxFalconDebug.obj(`${dbgNs}fetchTm1Data:Q2:failureResult:`, failureResult);
     
               // We get here if no connections were found.
               finalizeObservableTaskResult(otr, failureResult);
@@ -2087,7 +2088,7 @@ export function tm1DataFetch(aliasOrUsername:string, targetDir:string):ListrObje
           return new Observable(observer => {
     
             // Initialize an OTR (Observable Task Result).
-            const otr = initObservableTaskResult(`${dbgNs}tm1DataFetch:Q3`, listrContext, thisTask, observer, this.sharedData, this.generatorResult,
+            const otr = initObservableTaskResult(`${dbgNs}fetchTm1Data:Q3`, listrContext, thisTask, observer, this.sharedData, this.generatorResult,
                         `Retrieving AccountShare data from ${aliasOrUsername}`);
     
             // Execute the Task Logic
@@ -2105,14 +2106,14 @@ export function tm1DataFetch(aliasOrUsername:string, targetDir:string):ListrObje
               accountShareCsv
             )
             .then((successResult:SfdxFalconResult) => {
-              SfdxFalconDebug.obj(`${dbgNs}tm1DataFetch:Q3:successResult:`, successResult);
+              SfdxFalconDebug.obj(`${dbgNs}fetchTm1Data:Q3:successResult:`, successResult);
     
               // Save the UTILITY result to Shared Data and finalize the OTR as successful.
               this.sharedData.metadataRetrieveResult = successResult;
               finalizeObservableTaskResult(otr);
             })
             .catch((failureResult:SfdxFalconResult|Error) => {
-              SfdxFalconDebug.obj(`${dbgNs}tm1DataFetch:Q3:failureResult:`, failureResult);
+              SfdxFalconDebug.obj(`${dbgNs}fetchTm1Data:Q3:failureResult:`, failureResult);
     
               // We get here if no connections were found.
               finalizeObservableTaskResult(otr, failureResult);
@@ -2127,7 +2128,7 @@ export function tm1DataFetch(aliasOrUsername:string, targetDir:string):ListrObje
           return new Observable(observer => {
     
             // Initialize an OTR (Observable Task Result).
-            const otr = initObservableTaskResult(`${dbgNs}tm1DataFetch:Q4`, listrContext, thisTask, observer, this.sharedData, this.generatorResult,
+            const otr = initObservableTaskResult(`${dbgNs}fetchTm1Data:Q4`, listrContext, thisTask, observer, this.sharedData, this.generatorResult,
                         `Retrieving AccountTerritoryAssignmentRule data from ${aliasOrUsername}`);
     
             // Execute the Task Logic
@@ -2145,14 +2146,14 @@ export function tm1DataFetch(aliasOrUsername:string, targetDir:string):ListrObje
               ataRuleCsv
             )
             .then((successResult:SfdxFalconResult) => {
-              SfdxFalconDebug.obj(`${dbgNs}tm1DataFetch:Q4:successResult:`, successResult);
+              SfdxFalconDebug.obj(`${dbgNs}fetchTm1Data:Q4:successResult:`, successResult);
     
               // Save the UTILITY result to Shared Data and finalize the OTR as successful.
               this.sharedData.metadataRetrieveResult = successResult;
               finalizeObservableTaskResult(otr);
             })
             .catch((failureResult:SfdxFalconResult|Error) => {
-              SfdxFalconDebug.obj(`${dbgNs}tm1DataFetch:Q4:failureResult:`, failureResult);
+              SfdxFalconDebug.obj(`${dbgNs}fetchTm1Data:Q4:failureResult:`, failureResult);
     
               // We get here if no connections were found.
               finalizeObservableTaskResult(otr, failureResult);
@@ -2167,7 +2168,7 @@ export function tm1DataFetch(aliasOrUsername:string, targetDir:string):ListrObje
           return new Observable(observer => {
     
             // Initialize an OTR (Observable Task Result).
-            const otr = initObservableTaskResult(`${dbgNs}tm1DataFetch:Q5`, listrContext, thisTask, observer, this.sharedData, this.generatorResult,
+            const otr = initObservableTaskResult(`${dbgNs}fetchTm1Data:Q5`, listrContext, thisTask, observer, this.sharedData, this.generatorResult,
                         `Retrieving AccountTerritoryAssignmentRuleItem data from ${aliasOrUsername}`);
     
             // Execute the Task Logic
@@ -2185,14 +2186,14 @@ export function tm1DataFetch(aliasOrUsername:string, targetDir:string):ListrObje
               ataRuleItemCsv
             )
             .then((successResult:SfdxFalconResult) => {
-              SfdxFalconDebug.obj(`${dbgNs}tm1DataFetch:Q4:successResult:`, successResult);
+              SfdxFalconDebug.obj(`${dbgNs}fetchTm1Data:Q5:successResult:`, successResult);
     
               // Save the UTILITY result to Shared Data and finalize the OTR as successful.
               this.sharedData.metadataRetrieveResult = successResult;
               finalizeObservableTaskResult(otr);
             })
             .catch((failureResult:SfdxFalconResult|Error) => {
-              SfdxFalconDebug.obj(`${dbgNs}tm1DataFetch:Q4:failureResult:`, failureResult);
+              SfdxFalconDebug.obj(`${dbgNs}fetchTm1Data:Q5:failureResult:`, failureResult);
     
               // We get here if no connections were found.
               finalizeObservableTaskResult(otr, failureResult);
@@ -2212,16 +2213,11 @@ export function tm1DataFetch(aliasOrUsername:string, targetDir:string):ListrObje
 
 // ────────────────────────────────────────────────────────────────────────────────────────────────┐
 /**
- * @function    tm1DataTransform
- * @param       {TM1ExtractionReport} tm1ExtractionReport Required. Report on target TM1 config.
- * @param       {string}  extractedMetadataDir Required. Path to extracted TM1 metadata.
- * @param       {string}  extractedDataDir  Required. Path to extracted TM1 data.
- * @param       {string}  transformedMetadataDir  Required. Location where transformed metadata will
- *              be written to.
- * @param       {string}  transformedDataDir  Required. Location where transformed data will be
- *              written to.
- * @param       {string}  intermediateFilesDir  Required. Path to directory that will hold special
- *              "intermediate data" which can only be fully transformed AFTER TM2 deployment occurs.
+ * @function    transformTm1Config
+ * @param       {TM1AnalysisReport} tm1AnalysisReport Required. Report on target TM1 config.
+ * @param       {TM1ExtractionReport} tm1ExtractionReport Required. Report on extracted TM1 config.
+ * @param       {TM1TransformFilePaths} TM1TransformFilePaths Required. All file paths needed to
+ *              carry out the TM1 Transformation tasks.
  * @returns     {ListrObject}  A "runnable" Listr Object
  * @description Returns a "runnable" Listr Object that attempts to transform the specified set of
  *              TM1 metadata and data, then writes the transformed files to the local filesystem at
@@ -2229,7 +2225,7 @@ export function tm1DataFetch(aliasOrUsername:string, targetDir:string):ListrObje
  * @public
  */
 // ────────────────────────────────────────────────────────────────────────────────────────────────┘
-export function tm1DataTransform(tm1ExtractionReport:TM1ExtractionReport, extractedMetadataDir:string, extractedDataDir:string, transformedMetadataDir:string, transformedDataDir:string, intermediateFilesDir:string):ListrObject {
+export function transformTm1Config(tm1AnalysisReport:TM1AnalysisReport, tm1ExtractionReport:TM1ExtractionReport, tm1TransformFilePaths:TM1TransformFilePaths):ListrObject {
 
   // Validate incoming arguments.
   validateTm1DataTransformArguments.apply(null, arguments);
@@ -2241,26 +2237,24 @@ export function tm1DataTransform(tm1ExtractionReport:TM1ExtractionReport, extrac
   return new listr(
     // TASK GROUP: TM1 Transformation Tasks
     [
-      // ── Prepare TM Tools Transformation Context ────────────────────────────────────────────────
+      // ── TRANSFORM TASK 1: Prepare TM Tools Transformation Context ──────────────────────────────
       {
         title:  'Prepare Environment for TM1 to TM2 Transformation',
         task:   (listrContext:object, thisTask:ListrTask) => {
           return new Observable(observer => {
     
             // Initialize an OTR (Observable Task Result).
-            const otr = initObservableTaskResult(`${dbgNs}tm1DataTransform:Prepare`, listrContext, thisTask, observer, this.sharedData, this.generatorResult,
+            const otr = initObservableTaskResult(`${dbgNs}tm1DataTransform:TT1`, listrContext, thisTask, observer, this.sharedData, this.generatorResult,
                         `Examining TM1 data and metadata and preparing a Transformation Context`);
     
             // Define the Task Logic to be executed.
             const asyncTask = async () => {
               tm1Transform = await TmToolsTransform.prepare(
-                extractedMetadataDir,   // Extracted Metadata Path
-                extractedDataDir,       // Extracted Record Data Path
-                transformedMetadataDir, // Transformed Metadata Path
-                transformedDataDir,     // Transformed Record Data Path
-                intermediateFilesDir
+                tm1AnalysisReport,
+                tm1ExtractionReport,
+                tm1TransformFilePaths
               );
-              SfdxFalconDebug.obj(`${dbgNs}stageProjectFiles:tm1Transform:`, tm1Transform);
+              SfdxFalconDebug.obj(`${dbgNs}tm1DataTransform:tm1Transform:`, tm1Transform);
             };
 
             // Execute the Task Logic.
@@ -2276,19 +2270,19 @@ export function tm1DataTransform(tm1ExtractionReport:TM1ExtractionReport, extrac
           });
         }
       },
-      // ── Execute the TM1 to TM2 Transformation ──────────────────────────────────────────────────
+      // ── TRANSFORM TASK 2: Transform TM1 Metadata to TM2 Metadata ───────────────────────────────
       {
-        title:  'Transform TM1 Data/Metadata to TM2',
+        title:  'Transform TM1 Metadata to TM2 Metadata',
         task:   (listrContext:object, thisTask:ListrTask) => {
           return new Observable(observer => {
     
             // Initialize an OTR (Observable Task Result).
-            const otr = initObservableTaskResult(`${dbgNs}tm1DataTransform:Execute`, listrContext, thisTask, observer, this.sharedData, this.generatorResult,
-                        `Transforming TM1 data and metadata to TM2 data and metadata`);
+            const otr = initObservableTaskResult(`${dbgNs}tm1DataTransform:TT2`, listrContext, thisTask, observer, this.sharedData, this.generatorResult,
+                        `Transforming TM1 metadata to TM2 metadata`);
     
             // Define the Task Logic to be executed.
             const asyncTask = async () => {
-              await tm1Transform.execute();
+              await tm1Transform.transformMetadata();
             };
 
             // Execute the Task Logic.
@@ -2304,19 +2298,19 @@ export function tm1DataTransform(tm1ExtractionReport:TM1ExtractionReport, extrac
           });
         }
       },
-      // ── Write the TM1 data/metadata to disk ────────────────────────────────────────────────────
+      // ── TRANSFORM TASK 3: Write Transformed TM2 Metadata to Disk ───────────────────────────────
       {
-        title:  'Write Transformed TM2 Data/Metadata to the Local Filesystem',
+        title:  'Write Transformed TM2 Metadata to the Local Filesystem',
         task:   (listrContext:object, thisTask:ListrTask) => {
           return new Observable(observer => {
     
             // Initialize an OTR (Observable Task Result).
-            const otr = initObservableTaskResult(`${dbgNs}tm1DataTransform:Execute`, listrContext, thisTask, observer, this.sharedData, this.generatorResult,
-                        `Writing transformed data and metadata to the local filesystem`);
+            const otr = initObservableTaskResult(`${dbgNs}tm1DataTransform:TT3`, listrContext, thisTask, observer, this.sharedData, this.generatorResult,
+                        `Writing transformed TM2 metadata to ${tm1TransformFilePaths.transformedMetadataDir}`);
     
             // Define the Task Logic to be executed.
             const asyncTask = async () => {
-              await tm1Transform.write();
+              await tm1Transform.writeMetadata();
             };
 
             // Execute the Task Logic.
@@ -2335,9 +2329,10 @@ export function tm1DataTransform(tm1ExtractionReport:TM1ExtractionReport, extrac
     ],
     // TASK GROUP OPTIONS: TM1 Transformation Tasks
     {
-      concurrent: false,
-      collapse:   false,
-      renderer:   falconUpdateRenderer
+      concurrent:   false,
+      collapse:     false,
+      exitOnError:  true,
+      renderer:     falconUpdateRenderer
     }
   );
 }
@@ -2549,39 +2544,21 @@ function validateTm1DataTransformArguments():void {
   // Debug incoming arguments
   SfdxFalconDebug.obj(`${dbgNs}validateTm1DataTransformArguments:arguments:`, arguments);
 
-  // Validate "tm1ExtractionReport".
+  // Validate "tm1AnalysisReport".
   if (typeof arguments[0] !== 'object' || arguments[0] === null) {
-    throw new SfdxFalconError( `Expected tm1ExtractionReport to be a non-null object but got type '${typeof arguments[0]}' instead.`
+    throw new SfdxFalconError( `Expected tm1AnalysisReport to be a non-null object but got type '${typeof arguments[0]}' instead.`
                              , `TypeError`
                              , `${dbgNs}validateTm1DataTransformArguments`);
   }
-  // Validate "extractedMetadataDir".
-  if (typeof arguments[1] !== 'string' || arguments[1] === '') {
-    throw new SfdxFalconError( `Expected extractedMetadataDir to be a non-empty string but got type '${typeof arguments[1]}' instead.`
+  // Validate "tm1ExtractionReport".
+  if (typeof arguments[1] !== 'object' || arguments[1] === null) {
+    throw new SfdxFalconError( `Expected tm1ExtractionReport to be a non-null object but got type '${typeof arguments[1]}' instead.`
                              , `TypeError`
                              , `${dbgNs}validateTm1DataTransformArguments`);
   }
-  // Validate "extractedDataDir".
-  if (typeof arguments[2] !== 'string' || arguments[2] === '') {
-    throw new SfdxFalconError( `Expected extractedDataDir to be a non-empty string but got type '${typeof arguments[2]}' instead.`
-                             , `TypeError`
-                             , `${dbgNs}validateTm1DataTransformArguments`);
-  }
-  // Validate "transformedMetadataDir".
-  if (typeof arguments[3] !== 'string' || arguments[3] === '') {
-    throw new SfdxFalconError( `Expected transformedMetadataDir to be a non-empty string but got type '${typeof arguments[3]}' instead.`
-                             , `TypeError`
-                             , `${dbgNs}validateTm1DataTransformArguments`);
-  }
-  // Validate "transformedDataDir".
-  if (typeof arguments[4] !== 'string' || arguments[4] === '') {
-    throw new SfdxFalconError( `Expected transformedDataDir to be a non-empty string but got type '${typeof arguments[4]}' instead.`
-                             , `TypeError`
-                             , `${dbgNs}validateTm1DataTransformArguments`);
-  }
-  // Validate "intermediateFilesDir".
-  if (typeof arguments[5] !== 'string' || arguments[5] === '') {
-    throw new SfdxFalconError( `Expected intermediateFilesDir to be a non-empty string but got type '${typeof arguments[5]}' instead.`
+  // Validate "tm1TransformFilePaths".
+  if (typeof arguments[2] !== 'object' || isEmpty(arguments[2])) {
+    throw new SfdxFalconError( `Expected tm1TransformFilePaths to be a non-empty object but got type '${typeof arguments[2]}' instead.`
                              , `TypeError`
                              , `${dbgNs}validateTm1DataTransformArguments`);
   }
@@ -2780,9 +2757,11 @@ export function validateTm1Extraction(tm1AnalysisReport:TM1AnalysisReport, tm1Me
               await waitASecond(3);
 
               const tm1ExtractionReport:TM1ExtractionReport = {
-                orgInfo:                  tm1AnalysisReport.orgInfo,
-                expectedTm1RecordCounts:  tm1AnalysisReport.tm1RecordCounts,
-                actualTm1RecordCounts:    tm1ContextValidation.actualRecordCounts
+                orgInfo:                    tm1AnalysisReport.orgInfo,
+                expectedTm1RecordCounts:    tm1AnalysisReport.tm1RecordCounts,
+                actualTm1RecordCounts:      tm1ContextValidation.actualRecordCounts,
+                expectedTm1MetadataCounts:  tm1AnalysisReport.tm1MetadataCounts,
+                actualTm1MetadataCounts:    tm1ContextValidation.actualMetadataCounts
               };
               SfdxFalconDebug.obj(`${dbgNs}validateTm1Extraction:VT7:tm1ExtractionReport:`, tm1ExtractionReport);
 
