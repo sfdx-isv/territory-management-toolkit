@@ -268,6 +268,15 @@ export interface SharingRulesCount extends JsonMap {
 }
 
 /**
+ * Interface. Represents a FQDN (Fully Qualified Developer Name) collection for Criteria and Owner-based Sharing Rules.
+ */
+export interface SharingRulesFqdns extends JsonMap {
+  sharingCriteriaRules:   string[];
+  sharingOwnerRules:      string[];
+  sharingTerritoryRules:  string[];
+}
+
+/**
  * Interface. Represents the mapping of a Territory developer name and record ID to a Territory2 developer name and record ID.
  */
 export interface TerritoryDevNameMapping extends JsonMap {
