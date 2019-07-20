@@ -14,6 +14,7 @@ import {JsonMap}                from  '@salesforce/ts-types';     // Any JSON-co
 import {AnyJson}                from  '@salesforce/ts-types';     // Any valid JSON value.
 
 // Import Internal Modules/Types
+import {SharingRules}           from  '../tm-tools-objects/sharing-rules';    // Class. Models Salesforce "SharingRules" metadata as needed for deployment to a TM2 org.
 import {Territory2}             from  '../tm-tools-objects/territory2';       // Class. Models Salesforce "Territory2" metadata as needed for deployment to a TM2 org.
 import {Territory2Model}        from  '../tm-tools-objects/territory2-model'; // Class. Models Salesforce "Territory2Model" metadata as needed for deployment to a TM2 org.
 import {Territory2Rule}         from  '../tm-tools-objects/territory2-rule';  // Class. Models Salesforce "Territory2Rule" metadata as needed for deployment to a TM2 org.
@@ -155,6 +156,11 @@ export type AtaRuleItemRecordsByRuleId = Map<SObjectRecordId, AtaRuleItemRecords
 export type AtaRuleRecordsByTerritoryId = Map<SObjectRecordId, AtaRuleRecords>;
 
 /**
+ * Type. Represents a map of SharingRules Objects by Developer Name.
+ */
+export type SharingRulesObjectsByDevName = Map<DeveloperName, SharingRules>;
+
+/**
  * Type. Represents a map of Territory Names by Territory ID.
  */
 export type TerritoryNamesByTerritoryId = Map<SObjectRecordId, string>;
@@ -244,9 +250,9 @@ export interface SharingOwnerRule extends SharingBaseRule {
 export type SharingTerritoryRule = SharingOwnerRule;
 
 /**
- * Interface. Represents a collection of Criteria, Ownership, and Territory-based Sharing Rules
+ * Interface. Represents a collection of the JSON representation of Criteria, Ownership, and Territory-based Sharing Rules.
  */
-export interface SharingRules {
+export interface SharingRulesJson {
   sharingCriteriaRules:   SharingCriteriaRule[];
   sharingOwnerRules:      SharingOwnerRule[];
   sharingTerritoryRules:  SharingTerritoryRule[];

@@ -31,7 +31,7 @@ import {AtaRuleRecordsById}           from  '../tm-tools-types';   // Type. Repr
 import {AtaRuleRecordsByTerritoryId}  from  '../tm-tools-types';   // Type. Represents a map of an array of AccountTerritoryAssignmentRule Records by Territory ID.
 import {FilterItem}                   from  '../tm-tools-types';   // Interface. Represents a single filter item. Usually used as part an array of Filter Items.
 import {SharingGroup}                 from  '../tm-tools-types';   // Interface. Represents a Sharing Group inside Salesforce.
-import {SharingRules}                 from  '../tm-tools-types';   // Interface. Represents a collection of Criteria, Ownership, and Territory-based Sharing Rules
+import {SharingRulesJson}             from  '../tm-tools-types';   // Interface. Represents a collection of Criteria, Ownership, and Territory-based Sharing Rules
 import {TerritoryRecord}              from  '../tm-tools-types';   // Interface. Represents a Territory Record.
 import {TerritoryRecords}             from  '../tm-tools-types';   // Type. Represents an array of Territory Records.
 import {TerritoryRecordsById}         from  '../tm-tools-types';   // Type. Represents a map of Territory Records by Territory ID.
@@ -177,15 +177,15 @@ export class Tm1Context {
 
   // Private Members
   private _accountShareRecords:         AccountShareRecords;
-  private _accountSharingRules:         SharingRules;
+  private _accountSharingRules:         SharingRulesJson;
   private _ataRuleRecords:              AtaRuleRecords;
   private _ataRuleItemRecords:          AtaRuleItemRecords;
   private _ataRuleRecordsById:          AtaRuleRecordsById;
   private _ataRuleRecordsByTerritoryId: AtaRuleRecordsByTerritoryId;
   private _ataRuleItemRecordsByRuleId:  AtaRuleItemRecordsByRuleId;
   private _ataRuleDevNamesByRuleId:     AtaRuleDevNamesByRuleId;
-  private _leadSharingRules:            SharingRules;
-  private _opportunitySharingRules:     SharingRules;
+  private _leadSharingRules:            SharingRulesJson;
+  private _opportunitySharingRules:     SharingRulesJson;
   private _territoryRecords:            TerritoryRecords;
   private _territoryRecordsById:        TerritoryRecordsById;
   private _tm1FilePaths:                TM1ContextFilePaths;
@@ -456,12 +456,12 @@ export class Tm1Context {
   /**
    * @method      parseSharingRulesFromXml
    * @param       {string}  sharingRulesXml
-   * @return      {SharingRules}
+   * @return      {SharingRulesJson}
    * @description Given
    * @private
    */
   //───────────────────────────────────────────────────────────────────────────┘
-  private parseSharingRulesFromXml(sharingRulesXml:string):SharingRules {
+  private parseSharingRulesFromXml(sharingRulesXml:string):SharingRulesJson {
 
     // Debug incoming arguments.
     SfdxFalconDebug.obj(`${dbgNs}parseSharingRulesFromXml:arguments:`, arguments);
@@ -474,7 +474,7 @@ export class Tm1Context {
     }
 
     // Initialize the return value.
-    const parsedSharingRules:SharingRules = {
+    const parsedSharingRules:SharingRulesJson = {
       sharingCriteriaRules: [],
       sharingOwnerRules: [],
       sharingTerritoryRules: []
