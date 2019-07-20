@@ -125,64 +125,80 @@ export class SharingRules extends Metadata {
   //───────────────────────────────────────────────────────────────────────────┘
   protected async buildXml():Promise<void> {
 
+    // DEBUG
+    SfdxFalconDebug.obj(`${dbgNs}buildXml:this:`, this);
+
     // Build Criteria-based Sharing Rules
     for (const sharingCriteriaRule of this._sharingCriteriaRules) {
       const sharingCriteriaRulesNode = this.xmlRoot.ele('sharingCriteriaRules');
-      sharingCriteriaRulesNode.ele('fullName').txt(sharingCriteriaRule.fullName);
-      sharingCriteriaRulesNode.ele('accessLevel').txt(sharingCriteriaRule.accessLevel);
-      sharingCriteriaRulesNode.ele('description').txt(sharingCriteriaRule.description);
-      sharingCriteriaRulesNode.ele('label').txt(sharingCriteriaRule.label);
-      sharingCriteriaRulesNode.ele('booleanFilter').txt(sharingCriteriaRule.booleanFilter);
+      sharingCriteriaRulesNode.ele('fullName').txt(sharingCriteriaRule.fullName || '');
+      sharingCriteriaRulesNode.ele('accessLevel').txt(sharingCriteriaRule.accessLevel || '');
+      sharingCriteriaRulesNode.ele('description').txt(sharingCriteriaRule.description || '');
+      sharingCriteriaRulesNode.ele('label').txt(sharingCriteriaRule.label || '');
+      sharingCriteriaRulesNode.ele('booleanFilter').txt(sharingCriteriaRule.booleanFilter || '');
 
-      const accountSettingsNode = sharingCriteriaRulesNode.ele('accountSettings');
-      accountSettingsNode.ele('caseAccessLevel').txt(sharingCriteriaRule.accountSettings.caseAccessLevel);
-      accountSettingsNode.ele('contactAccessLevel').txt(sharingCriteriaRule.accountSettings.contactAccessLevel);
-      accountSettingsNode.ele('opportunityAccessLevel').txt(sharingCriteriaRule.accountSettings.opportunityAccessLevel);
+      // Only Build the accountSettings key if that data is present.
+      if (sharingCriteriaRule.accountSettings.caseAccessLevel || sharingCriteriaRule.accountSettings.contactAccessLevel || sharingCriteriaRule.accountSettings.opportunityAccessLevel) {
+        const accountSettingsNode = sharingCriteriaRulesNode.ele('accountSettings');
+        accountSettingsNode.ele('caseAccessLevel').txt(sharingCriteriaRule.accountSettings.caseAccessLevel || '');
+        accountSettingsNode.ele('contactAccessLevel').txt(sharingCriteriaRule.accountSettings.contactAccessLevel || '');
+        accountSettingsNode.ele('opportunityAccessLevel').txt(sharingCriteriaRule.accountSettings.opportunityAccessLevel || '');
+      }
 
+      // Build the sharedTo node.
       const sharedToNode = sharingCriteriaRulesNode.ele('sharedTo');
-      sharedToNode.ele(sharingCriteriaRule.sharedTo.groupType).txt(sharingCriteriaRule.sharedTo.groupMembers);
+      sharedToNode.ele(sharingCriteriaRule.sharedTo.groupType).txt(sharingCriteriaRule.sharedTo.groupMembers || '');
 
+      // Build the criteriaItems nodes.
       for (const criteriaItem of sharingCriteriaRule.criteriaItems) {
         const criteriaItemsNode = sharingCriteriaRulesNode.ele('criteriaItems');
-        criteriaItemsNode.ele('field').txt(criteriaItem.field);
-        criteriaItemsNode.ele('operation').txt(criteriaItem.operation);
-        criteriaItemsNode.ele('value').txt(criteriaItem.value);
-        criteriaItemsNode.ele('valueField').txt(criteriaItem.valueField);
+        criteriaItemsNode.ele('field').txt(criteriaItem.field || '');
+        criteriaItemsNode.ele('operation').txt(criteriaItem.operation || '');
+        criteriaItemsNode.ele('value').txt(criteriaItem.value || '');
+        criteriaItemsNode.ele('valueField').txt(criteriaItem.valueField || '');
       }
     }
 
     // Build Ownership-based Sharing Rules
     for (const sharingOwnerRule of this._sharingOwnerRules) {
       const sharingOwnerRulesNode = this.xmlRoot.ele('sharingOwnerRules');
-      sharingOwnerRulesNode.ele('fullName').txt(sharingOwnerRule.fullName);
-      sharingOwnerRulesNode.ele('accessLevel').txt(sharingOwnerRule.accessLevel);
-      sharingOwnerRulesNode.ele('description').txt(sharingOwnerRule.description);
-      sharingOwnerRulesNode.ele('label').txt(sharingOwnerRule.label);
+      sharingOwnerRulesNode.ele('fullName').txt(sharingOwnerRule.fullName || '');
+      sharingOwnerRulesNode.ele('accessLevel').txt(sharingOwnerRule.accessLevel || '');
+      sharingOwnerRulesNode.ele('description').txt(sharingOwnerRule.description || '');
+      sharingOwnerRulesNode.ele('label').txt(sharingOwnerRule.label || '');
 
-      const accountSettingsNode = sharingOwnerRulesNode.ele('accountSettings');
-      accountSettingsNode.ele('caseAccessLevel').txt(sharingOwnerRule.accountSettings.caseAccessLevel);
-      accountSettingsNode.ele('contactAccessLevel').txt(sharingOwnerRule.accountSettings.contactAccessLevel);
-      accountSettingsNode.ele('opportunityAccessLevel').txt(sharingOwnerRule.accountSettings.opportunityAccessLevel);
+      // Only Build the accountSettings key if that data is present.
+      if (sharingOwnerRule.accountSettings.caseAccessLevel || sharingOwnerRule.accountSettings.contactAccessLevel || sharingOwnerRule.accountSettings.opportunityAccessLevel) {
+        const accountSettingsNode = sharingOwnerRulesNode.ele('accountSettings');
+        accountSettingsNode.ele('caseAccessLevel').txt(sharingOwnerRule.accountSettings.caseAccessLevel || '');
+        accountSettingsNode.ele('contactAccessLevel').txt(sharingOwnerRule.accountSettings.contactAccessLevel || '');
+        accountSettingsNode.ele('opportunityAccessLevel').txt(sharingOwnerRule.accountSettings.opportunityAccessLevel || '');
+      }
 
+      // Build the sharedFrom node.
       const sharedFromNode = sharingOwnerRulesNode.ele('sharedFrom');
-      sharedFromNode.ele(sharingOwnerRule.sharedTo.groupType).txt(sharingOwnerRule.sharedTo.groupMembers);
+      sharedFromNode.ele(sharingOwnerRule.sharedTo.groupType).txt(sharingOwnerRule.sharedTo.groupMembers || '');
 
+      // Build the sharedTo node.
       const sharedToNode = sharingOwnerRulesNode.ele('sharedTo');
-      sharedToNode.ele(sharingOwnerRule.sharedTo.groupType).txt(sharingOwnerRule.sharedTo.groupMembers);
+      sharedToNode.ele(sharingOwnerRule.sharedTo.groupType).txt(sharingOwnerRule.sharedTo.groupMembers || '');
     }
 
+    /*
+    // NOTE: Writing Territory-based Sharing Rules should NOT be needed.
+    // NOTE: Keeping this code commented out here, just in case I'm wrong.
     // Build Territory-based Sharing Rules
     for (const sharingTerritoryRule of this._sharingTerritoryRules) {
       const sharingTerritoryRulesNode = this.xmlRoot.ele('sharingTerritoryRules');
       sharingTerritoryRulesNode.ele('fullName').txt(sharingTerritoryRule.fullName);
       sharingTerritoryRulesNode.ele('accessLevel').txt(sharingTerritoryRule.accessLevel);
-      sharingTerritoryRulesNode.ele('description').txt(sharingTerritoryRule.description);
+      sharingTerritoryRulesNode.ele('description').txt(sharingTerritoryRule.description || '');
       sharingTerritoryRulesNode.ele('label').txt(sharingTerritoryRule.label);
 
       const accountSettingsNode = sharingTerritoryRulesNode.ele('accountSettings');
-      accountSettingsNode.ele('caseAccessLevel').txt(sharingTerritoryRule.accountSettings.caseAccessLevel);
-      accountSettingsNode.ele('contactAccessLevel').txt(sharingTerritoryRule.accountSettings.contactAccessLevel);
-      accountSettingsNode.ele('opportunityAccessLevel').txt(sharingTerritoryRule.accountSettings.opportunityAccessLevel);
+      accountSettingsNode.ele('caseAccessLevel').txt(sharingTerritoryRule.accountSettings.caseAccessLevel || '');
+      accountSettingsNode.ele('contactAccessLevel').txt(sharingTerritoryRule.accountSettings.contactAccessLevel || '');
+      accountSettingsNode.ele('opportunityAccessLevel').txt(sharingTerritoryRule.accountSettings.opportunityAccessLevel || '');
 
       const sharedFromNode = sharingTerritoryRulesNode.ele('sharedFrom');
       sharedFromNode.ele(sharingTerritoryRule.sharedTo.groupType).txt(sharingTerritoryRule.sharedTo.groupMembers);
@@ -190,5 +206,6 @@ export class SharingRules extends Metadata {
       const sharedToNode = sharingTerritoryRulesNode.ele('sharedTo');
       sharedToNode.ele(sharingTerritoryRule.sharedTo.groupType).txt(sharingTerritoryRule.sharedTo.groupMembers);
     }
+    //*/
   }
 }
