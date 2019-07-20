@@ -72,7 +72,7 @@ export class DestructiveChanges extends Metadata {
       ...opts,
       ...{
         rootNode:       `Package`,
-        developerName:  `package`,
+        developerName:  `destructiveChanges`,
         fileNameSuffix: `.xml`,
         parent:         null
       }
