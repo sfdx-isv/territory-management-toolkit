@@ -26,8 +26,9 @@ import  {Territory2Type}                  from  '../tm-tools-objects/territory2-
 import  {Tm1Context}                      from  '../tm-tools-objects/tm1-context';          // Models the entirety of an exported set of TM1 data, including helpful transforms.
 
 // Import TM-Tools Types
-import  {SharingRulesObjectsByDevName}    from  '../tm-tools-types';   // Type. Represents a map of SharingRules Objects by Developer Name.
+import  {SharingRulesFqdns}               from  '../tm-tools-types';   // Interface. Represents a FQDN (Fully Qualified Developer Name) collection for Criteria and Owner-based Sharing Rules.
 import  {SharingRulesJson}                from  '../tm-tools-types';   // Interface. Represents a collection of Criteria, Ownership, and Territory-based Sharing Rules.
+import  {SharingRulesObjectsByDevName}    from  '../tm-tools-types';   // Type. Represents a map of SharingRules Objects by Developer Name.
 import  {Territory2ObjectsByDevName}      from  '../tm-tools-types';   // Type. Represents a map of Territory2 Objects by Developer Name.
 import  {Territory2ModelObjectsByDevName} from  '../tm-tools-types';   // Type. Represents a map of Territory2Model Objects by Developer Name.
 import  {Territory2RuleObjectsByDevName}  from  '../tm-tools-types';   // Type. Represents a map of Territory2Rule Objects by Developer Name.
@@ -328,9 +329,11 @@ export class TmToolsTransform {
 
     // ── Build the CLEANUP metadata bundle ────────────────────────────────────
 
-    // Write package manifest (package.xml) for the SHARING RULES deployment package.
-//    await this.mainPackage.writeXml(this.filePaths.tm2MainDeploymentDir);
+    // Write package manifest (package.xml) for the CLEANUP deployment package.
+    await this.cleanupPackage.writeXml(this.filePaths.tm1SharingRulesCleanupDir);
 
+    // Write destructive changes mainfest (destructiveChanges.xml) for the CLEANUP deployment package.
+    await this.destructiveChanges.writeXml(this.filePaths.tm1SharingRulesCleanupDir);
 
   }
 
@@ -348,7 +351,6 @@ export class TmToolsTransform {
 
   }
 
-
   //───────────────────────────────────────────────────────────────────────────┐
   /**
    * @method      createPackageObjectForCleanupDeployment
@@ -359,25 +361,55 @@ export class TmToolsTransform {
    */
   //───────────────────────────────────────────────────────────────────────────┘
   private createPackageObjectForCleanupDeployment():void {
-    const packageTypes  = [];
-    const {falcon}      = require('../../../package.json'); // The version of the SFDX-Falcon plugin
+    const {falcon}              = require('../../../package.json'); // The version of the SFDX-Falcon plugin
+    const packageTypes          = [];
 
-    // TODO: The package.xml for this use case may not be designed properly. Please test and fix.
+    // Create local function to extract SharingRules using their "fully qualified developer name" (FQDN).
+    const extractSharingRulesDevNames = (prefix:string, sharingRules:SharingRulesJson):SharingRulesFqdns => {
+      const sharingRulesFqdns:SharingRulesFqdns = {
+        sharingCriteriaRules:   [],
+        sharingOwnerRules:      [],
+        sharingTerritoryRules:  []
+      };
+      for (const sharingRule of sharingRules.sharingCriteriaRules) {
+        sharingRulesFqdns.sharingCriteriaRules.push(`${prefix}.${sharingRule.fullName}`);
+      }
+      for (const sharingRule of sharingRules.sharingOwnerRules) {
+        sharingRulesFqdns.sharingOwnerRules.push(`${prefix}.${sharingRule.fullName}`);
+      }
+      return sharingRulesFqdns;
+    };
+
+    // Extract the Account, Lead, and Oppo
+    const accountSharingRulesToDelete     = extractSharingRulesDevNames('Account',      this._tm1Context.accountSharingRules);
+    const leadSharingRulesToDelete        = extractSharingRulesDevNames('Lead',         this._tm1Context.leadSharingRules);
+    const opportunitySharingRulesToDelete = extractSharingRulesDevNames('Opportunity',  this._tm1Context.opportunitySharingRules);
+    
+    // Concatenate the result arrays to get our final CRITERIA and OWNER SharingRules to delete.
+    const criteriaRulesToDelete = accountSharingRulesToDelete.sharingCriteriaRules.concat(leadSharingRulesToDelete.sharingCriteriaRules, opportunitySharingRulesToDelete.sharingCriteriaRules);
+    const ownerRulesToDelete    = accountSharingRulesToDelete.sharingOwnerRules.concat(leadSharingRulesToDelete.sharingOwnerRules, opportunitySharingRulesToDelete.sharingOwnerRules);
 
     // SharingCriteriaRule
     packageTypes.push({
-      members:  ['*'],
+      members:  criteriaRulesToDelete,
       name:     'SharingCriteriaRule'
     });
 
     // SharingOwnerRule
     packageTypes.push({
-      members:  ['*'],
+      members:  ownerRulesToDelete,
       name:     'SharingOwnerRule'
     });
 
     // Create the CLEANUP Package object.
     this._cleanupPackage = new Package({
+      types:    [],
+      version:  falcon.sfdcApiVersion,
+      filePath: this.filePaths.tm1SharingRulesCleanupDir
+    });
+
+    // Create the DESTRUCTIVE CHANGES Package object.
+    this._destructiveChanges = new DestructiveChanges({
       types:    packageTypes,
       version:  falcon.sfdcApiVersion,
       filePath: this.filePaths.tm1SharingRulesCleanupDir
