@@ -10,13 +10,15 @@
  */
 //─────────────────────────────────────────────────────────────────────────────────────────────────┘
 // Import External Libraries & Modules
-import * as path                          from  'path';                                 // Node's path library.
+import {cloneDeep}                        from  'lodash';   // Useful function for detecting empty objects.
+import * as path                          from  'path';     // Node's path library.
 
 // Import Internal Classes & Functions
 import  {SfdxFalconDebug}                 from  '../sfdx-falcon-debug';                     // Specialized debug provider for SFDX-Falcon code.
 import  {SfdxFalconError}                 from  '../sfdx-falcon-error';                     // Class. Extends SfdxError to provide specialized error structures for SFDX-Falcon modules.
 import  {DestructiveChanges}              from  '../tm-tools-objects/destructive-changes';  // ???
 import  {Package}                         from  '../tm-tools-objects/package';              // ???
+import  {SharingRules}                    from  '../tm-tools-objects/sharing-rules';        // Class. Models Salesforce "SharingRules" metadata.
 import  {Territory2}                      from  '../tm-tools-objects/territory2';           // ???
 import  {Territory2Model}                 from  '../tm-tools-objects/territory2-model';     // ???
 import  {Territory2Rule}                  from  '../tm-tools-objects/territory2-rule';      // ???
@@ -24,6 +26,8 @@ import  {Territory2Type}                  from  '../tm-tools-objects/territory2-
 import  {Tm1Context}                      from  '../tm-tools-objects/tm1-context';          // Models the entirety of an exported set of TM1 data, including helpful transforms.
 
 // Import TM-Tools Types
+import  {SharingRulesObjectsByDevName}    from  '../tm-tools-types';   // Type. Represents a map of SharingRules Objects by Developer Name.
+import  {SharingRulesJson}                from  '../tm-tools-types';   // Interface. Represents a collection of Criteria, Ownership, and Territory-based Sharing Rules.
 import  {Territory2ObjectsByDevName}      from  '../tm-tools-types';   // Type. Represents a map of Territory2 Objects by Developer Name.
 import  {Territory2ModelObjectsByDevName} from  '../tm-tools-types';   // Type. Represents a map of Territory2Model Objects by Developer Name.
 import  {Territory2RuleObjectsByDevName}  from  '../tm-tools-types';   // Type. Represents a map of Territory2Rule Objects by Developer Name.
@@ -92,6 +96,7 @@ export class TmToolsTransform {
   private _sharingRulesPackage:             Package;
   private _cleanupPackage:                  Package;
   private _destructiveChanges:              DestructiveChanges;
+  private _sharingRulesObjectsByDevName:    SharingRulesObjectsByDevName;
   private _territory2ObjectsByDevName:      Territory2ObjectsByDevName;
   private _territory2ModelObjectsByDevName: Territory2ModelObjectsByDevName;
   private _territory2TypeObjectsByDevName:  Territory2TypeObjectsByDevName;
@@ -106,6 +111,7 @@ export class TmToolsTransform {
   public get sharingRulesPackage()              { return this.isPrepared()  ? this._sharingRulesPackage             : undefined; }
   public get cleanupPackage()                   { return this.isPrepared()  ? this._cleanupPackage                  : undefined; }
   public get destructiveChanges()               { return this.isPrepared()  ? this._destructiveChanges              : undefined; }
+  public get sharingRulesObjectsByDevName()     { return this.isPrepared()  ? this._sharingRulesObjectsByDevName    : undefined; }
   public get territory2ObjectsByDevName()       { return this.isPrepared()  ? this._territory2ObjectsByDevName      : undefined; }
   public get territory2ModelObjectsByDevName()  { return this.isPrepared()  ? this._territory2ModelObjectsByDevName : undefined; }
   public get territory2TypeObjectsByDevName()   { return this.isPrepared()  ? this._territory2TypeObjectsByDevName  : undefined; }
@@ -137,10 +143,11 @@ export class TmToolsTransform {
     this._filePaths = tm1TransformFilePaths;
 
     // Initialize Maps
-    this._territory2ObjectsByDevName       = new Map<string, Territory2>();
-    this._territory2ModelObjectsByDevName  = new Map<string, Territory2Model>();
-    this._territory2TypeObjectsByDevName   = new Map<string, Territory2Type>();
-    this._territory2RuleObjectsByDevName   = new Map<string, Territory2Rule>();
+    this._sharingRulesObjectsByDevName    = new Map<string, SharingRules>();
+    this._territory2ObjectsByDevName      = new Map<string, Territory2>();
+    this._territory2ModelObjectsByDevName = new Map<string, Territory2Model>();
+    this._territory2TypeObjectsByDevName  = new Map<string, Territory2Type>();
+    this._territory2RuleObjectsByDevName  = new Map<string, Territory2Rule>();
 
     // Mark this object instance as UNPREPARED.
     this._prepared = false;
@@ -284,7 +291,9 @@ export class TmToolsTransform {
   //───────────────────────────────────────────────────────────────────────────┘
   public async writeMetadata():Promise<void> {
 
-    // Write package manifest (package.xml).
+    // ── Build the MAIN metadata bundle ───────────────────────────────────────
+
+    // Write package manifest (package.xml) for the MAIN deployment package.
     await this.mainPackage.writeXml(this.filePaths.tm2MainDeploymentDir);
 
     // Write Territory2Type metadata files (territory2Types/DEV_NAME.territory2Type)
@@ -307,10 +316,20 @@ export class TmToolsTransform {
       await territory2.writeXml(this.filePaths.tm2MainDeploymentDir);
     }
 
-    // TODO: Write Sharing Rules Metadata
+    // ── Build the SHARING RULES metadata bundle ──────────────────────────────
 
+    // Write package manifest (package.xml) for the SHARING RULES deployment package.
+    await this.sharingRulesPackage.writeXml(this.filePaths.tm2SharingRulesDeploymentDir);
 
-    // TODO: Write Cleanup Metadata
+    // Write SharingRules Metadata files (sharingRules/DEV_NAME.sharingRules)
+    for (const sharingRules of this.sharingRulesObjectsByDevName.values()) {
+      await sharingRules.writeXml(this.filePaths.tm2SharingRulesDeploymentDir);
+    }
+
+    // ── Build the CLEANUP metadata bundle ────────────────────────────────────
+
+    // Write package manifest (package.xml) for the SHARING RULES deployment package.
+//    await this.mainPackage.writeXml(this.filePaths.tm2MainDeploymentDir);
 
 
   }
@@ -456,13 +475,72 @@ export class TmToolsTransform {
    */
   //───────────────────────────────────────────────────────────────────────────┘
   private createSharingRuleObjects():void {
-    this._territory2ModelObjectsByDevName.set(
-      territory2ModelDevName,
-      new Territory2Model({
-        name:           `Imported Territory`,
-        developerName:  territory2ModelDevName,
-        description:    `Auto-generated Territory Model. Created as part of the TM1 to TM2 migration process.`,
-        filePath:       path.join(this.filePaths.tm2MainDeploymentDir, 'territory2Models', territory2ModelDevName)
+
+    // Make a deep clone of the Account, Lead, and Opportunity SharingRules that are known to the TM1Context.
+    const accountSharingRules     = cloneDeep(this._tm1Context.accountSharingRules);
+    const leadSharingRules        = cloneDeep(this._tm1Context.leadSharingRules);
+    const opportunitySharingRules = cloneDeep(this._tm1Context.opportunitySharingRules);
+
+    // Local function that prefixes the Territory2 Model DevName to any "Territory" or "Territory and Subordinates" groupnames.
+    const addModelPrefixToTerritoryGroupNames = (sharingRulesJson:SharingRulesJson) => {
+      for (const sharingCriteriaRule of sharingRulesJson.sharingCriteriaRules) {
+        if (sharingCriteriaRule.sharedTo.groupType === 'territory' || sharingCriteriaRule.sharedTo.groupType === 'territoryAndSubordinates') {
+          sharingCriteriaRule.sharedTo.groupMembers = territory2ModelDevName + '.' + sharingCriteriaRule.sharedTo.groupMembers;
+        }
+      }
+      for (const sharingOwnerRule of sharingRulesJson.sharingOwnerRules) {
+        if (sharingOwnerRule.sharedTo.groupType === 'territory' || sharingOwnerRule.sharedTo.groupType === 'territoryAndSubordinates') {
+          sharingOwnerRule.sharedTo.groupMembers = territory2ModelDevName + '.' + sharingOwnerRule.sharedTo.groupMembers;
+        }
+        if (sharingOwnerRule.sharedFrom.groupType === 'territory' || sharingOwnerRule.sharedFrom.groupType === 'territoryAndSubordinates') {
+          sharingOwnerRule.sharedFrom.groupMembers = territory2ModelDevName + '.' + sharingOwnerRule.sharedFrom.groupMembers;
+        }
+      }
+    };
+
+    // Run the Account, Lead, and Opportunity SharingRules through the "add model prefix" process.
+    addModelPrefixToTerritoryGroupNames(accountSharingRules);
+    addModelPrefixToTerritoryGroupNames(leadSharingRules);
+    addModelPrefixToTerritoryGroupNames(opportunitySharingRules);
+
+    // DEBUG
+    SfdxFalconDebug.obj(`${dbgNs}createSharingRuleObjects:accountSharingRules:`,      accountSharingRules);
+    SfdxFalconDebug.obj(`${dbgNs}createSharingRuleObjects:leadSharingRules:`,         leadSharingRules);
+    SfdxFalconDebug.obj(`${dbgNs}createSharingRuleObjects:opportunitySharingRules:`,  opportunitySharingRules);
+
+    // Create Account SharingRules Objects
+    this._sharingRulesObjectsByDevName.set(
+      `Account`,
+      new SharingRules({
+        developerName:  `Account`,
+        sharingCriteriaRules:   accountSharingRules.sharingCriteriaRules,
+        sharingOwnerRules:      accountSharingRules.sharingOwnerRules,
+        sharingTerritoryRules:  [],
+        filePath:       path.join(this.filePaths.tm2SharingRulesDeploymentDir, 'sharingRules')
+      })
+    );
+
+    // Create Lead SharingRules
+    this._sharingRulesObjectsByDevName.set(
+      `Lead`,
+      new SharingRules({
+        developerName:  `Lead`,
+        sharingCriteriaRules:   leadSharingRules.sharingCriteriaRules,
+        sharingOwnerRules:      leadSharingRules.sharingOwnerRules,
+        sharingTerritoryRules:  [],
+        filePath:       path.join(this.filePaths.tm2SharingRulesDeploymentDir, 'sharingRules')
+      })
+    );
+
+    // Create Opportunity SharingRules
+    this._sharingRulesObjectsByDevName.set(
+      `Opportunity`,
+      new SharingRules({
+        developerName:  `Opportunity`,
+        sharingCriteriaRules:   opportunitySharingRules.sharingCriteriaRules,
+        sharingOwnerRules:      opportunitySharingRules.sharingOwnerRules,
+        sharingTerritoryRules:  [],
+        filePath:       path.join(this.filePaths.tm2SharingRulesDeploymentDir, 'sharingRules')
       })
     );
   }
