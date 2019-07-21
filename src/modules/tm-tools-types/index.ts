@@ -21,15 +21,44 @@ import {Territory2Rule}         from  '../tm-tools-objects/territory2-rule';  //
 import {Territory2Type}         from  '../tm-tools-objects/territory2-type';  // Class. Models Salesforce "Territory2Type" metadata as needed for deployment to a TM2 org.
 
 
+//─────────────────────────────────────────────────────────────────────────────────────────────────┐
+// Fundamental Types
+//─────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+
+/**
+ * Type. Represents an access level ('None', 'Read', or 'Edit').
+ */
+export type AccessLevel = 'None'|'Read'|'Edit';
+
+/**
+ * Type. Represents a Metadata Component's Developer Name (aka "fullName").
+ */
+export type DeveloperName = string;
+
 /**
  * Type. Represents an SObject Record ID.
  */
 export type SObjectRecordId = string;
 
 /**
- * Type. Represents a Metadata Component's Developer Name (aka "fullName").
+ * Enum. Represents the valid set of Status values that help determine state in the TM-Tools environment.
  */
-export type DeveloperName = string;
+export enum Status {
+  NOT_STARTED = 'NOT_STARTED',
+  WAITING     = 'WAITING',
+  WORKING     = 'WORKING',
+  COMPLETE    = 'COMPLETE',
+  PENDING     = 'PENDING',
+  SKIPPED     = 'SKIPPED',
+  FAILED      = 'FAILED'
+}
+
+
+//─────────────────────────────────────────────────────────────────────────────────────────────────┐
+// SObject Record Interfaces and Types
+//─────────────────────────────────────────────────────────────────────────────────────────────────┘
+
 
 /**
  * Interface. Represents a baseline SObject Record.
@@ -45,19 +74,17 @@ export interface SObjectRecord extends JsonMap {
 }
 
 /**
- * Interface. Represents a Territory Record.
+ * Interface. Represents an AccountShare Record.
  */
-export interface TerritoryRecord extends SObjectRecord {
-  ParentTerritoryId?:           SObjectRecordId;
-  DeveloperName?:               string;
-  Description?:                 string;
-  AccountAccessLevel?:          string;
-  CaseAccessLevel?:             string;
-  ContactAccessLevel?:          string;
-  OpportunityAccessLevel?:      string;
-  RestrictOpportunityTransfer?: string;
-  ForecastUserId?:              SObjectRecordId;
-  MayForecastManagerShare?:     string;
+export interface AccountShareRecord extends SObjectRecord {
+  AccountId?:               SObjectRecordId;
+  UserOrGroupId?:           SObjectRecordId;
+  RowCause?:                string;
+  AccountAccessLevel?:      string;
+  CaseAccessLevel?:         string;
+  ContactAccessLevel?:      string;
+  OpportunityAccessLevel?:  string;
+  IsDeleted?:               string;
 }
 
 /**
@@ -82,48 +109,65 @@ export interface AtaRuleItemRecord extends SObjectRecord {
 }
 
 /**
- * Interface. Represents an UserTerritory Record.
+ * Interface. Represents an ObjectTerritory2Association Record.
  */
-export interface UserTerritoryRecord extends SObjectRecord {
-  UserId?:      SObjectRecordId;
-  TerritoryId?: SObjectRecordId;
-  IsActive?:    string;
+export interface ObjectTerritory2AssociationRecord extends SObjectRecord {
+  AssociationCause?:        string;
+  ObjectId?:                SObjectRecordId;
+  SobjectType?:             string;
+  Territory2Id?:            SObjectRecordId;
 }
 
 /**
- * Interface. Represents an AccountShare Record.
+ * Interface. Represents a Territory Record.
  */
-export interface AccountShareRecord extends SObjectRecord {
-  AccountId?:               SObjectRecordId;
-  UserOrGroupId?:           SObjectRecordId;
-  RowCause?:                string;
-  AccountAccessLevel?:      string;
-  CaseAccessLevel?:         string;
-  ContactAccessLevel?:      string;
-  OpportunityAccessLevel?:  string;
-  IsDeleted?:               string;
+export interface TerritoryRecord extends SObjectRecord {
+  ParentTerritoryId?:           SObjectRecordId;
+  DeveloperName?:               string;
+  Description?:                 string;
+  AccountAccessLevel?:          string;
+  CaseAccessLevel?:             string;
+  ContactAccessLevel?:          string;
+  OpportunityAccessLevel?:      string;
+  RestrictOpportunityTransfer?: string;
+  ForecastUserId?:              SObjectRecordId;
+  MayForecastManagerShare?:     string;
+}
 
+/**
+ * Interface. Represents a Territory2 Record.
+ */
+export interface Territory2Record extends SObjectRecord {
+  Territory2ModelDeveloperName?:  DeveloperName;
+  DeveloperName?:                 DeveloperName;
+  ParentTerritory2DeveloperName?: DeveloperName;
+  ParentTerritory2Id?:            SObjectRecordId;
+}
+
+/**
+ * Interface. Represents an UserTerritory Record.
+ */
+export interface UserTerritoryRecord extends SObjectRecord {
+  IsActive?:    string;
+  IsDeleted?:   string;
+  TerritoryId?: SObjectRecordId;
+  UserId?:      SObjectRecordId;
+}
+
+/**
+ * Interface. Represents an UserTerritory2Association Record.
+ */
+export interface UserTerritory2AssociationRecord extends SObjectRecord {
+  IsActive?:          string;
+  RoleInTerritory2?:  'Owner'|'Administrator'|'Sales Rep';
+  Territory2Id?:      SObjectRecordId;
+  UserId?:            SObjectRecordId;
 }
 
 /**
  * Type. Represents an array of AccountShare Records.
  */
 export type AccountShareRecords = AccountShareRecord[];
-
-/**
- * Type. Represents an array of UserTerritory Records.
- */
-export type UserTerritoryRecords = UserTerritoryRecord[];
-
-/**
- * Type. Represents an array of Territory Records.
- */
-export type TerritoryRecords = TerritoryRecord[];
-
-/**
- * Type. Represents a map of Territory Records by Territory ID.
- */
-export type TerritoryRecordsById = Map<SObjectRecordId, TerritoryRecord>;
 
 /**
  * Type. Represents an array of AccountTerritoryAssignmentRule Records.
@@ -156,6 +200,37 @@ export type AtaRuleItemRecordsByRuleId = Map<SObjectRecordId, AtaRuleItemRecords
 export type AtaRuleRecordsByTerritoryId = Map<SObjectRecordId, AtaRuleRecords>;
 
 /**
+ * Type. Represents an array of ObjectTerritory2Association Records.
+ */
+export type ObjectTerritory2AssociationRecords = ObjectTerritory2AssociationRecord[];
+
+/**
+ * Type. Represents an array of UserTerritory Records.
+ */
+export type UserTerritoryRecords = UserTerritoryRecord[];
+
+/**
+ * Type. Represents an array of UserTerritory2Association Records.
+ */
+export type UserTerritory2AssociationRecords = UserTerritory2AssociationRecord[];
+
+/**
+ * Type. Represents an array of Territory Records.
+ */
+export type TerritoryRecords = TerritoryRecord[];
+
+/**
+ * Type. Represents a map of Territory Records by Territory ID.
+ */
+export type TerritoryRecordsById = Map<SObjectRecordId, TerritoryRecord>;
+
+
+//─────────────────────────────────────────────────────────────────────────────────────────────────┐
+// Object Maps and Arrays
+//─────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+
+/**
  * Type. Represents a map of SharingRules Objects by Developer Name.
  */
 export type SharingRulesObjectsByDevName = Map<DeveloperName, SharingRules>;
@@ -185,10 +260,11 @@ export type Territory2RuleObjectsByDevName = Map<DeveloperName, Territory2Rule>;
  */
 export type Territory2TypeObjectsByDevName = Map<DeveloperName, Territory2Type>;
 
-/**
- * Type. Represents an access level ('None', 'Read', or 'Edit').
- */
-export type AccessLevel = 'None'|'Read'|'Edit';
+
+//─────────────────────────────────────────────────────────────────────────────────────────────────┐
+// Sharing Rule-related Interfaces and Types
+//─────────────────────────────────────────────────────────────────────────────────────────────────┘
+
 
 /**
  * Interface. Represents a Sharing Group inside Salesforce.
@@ -275,6 +351,12 @@ export interface SharingRulesFqdns extends JsonMap {
   sharingOwnerRules:      string[];
   sharingTerritoryRules:  string[];
 }
+
+
+//─────────────────────────────────────────────────────────────────────────────────────────────────┐
+// ???
+//─────────────────────────────────────────────────────────────────────────────────────────────────┘
+
 
 /**
  * Interface. Represents the mapping of a Territory developer name and record ID to a Territory2 developer name and record ID.
@@ -552,19 +634,6 @@ export interface TM2RecordCounts extends JsonMap {
   territory2RecordCount:                  number;
   userTerritory2AssociationRecordCount:   number;
   objectTerritory2AssociationRecordCount: number;
-}
-
-/**
- * Enum. Represents the valid set of Status values that help determine state in the TM-Tools environment.
- */
-export enum Status {
-  NOT_STARTED = 'NOT_STARTED',
-  WAITING     = 'WAITING',
-  WORKING     = 'WORKING',
-  COMPLETE    = 'COMPLETE',
-  PENDING     = 'PENDING',
-  SKIPPED     = 'SKIPPED',
-  FAILED      = 'FAILED'
 }
 
 /**
