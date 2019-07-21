@@ -29,6 +29,7 @@ import  {Tm1Context}                      from  '../tm-tools-objects/tm1-context
 import  {SharingRulesFqdns}               from  '../tm-tools-types';   // Interface. Represents a FQDN (Fully Qualified Developer Name) collection for Criteria and Owner-based Sharing Rules.
 import  {SharingRulesJson}                from  '../tm-tools-types';   // Interface. Represents a collection of Criteria, Ownership, and Territory-based Sharing Rules.
 import  {SharingRulesObjectsByDevName}    from  '../tm-tools-types';   // Type. Represents a map of SharingRules Objects by Developer Name.
+import  {TerritoryDevNameMapping}         from  '../tm-tools-types';   // Interface. Represents the mapping of a Territory developer name and record ID to a Territory2 developer name and record ID.
 import  {Territory2ObjectsByDevName}      from  '../tm-tools-types';   // Type. Represents a map of Territory2 Objects by Developer Name.
 import  {Territory2ModelObjectsByDevName} from  '../tm-tools-types';   // Type. Represents a map of Territory2Model Objects by Developer Name.
 import  {Territory2RuleObjectsByDevName}  from  '../tm-tools-types';   // Type. Represents a map of Territory2Rule Objects by Developer Name.
@@ -131,7 +132,7 @@ export class TmToolsTransform {
    *              will be written.  After construction, the object is NOT ready
    *              for consumption so its "prepared" value is always FALSE on
    *              instantiation.
-   * @public
+   * @private
    */
   //───────────────────────────────────────────────────────────────────────────┘
   private constructor(tm1Context:Tm1Context, tm1ExtractionReport:TM1ExtractionReport, tm1TransformFilePaths:TM1TransformFilePaths) {
@@ -152,33 +153,6 @@ export class TmToolsTransform {
 
     // Mark this object instance as UNPREPARED.
     this._prepared = false;
-  }
-
-  //───────────────────────────────────────────────────────────────────────────┐
-  /**
-   * @method      createIntermediateFiles
-   * @return      {Promise<TM1TransformationReport>}
-   * @description Executes the transformation of TM1 data into a set of
-   *              intermediate files that can be used later.
-   * @public
-   */
-  //───────────────────────────────────────────────────────────────────────────┘
-  public async createIntermediateFiles():Promise<TM1TransformationReport> {
-    
-    // Create TM1 to TM2 DevName Map.
-    await this.createTm1ToTm2DevNameMap();
-
-    // Create the intermediate Territory2 CSV file.
-    await this.createTerritory2IntermediateCsv();
-
-    // Create the intermediate User/Territory2 Association CSV file.
-    await this.createUserTerritory2AssociationIntermediateCsv();
-
-    // Create the intermediate Object/Territory2 Association CSV file.
-    await this.createObjectTerritory2AssociationIntermediateCsv();
-
-    // Generate a TM1 Transformation Report and return it to the caller.
-    return this.generateReport();
   }
 
   //───────────────────────────────────────────────────────────────────────────┐
@@ -213,6 +187,9 @@ export class TmToolsTransform {
   //───────────────────────────────────────────────────────────────────────────┘
   public async transformMetadata():Promise<TM1TransformationReport> {
     
+    // Make sure this instance is Prepared.
+    this.isPrepared();
+
     // Create Territory2Model Objects
     this.createTerritory2ModelObjects();
 
@@ -251,6 +228,11 @@ export class TmToolsTransform {
    */
   //───────────────────────────────────────────────────────────────────────────┘
   public async writeAll():Promise<void> {
+
+    // Make sure this instance is Prepared.
+    this.isPrepared();
+
+    // Execute all WRITE operations.
     await this.writeMetadata();
     await this.writeData();
     await this.writeIntermediateFiles();
@@ -266,20 +248,39 @@ export class TmToolsTransform {
   //───────────────────────────────────────────────────────────────────────────┘
   public async writeData():Promise<void> {
 
+    // Make sure this instance is Prepared.
+    this.isPrepared();
+
     // TODO: Need to power this up.
   }
 
   //───────────────────────────────────────────────────────────────────────────┐
   /**
    * @method      writeIntermediateFiles
-   * @return      {Promise<void>}
+   * @return      {Promise<TM1TransformationReport>}
    * @description Writes special "intermediate" files to the local filesystem.
    * @public @async
    */
   //───────────────────────────────────────────────────────────────────────────┘
-  public async writeIntermediateFiles():Promise<void> {
+  public async writeIntermediateFiles():Promise<TM1TransformationReport> {
 
-    // TODO: Need to power this up.
+    // Make sure this instance is Prepared.
+    this.isPrepared();
+
+    // Create TM1 to TM2 DevName Map.
+    await this.writeTm1ToTm2DevNameMapCsv();
+
+    // Create the intermediate Territory2 CSV file.
+    await this.writeTerritory2IntermediateCsv();
+
+    // Create the intermediate User/Territory2 Association CSV file.
+    await this.writeUserTerritory2AssociationIntermediateCsv();
+
+    // Create the intermediate Object/Territory2 Association CSV file.
+    await this.writeObjectTerritory2AssociationIntermediateCsv();
+
+    // Generate a TM1 Transformation Report and return it to the caller.
+    return this.generateReport();
   }
 
   //───────────────────────────────────────────────────────────────────────────┐
@@ -291,6 +292,9 @@ export class TmToolsTransform {
    */
   //───────────────────────────────────────────────────────────────────────────┘
   public async writeMetadata():Promise<void> {
+
+    // Make sure this instance is Prepared.
+    this.isPrepared();
 
     // ── Build the MAIN metadata bundle ───────────────────────────────────────
 
@@ -334,21 +338,6 @@ export class TmToolsTransform {
 
     // Write destructive changes mainfest (destructiveChanges.xml) for the CLEANUP deployment package.
     await this.destructiveChanges.writeXml(this.filePaths.tm1SharingRulesCleanupDir);
-
-  }
-
-  //───────────────────────────────────────────────────────────────────────────┐
-  /**
-   * @method      createObjectTerritory2AssociationIntermediateCsv
-   * @return      {void}
-   * @description ???
-   * @private @async
-   */
-  //───────────────────────────────────────────────────────────────────────────┘
-  private async createObjectTerritory2AssociationIntermediateCsv():Promise<void> {
-
-    // TODO: Implement this function.
-
   }
 
   //───────────────────────────────────────────────────────────────────────────┐
@@ -577,26 +566,6 @@ export class TmToolsTransform {
     );
   }
 
-
-
-
-  //───────────────────────────────────────────────────────────────────────────┐
-  /**
-   * @method      createTerritory2IntermediateCsv
-   * @return      {void}
-   * @description ???
-   * @private @async
-   */
-  //───────────────────────────────────────────────────────────────────────────┘
-  private async createTerritory2IntermediateCsv():Promise<void> {
-
-    // TODO: Implement this function.
-
-  }
-
-
-
-
   //───────────────────────────────────────────────────────────────────────────┐
   /**
    * @method      createTerritory2Objects
@@ -693,19 +662,15 @@ export class TmToolsTransform {
     );
   }
 
-
-
-
-
   //───────────────────────────────────────────────────────────────────────────┐
   /**
-   * @method      createTm1ToTm2DevNameMap
+   * @method      writeObjectTerritory2AssociationIntermediateCsv
    * @return      {void}
    * @description ???
    * @private @async
    */
   //───────────────────────────────────────────────────────────────────────────┘
-  private async createTm1ToTm2DevNameMap():Promise<void> {
+  private async writeObjectTerritory2AssociationIntermediateCsv():Promise<void> {
 
     // TODO: Implement this function.
 
@@ -713,19 +678,58 @@ export class TmToolsTransform {
 
   //───────────────────────────────────────────────────────────────────────────┐
   /**
-   * @method      createUserTerritory2AssociationIntermediateCsv
+   * @method      writeTerritory2IntermediateCsv
    * @return      {void}
    * @description ???
    * @private @async
    */
   //───────────────────────────────────────────────────────────────────────────┘
-  private async createUserTerritory2AssociationIntermediateCsv():Promise<void> {
+  private async writeTerritory2IntermediateCsv():Promise<void> {
 
     // TODO: Implement this function.
 
   }
 
+  //───────────────────────────────────────────────────────────────────────────┐
+  /**
+   * @method      writeTm1ToTm2DevNameMapCsv
+   * @return      {void}
+   * @description ???
+   * @private @async
+   */
+  //───────────────────────────────────────────────────────────────────────────┘
+  private async writeTm1ToTm2DevNameMapCsv():Promise<void> {
 
+    // Initialize an array to hold the Developer Name Mappings.
+    const territoryDevNameMappings:TerritoryDevNameMapping[] = [];
+
+    // Iterate over the Territory Records from the TM1 Context to build a mapping for each.
+    for (const territoryRecord of this._tm1Context.territoryRecords) {
+      territoryDevNameMappings.push({
+        territoryDevName:       territoryRecord.DeveloperName,
+        territoryId:            territoryRecord.Id,
+        territory2ModelDevName: territory2ModelDevName,
+        territory2DevName:      territoryRecord.DeveloperName,
+        territory2Id:           'PENDING'
+      });
+    }
+
+
+  }
+
+  //───────────────────────────────────────────────────────────────────────────┐
+  /**
+   * @method      writeUserTerritory2AssociationIntermediateCsv
+   * @return      {void}
+   * @description ???
+   * @private @async
+   */
+  //───────────────────────────────────────────────────────────────────────────┘
+  private async writeUserTerritory2AssociationIntermediateCsv():Promise<void> {
+
+    // TODO: Implement this function.
+
+  }
 
   //───────────────────────────────────────────────────────────────────────────┐
   /**
@@ -738,8 +742,8 @@ export class TmToolsTransform {
   //───────────────────────────────────────────────────────────────────────────┘
   private isPrepared():boolean {
     if (this._prepared !== true) {
-      throw new SfdxFalconError ( `TmToolsTransform members are not accessible until the instance is prepared`
-                                , `ContextNotPrepared`
+      throw new SfdxFalconError ( `Operations against TmToolsTransform objects are not available until the instance is prepared`
+                                , `ObjectNotPrepared`
                                 , `${dbgNs}isPrepared`);
     }
     else {
