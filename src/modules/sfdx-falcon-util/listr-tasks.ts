@@ -2326,6 +2326,63 @@ export function transformTm1Config(tm1AnalysisReport:TM1AnalysisReport, tm1Extra
               });
           });
         }
+      },
+      // ── TRANSFORM TASK 4: Write Intermediate Data to Disk ──────────────────────────────────────
+      {
+        title:  'Write Intermediate TM2 Data to the Local Filesystem',
+        task:   (listrContext:object, thisTask:ListrTask) => {
+          return new Observable(observer => {
+    
+            // Initialize an OTR (Observable Task Result).
+            const otr = initObservableTaskResult(`${dbgNs}tm1DataTransform:TT4`, listrContext, thisTask, observer, this.sharedData, this.generatorResult,
+                        `Writing intermediate TM2 data to ${tm1TransformFilePaths.intermediateFilesDir}`);
+    
+            // Define the Task Logic to be executed.
+            const asyncTask = async () => {
+              await tm1Transform.writeIntermediateFiles();
+            };
+
+            // Execute the Task Logic.
+            asyncTask()
+              .then(async result => {
+                await waitASecond(3);
+                finalizeObservableTaskResult(otr);
+              })
+              .catch(async error => {
+                await waitASecond(3);
+                finalizeObservableTaskResult(otr, error);
+              });
+          });
+        }
+      },
+      // ── TRANSFORM TASK 5: Create TM1 Transformation Report ─────────────────────────────────────
+      {
+        title:  'Create TM1 Transformation Report',
+        task:   (listrContext:object, thisTask:ListrTask) => {
+          return new Observable(observer => {
+    
+            // Initialize an OTR (Observable Task Result).
+            const otr = initObservableTaskResult(`${dbgNs}tm1DataTransform:TT5`, listrContext, thisTask, observer, this.sharedData, this.generatorResult,
+                        `Saving report to ${tm1TransformFilePaths.tm1TransformationReportPath}`);
+    
+            // Define the Task Logic to be executed.
+            const asyncTask = async () => {
+              const tm1TransformationReport = await tm1Transform.saveReport();
+              SfdxFalconDebug.debugObject(`${dbgNs}tm1DataTransform:TT5:tm1TransformationReport:`, tm1TransformationReport);
+            };
+
+            // Execute the Task Logic.
+            asyncTask()
+              .then(async result => {
+                await waitASecond(3);
+                finalizeObservableTaskResult(otr);
+              })
+              .catch(async error => {
+                await waitASecond(3);
+                finalizeObservableTaskResult(otr, error);
+              });
+          });
+        }
       }
     ],
     // TASK GROUP OPTIONS: TM1 Transformation Tasks
