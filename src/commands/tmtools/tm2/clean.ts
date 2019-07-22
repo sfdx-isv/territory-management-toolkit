@@ -1,82 +1,68 @@
 //─────────────────────────────────────────────────────────────────────────────────────────────────┐
 /**
- * @file          commands/tmtools/tm1/export.ts
+ * @file          commands/tmtools/tm2/clean.ts
  * @copyright     Vivek M. Chawla - 2019
  * @author        Vivek M. Chawla <@VivekMChawla>
- * @summary       Implements the CLI command "tmtools:tm2:import"
- * @description   Salesforce CLI Plugin command (tmtools:tm2:import) that allows a Salesforce Admin
- *                to import Salesforce Enterprise Territory Management (TM2) data and metadata from
- *                a local directory into an org with TM2 enabled. This command MUST operate on a
- *                directory that holds TRANSFORMED TM1 data and metadata.
+ * @summary       Implements the CLI command "tmtools:tm2:deploy"
+ * @description   Salesforce CLI Plugin command (tmtools:tm2:clean) that allows a Salesforce Admin
+ *                to....
  * @version       1.0.0
  * @license       MIT
  */
 //─────────────────────────────────────────────────────────────────────────────────────────────────┘
-// Import External Modules
+// Import External Libraries & Modules
 import {flags}                        from  '@salesforce/command';  // Allows creation of flags for CLI commands.
 import {Messages}                     from  '@salesforce/core';     // Messages library that simplifies using external JSON for string reuse.
 import {SfdxError}                    from  '@salesforce/core';     // Generalized SFDX error which also contains an action.
 import {AnyJson}                      from  '@salesforce/ts-types'; // Safe type for use where "any" might otherwise be used.
-//import {isEmpty}                      from  'lodash';               // Useful function for detecting empty objects.
-//import * as path                      from  'path';                 // Helps resolve local paths at runtime.
 
-// Import Local Modules
-import {SfdxFalconError}              from  '../../../modules/sfdx-falcon-error';   // Class. Extends SfdxError to provide specialized error structures for SFDX-Falcon modules.
-//import {SfdxFalconProject}            from  '../../../modules/sfdx-falcon-project'; // Class. Represents an SFDX-Falcon project, including locally stored project data.
-//import {SfdxFalconResult}             from  '../../../modules/sfdx-falcon-result';  // Class. Used to communicate results of SFDX-Falcon code execution at a variety of levels.
-//import {SfdxFalconResultType}         from  '../../../modules/sfdx-falcon-result';  // Enum. Represents the different types of sources where Results might come from.
-import {SfdxFalconYeomanCommand}      from  '../../../modules/sfdx-falcon-yeoman-command';  // Base class that CLI commands in this project that use Yeoman should use.
+// Import Internal Classes & Functions
+import {SfdxFalconDebug}              from  '../../../modules/sfdx-falcon-debug';           // Class. Provides custom "debugging" services (ie. debug-style info to console.log()).
+import {SfdxFalconError}              from  '../../../modules/sfdx-falcon-error';           // Class. Extends SfdxError to provide specialized error structures for SFDX-Falcon modules.
+import {SfdxFalconYeomanCommand}      from  '../../../modules/sfdx-falcon-yeoman-command';  // Class. Base class that CLI commands in this project that use Yeoman should use.
 
-// Import Internal Types
+// Import Falcon Types
 import {SfdxFalconCommandType}        from  '../../../modules/sfdx-falcon-command'; // Enum. Represents the types of SFDX-Falcon Commands.
-//import {CoreActionResultDetail}       from  '../../../modules/sfdx-falcon-recipe/engines/appx/actions'; // Interface. Represents the core set of "detail" information that every ACTION result should have.
 
 // Set the File Local Debug Namespace
-//const dbgNs     = 'COMMAND:tmtools-tm1-export:';
+const dbgNs = 'COMMAND:tmtools-tm2-clean:';
+SfdxFalconDebug.msg(`${dbgNs}`, `Debugging initialized for ${dbgNs}`);
 
 // Use SfdxCore's Messages framework to get the message bundles for this command.
 Messages.importMessagesDirectory(__dirname);
-const commandMessages = Messages.loadMessages('territory-management-tools', 'tmtools-tm2-import');
+const commandMessages = Messages.loadMessages('territory-management-tools', 'tmtools-tm2-clean');
 
 
 //─────────────────────────────────────────────────────────────────────────────────────────────────┐
 /**
- * @class       TmtoolsTm2Import
+ * @class       TmtoolsTm2Clean
  * @extends     SfdxFalconYeomanCommand
- * @summary     Implements the CLI Command "tmtools:tm2:import"
- * @description The command "tmtools:tm2:import"...TODO: Add description
+ * @summary     Implements the CLI Command "tmtools:tm2:clean"
+ * @description The command "tmtools:tm2:clean"...TODO: Add description
  * @public
  */
 //─────────────────────────────────────────────────────────────────────────────────────────────────┘
-export default class TmtoolsTm2Import extends SfdxFalconYeomanCommand {
+export default class TmtoolsTm2Clean extends SfdxFalconYeomanCommand {
 
   // Define the basic properties of this CLI command.
   public static description = commandMessages.getMessage('commandDescription');
   public static hidden      = false;
   public static examples    = [
-    `$ sfdx tmtools:tm2:import`,
-    `$ sfdx tmtools:tm2:import TODO: finish this example`
+    `$ sfdx tmtools:tm2:clean`,
+    `$ sfdx tmtools:tm2:clean -s ~/tm1-transformation-directory`
   ];
 
   //───────────────────────────────────────────────────────────────────────────┐
   // Define the flags used by this command.
-  // -d --OUTPUTDIR   Directory where logs/result files will be stored.
+  // -s --SOURCEDIR   Directory that contains a tm1-transformation.json file.
   //                  Defaults to . (current directory) if not specified.
-  // -s --SOURCEDIR   Directory where the transformed TM2 metadata and data that
-  //                  will be imported into the TM2 org can be found.
   //───────────────────────────────────────────────────────────────────────────┘
   protected static flagsConfig = {
-    outputdir: flags.directory({
-      char: 'd',
-      required: false,
-      description: commandMessages.getMessage('outputdir_FlagDescription'),
-      default: '.',
-      hidden: false
-    }),
     sourcedir: flags.directory({
       char: 's',
       required: true,
       description: commandMessages.getMessage('sourcedir_FlagDescription'),
+      default: '.',
       hidden: false
     }),
 
@@ -103,12 +89,12 @@ export default class TmtoolsTm2Import extends SfdxFalconYeomanCommand {
   public async run():Promise<AnyJson> {
 
     // Initialize the SfdxFalconCommand (required by ALL classes that extend SfdxFalconCommand).
-    this.sfdxFalconCommandInit('tmtools:tm2:import', SfdxFalconCommandType.UNKNOWN);
+    this.sfdxFalconCommandInit('tmtools:tm2:clean', SfdxFalconCommandType.UNKNOWN);
 
     // Run a Yeoman Generator to interact with and run tasks for the user.
     await super.runYeomanGenerator({
-      generatorType:    'import-tm2-data-and-metadata',
-      outputDir:        this.outputDirectory,
+      generatorType:  'tmtools-tm2-clean',
+      sourceDir:      this.sourceDirectory,
       options: []
     })
     .then(generatorResult   => this.onSuccess(generatorResult)) // Implemented by parent class
