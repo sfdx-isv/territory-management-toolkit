@@ -15,6 +15,7 @@ import  * as  csv2json    from  'csv-parser';           // Streaming CSV parser 
 import  * as  fse         from  'fs-extra';             // Module that adds a few extra file system methods that aren't included in the native fs module. It is a drop in replacement for fs.
 import  * as  json2csv    from  'json2csv';             // Converts json into csv with column titles and proper line endings.
 import  * as  path        from  'path';                 // Node's path library.
+import  {Readable}        from  'stream';               // Node's stream library.
 
 // Import Internal Modules
 import {SfdxFalconDebug}  from  '../../modules/sfdx-falcon-debug';      // Class. Specialized debug provider for SFDX-Falcon code.
@@ -281,7 +282,7 @@ export class CsvFile {
     SfdxFalconDebug.str(`${dbgNs}CsvFile:save:csvFilePath:`, csvFilePath);
 
     // Make sure the destination CSV File Path is writeable by trying to create an empty file there.
-    await writeStringToFile(csvFilePath, '')
+    await writeCsvToFile('', csvFilePath)
     .catch(writeError => {
       throw new SfdxFalconError ( `CSV File save operation failed. The path '${csvFilePath}' is not writeable.`
                                 , `CsvFileSaveError`
@@ -290,7 +291,7 @@ export class CsvFile {
     });
 
     // Write the CSV File to the local filesystem.
-    return writeStringToFile(this._csvData, csvFilePath)
+    return writeCsvToFile(this._csvData, csvFilePath)
     .catch(writeError => {
       throw new SfdxFalconError ( `CSV File save operation failed. Could not write '${csvFilePath}' to the local filesystem.`
                                 , `CsvFileSaveError`
@@ -443,7 +444,7 @@ export async function createFile(jsonData:JsonMap[], csvFilePath:string, opts:Js
   validateJsonDataArgument(jsonData);
   
   // Make sure the destination CSV File Path is writeable by trying to create an empty file there.
-  await writeStringToFile(csvFilePath, '');
+  await writeCsvToFile('', csvFilePath);
   
   // Parse the JSON Data into CSV Data.
   const csvData:string = await buildCsvData(jsonData, opts)
@@ -455,7 +456,7 @@ export async function createFile(jsonData:JsonMap[], csvFilePath:string, opts:Js
   });
 
   // Write the CSV Data to disk.
-  await writeStringToFile(csvFilePath, csvData);
+  await writeCsvToFile(csvFilePath, csvData);
 
   // Send the CSV Data back to the caller.
   return csvData;
@@ -506,21 +507,105 @@ export async function parseFile(csvFilePath:string, opts:Csv2JsonOptions={}):Pro
 
 //─────────────────────────────────────────────────────────────────────────────────────────────────┐
 /**
- * @function    writeStringToFile
- * @param       {string}  fileContents  Required. The contents that will be written to disk.
- * @param       {string}  filePath Required. Path to where the file should be written to.
+ * @function    streamJsonToCsvFile
+ * @param       {JsonMap[]} jsonData Required. Array of JSON data used to build each CSV file row.
+ * @param       {string}  csvFilePath Required. Path to where the CSV file should be written to.
+ * @param       {Json2CsvOptions} opts  Required. JSON-to-CSV conversion options.
  * @returns     {Promise<void>}
- * @description Given a string containing the contents that should be written to disk and the full
- *              path to the location where the file should be written to, writes the file to disk.
- * @private @async
+ * @description Given an array of JSON data, the path to a location where the caller wants a CSV
+ *              file to be created, and a set of JSON-to-CSV conversion options, performs a stream
+ *              based transformation and file-writing operation. This can be a more memory-friendly
+ *              approach to writing CSV file when the resulting CSV data set is not needed in-memory.
+ * @public @async
  */
 //─────────────────────────────────────────────────────────────────────────────────────────────────┘
-async function writeStringToFile(fileContents:string, filePath:string):Promise<void> {
-  fse.outputFile(fileContents, filePath)
+export async function streamJsonToCsvFile(jsonData:JsonMap[], csvFilePath:string, opts:Json2CsvOptions):Promise<void> {
+
+  // JSON Data must be a non-null array.
+  if (Array.isArray(jsonData) !== true || jsonData === null) {
+    throw new SfdxFalconError ( `Expected jsonData to be a non-null array${Array.isArray(jsonData) !== true ? ` but got '${typeof jsonData}' instead.` : `.`}`
+                              , `TypeError`
+                              , `${dbgNs}streamJsonToCsvFile`);
+  }
+  // CSV File Path must be a non-empty, non-null string.
+  if (typeof csvFilePath !== 'string' || csvFilePath === '' || csvFilePath === null) {
+    throw new SfdxFalconError ( `Expected filePath to be a non-empty, non-null string${typeof csvFilePath !== 'string' ? ` but got '${typeof csvFilePath}' instead.` : `.`}`
+                              , `InitialzationError`
+                              , `${dbgNs}streamJsonToCsvFile`);
+  }
+  // Options must be a non-null object.
+  if (typeof opts !== 'object' || opts === null) {
+    throw new SfdxFalconError ( `Expected opts to be a non-null object${typeof opts !== 'object' ? ` but got '${typeof opts}' instead.` : `.`}`
+                              , `InitialzationError`
+                              , `${dbgNs}streamJsonToCsvFile`);
+  }
+
+  // Track the current index of the JSON Data being processed.
+  let currentIndex = 0;
+
+  // Create a readable JSON object stream that will pull rows from the JSON Data array on each read.
+  const jsonObjectStream = new Readable({
+    objectMode: true,
+    read: function() {
+      const jsonDataRow = jsonData[currentIndex];
+      if (!jsonDataRow) {
+        this.push(null);
+      }
+      else {
+        this.push(jsonDataRow);
+        currentIndex++;
+      }
+    }
+  });
+
+  // Create the target file. If the file already exists, it will not be modified.
+  await fse.createFile(csvFilePath)
   .catch(fseError => {
-    throw new SfdxFalconError ( `Could not write '${filePath}' to the local filesystem. ${fseError.message}`
-                              , `FileOutputError`
-                              , `${dbgNs}writeStringToFile`
+    throw new SfdxFalconError ( `Could not write '${csvFilePath}' to the local filesystem. ${fseError.message}`
+                              , `FileWriteError`
+                              , `${dbgNs}streamJsonToCsvFile`
+                              , fseError);
+  });
+  
+  // Create a writeable filesystem stream that will direct output to the location specified by the caller.
+  const csvFileStream = fse.createWriteStream(csvFilePath, {encoding: 'utf8'});
+
+  // Set options that will be passed through to the Node.js Transform stream.
+  // https://nodejs.org/api/stream.html#stream_new_stream_duplex_options
+  const transformOpts = {
+    objectMode: true
+  };
+
+  // Create an async JSON-to-CSV parser.
+  const asyncParser = new json2csv.AsyncParser(opts, transformOpts);
+
+  // Establish the datastream pipeline.
+  asyncParser.fromInput(jsonObjectStream).toOutput(csvFileStream).promise()
+  .catch(parserError => {
+    throw new SfdxFalconError ( `Error while parsing/writing JSON-to-CSV. ${parserError.message}`
+                              , `ParserError`
+                              , `${dbgNs}streamJsonToCsvFile`
+                              , parserError);
+  });
+}
+
+//─────────────────────────────────────────────────────────────────────────────────────────────────┐
+/**
+ * @function    writeCsvToFile
+ * @param       {string}  csvData Required. The CSV data that will be written to disk.
+ * @param       {string}  csvFilePath Required. Path to where the CSV file should be written to.
+ * @returns     {Promise<void>}
+ * @description Given a string containing the CSV data that should be written to disk and the full
+ *              path to the location where the file should be written to, writes the file to disk.
+ * @public @async
+ */
+//─────────────────────────────────────────────────────────────────────────────────────────────────┘
+export async function writeCsvToFile(csvData:string, csvFilePath:string):Promise<void> {
+  fse.outputFile(csvFilePath, csvData)
+  .catch(fseError => {
+    throw new SfdxFalconError ( `Could not write '${csvFilePath}' to the local filesystem. ${fseError.message}`
+                              , `FileWriteError`
+                              , `${dbgNs}writeCsvToFile`
                               , fseError);
   });
 }
