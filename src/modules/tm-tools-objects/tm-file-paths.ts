@@ -44,7 +44,7 @@ const userTerritoryCsv                            = 'UserTerritory.csv';
 
 const userTerritory2AssociationCsv                = 'UserTerritory2Association.csv';
 const objectTerritory2AssociationCsv              = 'ObjectTerritory2Association.csv';
-const tm1ToTm2DevnameMapCsv                       = 'tm1-to-tm2-devname-map.csv';
+const tm1ToTm2DevnameMapCsv                       = 'TerritoryDevNameMap.csv';
 const userTerritory2AssociationIntermediateCsv    = 'UserTerritory2Association.intermediate.csv';
 const objectTerritory2AssociationIntermediateCsv  = 'ObjectTerritory2Association.intermediate.csv';
 
