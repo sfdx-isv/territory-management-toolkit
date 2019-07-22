@@ -362,11 +362,13 @@ export interface SharingRulesFqdns extends JsonMap {
  * Interface. Represents the mapping of a Territory developer name and record ID to a Territory2 developer name and record ID.
  */
 export interface TerritoryDevNameMapping extends JsonMap {
-  territoryDevName:       DeveloperName;
-  territoryId:            SObjectRecordId;
-  territory2ModelDevName: DeveloperName;
-  territory2DevName:      DeveloperName;
-  territory2Id:           SObjectRecordId;
+  territoryDevName:         DeveloperName;
+  territoryId:              SObjectRecordId;
+  territory2ModelDevName:   DeveloperName;
+  territory2DevName:        DeveloperName;
+  territory2Id:             SObjectRecordId;
+  territory2ParentDevName:  DeveloperName;
+  territory2ParentId:       SObjectRecordId;
 }
 
 /**
