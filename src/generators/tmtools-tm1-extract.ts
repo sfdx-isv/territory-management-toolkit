@@ -13,8 +13,9 @@
  */
 //─────────────────────────────────────────────────────────────────────────────────────────────────┘
 // Import External Libraries & Modules
-import chalk      from  'chalk';  // Helps write colored text to the console.
-import * as path  from  'path';   // Library. Helps resolve local paths at runtime.
+import {fs}       from  '@salesforce/core'; // File System utility from the Core SFDX library.
+import chalk      from  'chalk';            // Helps write colored text to the console.
+import * as path  from  'path';             // Library. Helps resolve local paths at runtime.
 
 // Import Internal Libraries
 import * as iq                          from  '../modules/sfdx-falcon-util/interview-questions';  // Library. Helper functions that create Interview Questions.
@@ -93,8 +94,8 @@ export default class Tm1Extract extends SfdxFalconYeomanGenerator<InterviewAnswe
     this.defaultAnswers.baseDirectory = path.resolve(opts.sourceDir as string);
 
     // Initialize Shared Data.
-    this.sharedData['cliCommandName']     = this.cliCommandName;  // ???
-    this.sharedData['tm1AnalysisReport']  = {};                   // ???
+    this.sharedData['cliCommandName'] = this.cliCommandName;  // ???
+    this.sharedData['reportJson']     = {};                   // ???
   }
 
   //───────────────────────────────────────────────────────────────────────────┐
@@ -122,8 +123,9 @@ export default class Tm1Extract extends SfdxFalconYeomanGenerator<InterviewAnswe
 
     // Group 0: Specify the directory containing the TM1 org analysis.
     interview.createGroup({
-      title:        chalk.yellow('\nTM1 Analysis Directory:'),
-      questions:    iq.provideTm1AnalysisDirectory
+      title:          chalk.yellow('\nTM1 Analysis Directory:'),
+      questions:      iq.provideReportDirectory,
+      questionsArgs:  [TmFilePaths.getTmFileNames().tm1AnalysisReportFileName]
     });
 
     // Finished building the Interview.
@@ -148,7 +150,7 @@ export default class Tm1Extract extends SfdxFalconYeomanGenerator<InterviewAnswe
     const tableData = new Array<SfdxFalconKeyValueTableDataRow>();
 
     // Grab the TM1 Analysis from Shared Data, then extract the key Org Info settings from it.
-    const tm1AnalysisReport   = this.sharedData['tm1AnalysisReport'] as TM1AnalysisReport;
+    const tm1AnalysisReport   = this.sharedData['reportJson'] as TM1AnalysisReport;
     const orgId               = tm1AnalysisReport.orgInfo.orgId;
     const username            = tm1AnalysisReport.orgInfo.username;
     const loginUrl            = tm1AnalysisReport.orgInfo.loginUrl;
@@ -352,8 +354,14 @@ export default class Tm1Extract extends SfdxFalconYeomanGenerator<InterviewAnswe
     // Get the file paths required by the TM1 Extract command.
     this.tm1ExtractFilePaths = TmFilePaths.getTm1ExtractFilePaths(this.finalAnswers.baseDirectory);
 
-    // Save the TM1 Analysis that surfaced during the interview to a member variable.
-    this.tm1AnalysisReport = this.sharedData['tm1AnalysisReport'] as TM1AnalysisReport;
+    // Attempt to load the TM1 Analysis Report
+    this.tm1AnalysisReport  = await fs.readJsonMap(this.tm1ExtractFilePaths.tm1AnalysisReportPath, true)
+    .catch(readJsonMapError => {
+      throw new SfdxFalconError( `Required TM1 Analysis Report could not be found at ${this.tm1ExtractFilePaths.tm1AnalysisReportPath}. Aborting transformation.`
+                               , `TM1AnalysisNotFound`
+                               , `${dbgNs}writing`
+                               , readJsonMapError);
+    }) as TM1AnalysisReport;
 
     // Extract TM1 config from the Target Org.
     await this._extractTm1Config();

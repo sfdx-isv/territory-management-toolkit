@@ -100,8 +100,8 @@ export default class Tm1Transform extends SfdxFalconYeomanGenerator<InterviewAns
     this.defaultAnswers.baseDirectory = path.resolve(opts.sourceDir as string);
 
     // Initialize Shared Data.
-    this.sharedData['cliCommandName']       = this.cliCommandName;  // ???
-    this.sharedData['tm1ExtractionReport']  = {};                   // ???
+    this.sharedData['cliCommandName'] = this.cliCommandName;  // ???
+    this.sharedData['reportJson']     = {};                   // ???
   }
 
   //───────────────────────────────────────────────────────────────────────────┐
@@ -129,8 +129,9 @@ export default class Tm1Transform extends SfdxFalconYeomanGenerator<InterviewAns
 
     // Group 0: Specify the directory containing the TM1 config extraction.
     interview.createGroup({
-      title:        chalk.yellow('\nTM1 Extraction Directory:'),
-      questions:    iq.provideTm1ExtractionDirectory
+      title:          chalk.yellow('\nTM1 Extraction Directory:'),
+      questions:      iq.provideReportDirectory,
+      questionsArgs:  [TmFilePaths.getTmFileNames().tm1ExtractionReportFileName]
     });
 
     // Finished building the Interview.
@@ -155,7 +156,7 @@ export default class Tm1Transform extends SfdxFalconYeomanGenerator<InterviewAns
     const tableData = new Array<SfdxFalconKeyValueTableDataRow>();
 
     // Grab the TM1 Extraction Report from Shared Data, then extract the key Org Info and Record Count info from it.
-    const tm1ExtractionReport           = this.sharedData['tm1ExtractionReport'] as TM1ExtractionReport;
+    const tm1ExtractionReport           = this.sharedData['reportJson'] as TM1ExtractionReport;
     const orgId                         = tm1ExtractionReport.orgInfo.orgId;
     const username                      = tm1ExtractionReport.orgInfo.username;
     const loginUrl                      = tm1ExtractionReport.orgInfo.loginUrl;

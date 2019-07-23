@@ -152,9 +152,11 @@ export default class Tm1Analyze extends SfdxFalconYeomanGenerator<InterviewAnswe
       title:        chalk.yellow('\nOrg Selection:'),
       questions:    iq.chooseTm1Org,
       questionsArgs: [
-        '', // Empty string should force use of the default message.
-        'Which org would you like to analyze?',
-        'Which scratch org would you like to analyze?'
+        [
+          '', // Empty string should force use of the default message.
+          'Which org would you like to analyze?',
+          'Which scratch org would you like to analyze?'
+        ]
       ],
       confirmation: iq.confirmNoTm1TargetOrg,
       abort:  groupAnswers => {
