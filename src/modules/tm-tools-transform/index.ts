@@ -869,7 +869,7 @@ export class TmToolsTransform {
         UserId:                 userTerritoryRecord.UserId
       });
     }
-    SfdxFalconDebug.debugObject(`${dbgNs}writeUserTerritory2AssociationIntermediateCsv:userTerritory2AssociationRecords:`, userTerritory2AssociationRecords);
+    SfdxFalconDebug.obj(`${dbgNs}writeUserTerritory2AssociationIntermediateCsv:userTerritory2AssociationRecords:`, userTerritory2AssociationRecords);
 
     // Stream the UserTerritory2Association Records JSON to disk.
     await csv.streamJsonToCsvFile(
