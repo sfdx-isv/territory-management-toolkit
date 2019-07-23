@@ -675,11 +675,34 @@ export interface TM1ContextFilePaths extends JsonMap {
 }
 
 /**
+ * Interface. Represents the complete suite of file names required by the various TM commands.
+ */
+export interface TMFileNames extends JsonMap {
+  tm1AnalysisReportFileName:                    string;
+  tm1ExtractionReportFileName:                  string;
+  tm1TransformationReportFileName:              string;
+  tm1CleanupReportFileName:                     string;
+  tm2DeploymentReportFileName:                  string;
+  tm2DataLoadReportFileName:                    string;
+  accountShareCsv:                              string;
+  ataRuleCsv:                                   string;
+  ataRuleItemCsv:                               string;
+  territoryCsv:                                 string;
+  userTerritoryCsv:                             string;
+  userTerritory2AssociationCsv:                 string;
+  objectTerritory2AssociationCsv:               string;
+  tm1ToTm2DevnameMapCsv:                        string;
+  userTerritory2AssociationIntermediateCsv:     string;
+  objectTerritory2AssociationIntermediateCsv:   string;
+}
+
+/**
  * Interface. Represents the complete suite of file paths required by the TM1 Analyze command.
  */
 export interface TM1AnalyzeFilePaths extends JsonMap {
   baseDirectory:          string;
   tm1AnalysisReportPath:  string;
+  fileNames:              TMFileNames;
 }
 
 /**
