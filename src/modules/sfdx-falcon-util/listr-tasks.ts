@@ -2368,7 +2368,7 @@ export function transformTm1Config(tm1AnalysisReport:TM1AnalysisReport, tm1Extra
             // Define the Task Logic to be executed.
             const asyncTask = async () => {
               const tm1TransformationReport = await tm1Transform.saveReport();
-              SfdxFalconDebug.debugObject(`${dbgNs}tm1DataTransform:TT5:tm1TransformationReport:`, tm1TransformationReport);
+              SfdxFalconDebug.obj(`${dbgNs}tm1DataTransform:TT5:tm1TransformationReport:`, tm1TransformationReport);
             };
 
             // Execute the Task Logic.

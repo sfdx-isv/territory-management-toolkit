@@ -783,7 +783,7 @@ export class TmToolsTransform {
         Territory2Id:     `T2ID_PENDING_${territoryDevName}`
       });
     }
-    SfdxFalconDebug.debugObject(`${dbgNs}writeOT2AIntermediateCsv:objectTerritory2AssociationRecords:`, objectTerritory2AssociationRecords);
+    SfdxFalconDebug.obj(`${dbgNs}writeOT2AIntermediateCsv:objectTerritory2AssociationRecords:`, objectTerritory2AssociationRecords);
 
     // Stream the Territory DevName Mappings JSON to disk.
     await csv.streamJsonToCsvFile(
