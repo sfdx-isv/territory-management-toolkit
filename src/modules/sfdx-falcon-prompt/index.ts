@@ -75,7 +75,7 @@ export class SfdxFalconPrompt<T extends object> {
   }
   public get questions():Questions {
     if (typeof this._questions === 'function') {
-      return this._questions.call(this, this._questionsArgs);
+      return this._questions.apply(this, this._questionsArgs);
     }
     else {
       return this._questions;
