@@ -9,17 +9,15 @@
  * @license       MIT
  */
 //─────────────────────────────────────────────────────────────────────────────────────────────────┘
-// Import External Modules/Types
-//import {fs}         from  '@salesforce/core'; // ???
-import * as path    from  'path';             // Node's path library.
+// Import External Libraries & Modules
+import * as path    from  'path';   // Node's path library.
 
-// Import Internal Modules
-import {SfdxFalconDebug}              from  '../sfdx-falcon-debug';       // Class. Specialized debug provider for SFDX-Falcon code.
-import {SfdxFalconError}              from  '../sfdx-falcon-error';       // Class. Extends SfdxError to provide specialized error structures for SFDX-Falcon modules.
-//import {parseFile}                    from  '../sfdx-falcon-util/csv';    // Class. Extends SfdxError to provide specialized error structures for SFDX-Falcon modules.
-//import {createDeveloperName}          from  '../sfdx-falcon-util/mdapi';  // Function. Given any string, returns a transformed version of that string that is compatible with the Salesforce Developer Name / Full Name conventions.
+// Import Internal Classes & Functions
+import {SfdxFalconDebug}              from  '../sfdx-falcon-debug';   // Class. Specialized debug provider for SFDX-Falcon code.
+import {SfdxFalconError}              from  '../sfdx-falcon-error';   // Class. Extends SfdxError to provide specialized error structures for SFDX-Falcon modules.
 
 // Import TM-Tools Types
+import {TMFileNames}                  from  '../tm-tools-types';   // ???
 import {TM1AnalyzeFilePaths}          from  '../tm-tools-types';   // ???
 import {TM1ExtractFilePaths}          from  '../tm-tools-types';   // ???
 import {TM1TransformFilePaths}        from  '../tm-tools-types';   // ???
@@ -60,8 +58,6 @@ const tm2MainDeploymentDir                        = 'tm2-main-deployment';
 const tm2SharingRulesDeploymentDir                = 'tm2-sharing-rules-deployment';
 const intermediateFilesDir                        = 'intermediate-files';
 
-
-
 // Set the File Local Debug Namespace
 const dbgNs = 'MODULE:tm-file-paths:';
 SfdxFalconDebug.msg(`${dbgNs}`, `Debugging initialized for ${dbgNs}`);
@@ -76,6 +72,41 @@ SfdxFalconDebug.msg(`${dbgNs}`, `Debugging initialized for ${dbgNs}`);
  */
 //─────────────────────────────────────────────────────────────────────────────────────────────────┘
 export default class TmFilePaths {
+
+  //───────────────────────────────────────────────────────────────────────────┐
+  /**
+   * @method      getTmFileNames
+   * @returns     {TMFileNames} File names required by various TM commands.
+   * @description ???
+   * @public @static
+   */
+  //───────────────────────────────────────────────────────────────────────────┘
+  public static getTmFileNames():TMFileNames {
+
+    // Build the File Names.
+    const tmFileNames:TMFileNames = {
+      tm1AnalysisReportFileName:                    tm1AnalysisReportFileName,
+      tm1ExtractionReportFileName:                  tm1ExtractionReportFileName,
+      tm1TransformationReportFileName:              tm1TransformationReportFileName,
+      tm1CleanupReportFileName:                     tm1CleanupReportFileName,
+      tm2DeploymentReportFileName:                  tm2DeploymentReportFileName,
+      tm2DataLoadReportFileName:                    tm2DataLoadReportFileName,
+      accountShareCsv:                              accountShareCsv,
+      ataRuleCsv:                                   ataRuleCsv,
+      ataRuleItemCsv:                               ataRuleItemCsv,
+      territoryCsv:                                 territoryCsv,
+      userTerritoryCsv:                             userTerritoryCsv,
+      userTerritory2AssociationCsv:                 userTerritory2AssociationCsv,
+      objectTerritory2AssociationCsv:               objectTerritory2AssociationCsv,
+      tm1ToTm2DevnameMapCsv:                        tm1ToTm2DevnameMapCsv,
+      userTerritory2AssociationIntermediateCsv:     userTerritory2AssociationIntermediateCsv,
+      objectTerritory2AssociationIntermediateCsv:   objectTerritory2AssociationIntermediateCsv
+    };
+
+    // DEBUG and send back to caller.
+    SfdxFalconDebug.obj(`${dbgNs}getFileNames:tmFileNames:`, tmFileNames);
+    return tmFileNames;
+  }
 
   //───────────────────────────────────────────────────────────────────────────┐
   /**
@@ -94,7 +125,10 @@ export default class TmFilePaths {
     // Build the File Paths.
     const tm1AnalyzeFilePaths:TM1AnalyzeFilePaths = {
       baseDirectory:          path.resolve(baseDirectory),
-      tm1AnalysisReportPath:  path.join(baseDirectory, tm1AnalysisReportFileName)
+      tm1AnalysisReportPath:  path.join(baseDirectory, tm1AnalysisReportFileName),
+      fileNames: {
+        ...TmFilePaths.getTmFileNames()
+      }
     };
 
     // DEBUG and send back to caller.
