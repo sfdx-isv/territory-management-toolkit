@@ -38,6 +38,7 @@ const accountShareCsv                             = 'AccountShare.csv';
 const ataRuleCsv                                  = 'AccountTerritoryAssignmentRule.csv';
 const ataRuleItemCsv                              = 'AccountTerritoryAssignmentRuleItem.csv';
 const territoryCsv                                = 'Territory.csv';
+const territory2Csv                               = 'Territory2.csv';
 const userTerritoryCsv                            = 'UserTerritory.csv';
 
 const userTerritory2AssociationCsv                = 'UserTerritory2Association.csv';
@@ -95,6 +96,7 @@ export default class TmFilePaths {
       ataRuleCsv:                                   ataRuleCsv,
       ataRuleItemCsv:                               ataRuleItemCsv,
       territoryCsv:                                 territoryCsv,
+      territory2Csv:                                territory2Csv,
       userTerritoryCsv:                             userTerritoryCsv,
       userTerritory2AssociationCsv:                 userTerritory2AssociationCsv,
       objectTerritory2AssociationCsv:               objectTerritory2AssociationCsv,
@@ -198,7 +200,8 @@ export default class TmFilePaths {
       intermediateFilesDir:                           path.join(baseDirectory, intermediateFilesDir),
         tm1ToTm2DevnameMapCsv:                        path.join(baseDirectory, intermediateFilesDir, tm1ToTm2DevnameMapCsv),
         userTerritory2AssociationIntermediateCsv:     path.join(baseDirectory, intermediateFilesDir, userTerritory2AssociationIntermediateCsv),
-        objectTerritory2AssociationIntermediateCsv:   path.join(baseDirectory, intermediateFilesDir, objectTerritory2AssociationIntermediateCsv)
+        objectTerritory2AssociationIntermediateCsv:   path.join(baseDirectory, intermediateFilesDir, objectTerritory2AssociationIntermediateCsv),
+        territory2Csv:                                path.join(baseDirectory, intermediateFilesDir, territory2Csv)
       };
 
     // DEBUG and send back to caller.

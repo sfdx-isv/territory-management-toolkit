@@ -37,6 +37,50 @@ export type AccessLevel = 'None'|'Read'|'Edit';
 export type DeveloperName = string;
 
 /**
+ * Interface. Represents the JSON returned by a call to force:mdapi:deploy
+ */
+export interface DeploymentResult extends JsonMap {
+  checkOnly?:       boolean;
+  completedDate?:   string;
+  createdBy?:       SObjectRecordId;
+  createdByName?:   string;
+  createdDate?:     string;
+  details?:  {
+    componentSuccesses?: Array<{
+      changed?:         string;
+      componentType?:   string;
+      created?:         string;
+      createdDate?:     string;
+      deleted?:         string;
+      fileName?:        string;
+      fullName?:        string;
+      id?:              SObjectRecordId;
+      success?:         string;
+    }>;
+  };
+  runTestResult?: {
+    numFailures?:       string;
+    numTestsRun?:       string;
+    totalTime?:         string;
+  };
+  done?:                      boolean;
+  id?:                        SObjectRecordId;
+  ignoreWarnings?:            boolean;
+  lastModifiedDate?:          string;
+  numberComponentErrors?:     number;
+  numberComponentsDeployed?:  number;
+  numberComponentsTotal?:     number;
+  numberTestErrors?:          number;
+  numberTestsCompleted?:      number;
+  numberTestsTotal?:          number;
+  rollbackOnError?:           boolean;
+  runTestsEnabled?:           string;
+  startDate?:                 string;
+  status?:                    string;
+  success?:                   boolean;
+}
+
+/**
  * Type. Represents an SObject Record ID.
  */
 export type SObjectRecordId = string;
@@ -224,11 +268,32 @@ export type TerritoryRecords = TerritoryRecord[];
  */
 export type TerritoryRecordsById = Map<SObjectRecordId, TerritoryRecord>;
 
+/**
+ * Type. Represents an array of Territory2 Records.
+ */
+export type Territory2Records = Territory2Record[];
 
+/**
+ * Type. Represents a map of Territory2 Records by Territory2 ID.
+ */
+export type Territory2RecordsById = Map<SObjectRecordId, Territory2Record>;
+
+/**
+ * Type. Represents a map of Territory2 Records by Territory2 Developer Name.
+ */
+export type Territory2RecordsByDevName = Map<DeveloperName, Territory2Record>;
+
+//
+//
+//
+//
 //─────────────────────────────────────────────────────────────────────────────────────────────────┐
 // Object Maps and Arrays
 //─────────────────────────────────────────────────────────────────────────────────────────────────┘
-
+//
+//
+//
+//
 
 /**
  * Type. Represents a map of SharingRules Objects by Developer Name.
@@ -374,7 +439,12 @@ export interface TerritoryDevNameMapping extends JsonMap {
 /**
  * Type. Represents a map of TerritoryDevNameMapping JSON objects by either the Territory Developer Name or the Territory2 Developer Name.
  */
-export type TerritoryDevNameMap = Map<DeveloperName, TerritoryDevNameMapping>;
+export type TerritoryDevNameMapByDevName = Map<DeveloperName, TerritoryDevNameMapping>;
+
+/**
+ * Type. Represents a map of TerritoryDevNameMapping JSON objects by either the Territory ID or the Territory2 ID.
+ */
+export type TerritoryDevNameMapById = Map<SObjectRecordId, TerritoryDevNameMapping>;
 
 /**
  * Type. Represents an array of TerritoryDevNameMapping JSON objects.
@@ -655,6 +725,11 @@ export interface TM2DeploymentReport extends JsonMap {
   status:               TM2DeploymentStatus;
   tm2RecordCounts:      TM2RecordCounts;
   tm2MetadataCounts:    TM2MetadataCounts;
+  deploymentResults:  {
+    mainDeployment:         DeploymentResult;
+    sharingRulesDeployment: DeploymentResult;
+    
+  };
 }
 
 /**
@@ -704,6 +779,7 @@ export interface TMFileNames extends JsonMap {
   ataRuleCsv:                                   string;
   ataRuleItemCsv:                               string;
   territoryCsv:                                 string;
+  territory2Csv:                                string;
   userTerritoryCsv:                             string;
   userTerritory2AssociationCsv:                 string;
   objectTerritory2AssociationCsv:               string;
@@ -753,6 +829,7 @@ export interface TM1TransformFilePaths extends TM1ExtractFilePaths {
     tm1ToTm2DevnameMapCsv:                      string;
     userTerritory2AssociationIntermediateCsv:   string;
     objectTerritory2AssociationIntermediateCsv: string;
+    territory2Csv:                              string;
 }
 
 /**
