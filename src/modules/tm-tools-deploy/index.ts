@@ -215,10 +215,10 @@ export class TmToolsDeploy {
       this._filePaths.territory2Csv
     )
     .then((successResult:SfdxFalconResult) => {
-      SfdxFalconDebug.debugObject(`${dbgNs}fetchTerritory2Records:successResult:`, successResult);
+      SfdxFalconDebug.obj(`${dbgNs}fetchTerritory2Records:successResult:`, successResult);
     })
     .catch((failureResult:SfdxFalconResult|Error) => {
-      SfdxFalconDebug.debugObject(`${dbgNs}fetchTerritory2Records:failureResult:`, failureResult);
+      SfdxFalconDebug.obj(`${dbgNs}fetchTerritory2Records:failureResult:`, failureResult);
     });
   }
 
