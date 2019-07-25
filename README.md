@@ -1,7 +1,4 @@
-territory-management-tools
-==========================
-
-Tools for territory management
+# TM-Tools Plugin for the Salesforce CLI
 
 [![Version](https://img.shields.io/npm/v/territory-management-tools.svg)](https://npmjs.org/package/territory-management-tools)
 [![CircleCI](https://circleci.com/gh/sfdx-isv/territory-management-tools/tree/master.svg?style=shield)](https://circleci.com/gh/sfdx-isv/territory-management-tools/tree/master)
@@ -12,23 +9,30 @@ Tools for territory management
 [![Downloads/week](https://img.shields.io/npm/dw/territory-management-tools.svg)](https://npmjs.org/package/territory-management-tools)
 [![License](https://img.shields.io/npm/l/territory-management-tools.svg)](https://github.com/sfdx-isv/territory-management-tools/blob/master/package.json)
 
-<!-- toc -->
-* [Debugging your plugin](#debugging-your-plugin)
-<!-- tocstop -->
-<!-- install -->
-<!-- usage -->
-```sh-session
-$ npm install -g territory-management-tools
-$ sfdx COMMAND
-running command...
-$ sfdx (-v|--version|version)
-territory-management-tools/0.0.0 darwin-x64 node-v10.12.0
-$ sfdx --help [COMMAND]
-USAGE
-  $ sfdx COMMAND
-...
+A plugin for the Salesforce CLI that makes it easy to migrate from Territory Management (TM1) to Enterprise Territory Management (TM2) by creating a structured, multi-step environment to automate the extraction, transformation, and deployment/load of metadata and data from TM1 to TM2.
+
+## Installation
+
+Installing the TM-Tools Plugin is easy if you have already [installed the Salesforce CLI](https://developer.salesforce.com/tools/sfdxcli).  
+
+**Open a terminal window (command prompt) and enter the following:**
+
 ```
-<!-- usagestop -->
+$ sfdx plugins:install territory-management-tools
+```
+
+**You should see something similar to this:**
+
+![Install the CLI Plugin](https://drive.google.com/uc?export=view&id=1h6iUbZXc3XRJrhE-8uAy_HkqH1d57XBj)
+
+**Important Notes:**
+1. The command `sfdx plugins:install` pulls the plugin source code directly from the [territory-management-tools package](https://www.npmjs.com/package/sfdx-falcon), hosted by [NPM](www.npmjs.com)
+2. The TM-Tools Plugin has not been digitially signed (yet), so you will need to acknowledge the warning to continue the installation
+
+
+
+## Available Commands
+<!-- install -->
 <!-- commands -->
 * [`sfdx tmtools:tm1:analyze [-d <directory>] [--falcondebug <array>] [--falcondebugerror] [--falcondebugsuccess] [--falcondebugdepth <number>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`](#sfdx-tmtoolstm1analyze--d-directory---falcondebug-array---falcondebugerror---falcondebugsuccess---falcondebugdepth-number---json---loglevel-tracedebuginfowarnerrorfataltracedebuginfowarnerrorfatal)
 * [`sfdx tmtools:tm1:extract [-s <directory>] [--falcondebug <array>] [--falcondebugerror] [--falcondebugsuccess] [--falcondebugdepth <number>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`](#sfdx-tmtoolstm1extract--s-directory---falcondebug-array---falcondebugerror---falcondebugsuccess---falcondebugdepth-number---json---loglevel-tracedebuginfowarnerrorfataltracedebuginfowarnerrorfatal)
@@ -275,27 +279,17 @@ EXAMPLES
 
 _See code: [src/commands/tmtools/tm2/load.ts](https://github.com/sfdx-isv/territory-management-tools/blob/v0.0.0/src/commands/tmtools/tm2/load.ts)_
 <!-- commandsstop -->
-<!-- debugging-your-plugin -->
-# Debugging your plugin
-We recommend using the Visual Studio Code (VS Code) IDE for your plugin development. Included in the `.vscode` directory of this plugin is a `launch.json` config file, which allows you to attach a debugger to the node process when running your commands.
 
-To debug the `hello:org` command: 
-1. Start the inspector
-  
-If you linked your plugin to the sfdx cli, call your command with the `dev-suspend` switch: 
-```sh-session
-$ sfdx hello:org -u myOrg@example.com --dev-suspend
-```
-  
-Alternatively, to call your command using the `bin/run` script, set the `NODE_OPTIONS` environment variable to `--inspect-brk` when starting the debugger:
-```sh-session
-$ NODE_OPTIONS=--inspect-brk bin/run hello:org -u myOrg@example.com
-```
 
-2. Set some breakpoints in your command code
-3. Click on the Debug icon in the Activity Bar on the side of VS Code to open up the Debug view.
-4. In the upper left hand corner of VS Code, verify that the "Attach to Remote" launch configuration has been chosen.
-5. Hit the green play button to the left of the "Attach to Remote" launch configuration window. The debugger should now be suspended on the first line of the program. 
-6. Hit the green play button at the top middle of VS Code (this play button will be to the right of the play button that you clicked in step #5).
-<br><img src=".images/vscodeScreenshot.png" width="480" height="278"><br>
-Congrats, you are debugging!
+## Questions/Comments
+
+To report bugs or request new features, [create an issue](/issues) in this repository.
+
+## Acknowledgements
+
+* This plugin was created by **Vivek M. Chawla** [LinkedIn](https://www.linkedin.com/in/vivekmchawla/) | [Twitter](https://twitter.com/VivekMChawla)
+* Key portions have been adopted from the [SFDX-Falcon Plugin](https://github.com/sfdx-isv/sfdx-falcon)
+
+## License
+
+The TM-Tools Plugin is made available under the MIT License - see the [LICENSE](LICENSE) file for details.
