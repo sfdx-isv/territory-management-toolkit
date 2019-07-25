@@ -1,4 +1,0 @@
-{
-  "commandDescription": "Creates an AppExchange Package Kit (APK) project",
-  "outputdir_FlagDescription": "Directory where your APK project will be created"
-}
