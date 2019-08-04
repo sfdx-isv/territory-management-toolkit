@@ -24,6 +24,7 @@ import * as yoValidate        from  '../sfdx-falcon-validators/yeoman-validator'
 // Import Internal Classes and Functions
 import {SfdxFalconDebug}      from  '../sfdx-falcon-debug';         // Specialized debug provider for SFDX-Falcon code.
 import {SfdxFalconError}      from  '../sfdx-falcon-error';         // Class. Extends SfdxError to provide specialized error structures for SFDX-Falcon modules.
+import {SfdxFalconInterview}  from  '../sfdx-falcon-interview';     // Class. Provides a standard way of building a multi-group Interview to collect user input.
 import {filterLocalPath}      from  '../sfdx-falcon-util/yeoman';   // Function. Yeoman filter which takes a local Path value and resolves it using path.resolve().
 
 // Import Falcon Types
@@ -59,13 +60,13 @@ export function chooseTm1Org(promptText:string[]=[], targetOrgChoices:YeomanChoi
 
   // If the caller didn't supply Target Org Choices, try to grab them from Shared Data.
   if (isEmpty(targetOrgChoices)) {
-    validateInterviewScope.call(this);
+    SfdxFalconInterview.validateInterviewScope(this);
     targetOrgChoices = this.sharedData['targetOrgAliasChoices'] || [];
   }
 
   // If the caller didn't supply Target Scratch Org Choices, try to grab them from Shared Data.
   if (isEmpty(scratchOrgChoices)) {
-    validateInterviewScope.call(this);
+    SfdxFalconInterview.validateInterviewScope(this);
     scratchOrgChoices = this.sharedData['scratchOrgAliasChoices'] || [];
   }
 
@@ -127,7 +128,7 @@ export function chooseTm1Org(promptText:string[]=[], targetOrgChoices:YeomanChoi
 export function confirmProceedRestart():Questions {
 
   // Make sure the calling scope has the variables we expect.
-  validateInterviewScope.call(this);
+  SfdxFalconInterview.validateInterviewScope(this);
 
   // Initialize a "Confirmation Question" string.
   let confirmationQuestion  = 'Would you like to proceed based on the above settings?';
@@ -177,7 +178,7 @@ export function confirmProceedRestart():Questions {
 export function confirmNoTm1TargetOrg():Questions {
 
   // Make sure the calling scope has the variables we expect.
-  validateInterviewScope.call(this);
+  SfdxFalconInterview.validateInterviewScope(this);
 
   // Build and return the Questions.
   return [
@@ -205,7 +206,7 @@ export function confirmNoTm1TargetOrg():Questions {
 export function provideReportDirectory(reportFileName:string='', promptText:string[]=[]):Questions {
 
   // Make sure the calling scope has the variables we expect.
-  validateInterviewScope.call(this);
+  SfdxFalconInterview.validateInterviewScope(this);
 
   // Required File must be a non-empty, non-null string.
   if (typeof reportFileName !== 'string' || reportFileName === '' || reportFileName === null) {
@@ -291,7 +292,7 @@ export function provideReportDirectory(reportFileName:string='', promptText:stri
 export function provideTargetDirectory(promptText:string[]=[]):Questions {
 
   // Make sure the calling scope has the variables we expect.
-  validateInterviewScope.call(this);
+  SfdxFalconInterview.validateInterviewScope(this);
 
   // Build and return the Question.
   return [
@@ -307,46 +308,4 @@ export function provideTargetDirectory(promptText:string[]=[]):Questions {
       when:     true
     }
   ];
-}
-
-// ────────────────────────────────────────────────────────────────────────────────────────────────┐
-/**
- * @function    validateInterviewScope
- * @returns     {void}
- * @description Ensures that the calling scope has certain variables that are required the various
- *              Question Builder functions in this file.
- * @private
- */
-// ────────────────────────────────────────────────────────────────────────────────────────────────┘
-function validateInterviewScope():void {
-  if (typeof this.userAnswers !== 'object') {
-    throw new SfdxFalconError( `Expected this.userAnswers to be an object available in the calling scope. Got type '${typeof this.userAnswers}' instead. `
-                             + `Please execute this function using the syntax: functionName.call(this)`
-                             , `InvalidCallScope`
-                             , `${dbgNs}validateInterviewScope`);
-  }
-  if (typeof this.defaultAnswers !== 'object') {
-    throw new SfdxFalconError( `Expected this.defaultAnswers to be an object available in the calling scope. Got type '${typeof this.defaultAnswers}' instead. `
-                             + `Please execute this function using the syntax: functionName.call(this)`
-                             , `InvalidCallScope`
-                             , `${dbgNs}validateInterviewScope`);
-  }
-  if (typeof this.confirmationAnswers !== 'object') {
-    throw new SfdxFalconError( `Expected this.confirmationAnswers to be an object available in the calling scope. Got type '${typeof this.confirmationAnswers}' instead. `
-                             + `Please execute this function using the syntax: functionName.call(this)`
-                             , `InvalidCallScope`
-                             , `${dbgNs}validateInterviewScope`);
-  }
-  if (typeof this.context !== 'object') {
-    throw new SfdxFalconError( `Expected this.context to be an object available in the calling scope. Got type '${typeof this.context}' instead. `
-                             + `Please execute this function using the syntax: functionName.call(this)`
-                             , `InvalidCallScope`
-                             , `${dbgNs}validateInterviewScope`);
-  }
-  if (typeof this.sharedData !== 'object') {
-    throw new SfdxFalconError( `Expected this.sharedData to be an object available in the calling scope. Got type '${typeof this.sharedData}' instead. `
-                             + `Please execute this function using the syntax: functionName.call(this)`
-                             , `InvalidCallScope`
-                             , `${dbgNs}validateInterviewScope`);
-  }
 }
