@@ -20,11 +20,17 @@ import {Territory2Model}        from  '../tm-tools-objects/territory2-model'; //
 import {Territory2Rule}         from  '../tm-tools-objects/territory2-rule';  // Class. Models Salesforce "Territory2Rule" metadata as needed for deployment to a TM2 org.
 import {Territory2Type}         from  '../tm-tools-objects/territory2-type';  // Class. Models Salesforce "Territory2Type" metadata as needed for deployment to a TM2 org.
 
-
-//─────────────────────────────────────────────────────────────────────────────────────────────────┐
+//
+//
+//
+//
+//─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
 // Fundamental Types
-//─────────────────────────────────────────────────────────────────────────────────────────────────┘
-
+//─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+//
+//
+//
+//
 
 /**
  * Type. Represents an access level ('None', 'Read', or 'Edit').
@@ -98,11 +104,17 @@ export enum Status {
   FAILED      = 'FAILED'
 }
 
-
-//─────────────────────────────────────────────────────────────────────────────────────────────────┐
+//
+//
+//
+//
+//─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
 // SObject Record Interfaces and Types
-//─────────────────────────────────────────────────────────────────────────────────────────────────┘
-
+//─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+//
+//
+//
+//
 
 /**
  * Interface. Represents a baseline SObject Record.
@@ -287,9 +299,9 @@ export type Territory2RecordsByDevName = Map<DeveloperName, Territory2Record>;
 //
 //
 //
-//─────────────────────────────────────────────────────────────────────────────────────────────────┐
+//─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
 // Object Maps and Arrays
-//─────────────────────────────────────────────────────────────────────────────────────────────────┘
+//─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 //
 //
 //
@@ -325,11 +337,17 @@ export type Territory2RuleObjectsByDevName = Map<DeveloperName, Territory2Rule>;
  */
 export type Territory2TypeObjectsByDevName = Map<DeveloperName, Territory2Type>;
 
-
-//─────────────────────────────────────────────────────────────────────────────────────────────────┐
+//
+//
+//
+//
+//─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
 // Sharing Rule-related Interfaces and Types
-//─────────────────────────────────────────────────────────────────────────────────────────────────┘
-
+//─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+//
+//
+//
+//
 
 /**
  * Interface. Represents a Sharing Group inside Salesforce.
@@ -417,11 +435,17 @@ export interface SharingRulesFqdns extends JsonMap {
   sharingTerritoryRules:  string[];
 }
 
-
-//─────────────────────────────────────────────────────────────────────────────────────────────────┐
-// ???
-//─────────────────────────────────────────────────────────────────────────────────────────────────┘
-
+//
+//
+//
+//
+//─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+// DevName Mapping and Context Related Types
+//─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+//
+//
+//
+//
 
 /**
  * Interface. Represents the mapping of a Territory developer name and record ID to a Territory2 developer name and record ID.
@@ -451,23 +475,6 @@ export type TerritoryDevNameMapById = Map<SObjectRecordId, TerritoryDevNameMappi
  */
 export type TerritoryDevNameMappings = TerritoryDevNameMapping[];
 
-
-
-
-/**
- * Interface. Represents the overall grouping of Record Data required by various TM-Tools functions.
- */
-/*
-export interface TM1Context {
-  territoryRecords:           TerritoryRecords;
-  territoryRecordsById:       TerritoryRecordsById;
-  ataRuleRecords:             AtaRuleRecords;
-  ataRuleRecordsById:         AtaRuleRecordsById;
-  ataRuleItemRecords:         AtaRuleItemRecords;
-  ataRuleItemRecordsByRuleId: AtaRuleItemRecordsByRuleId;
-}
-//*/
-
 /**
  * Interface. Represents the structure of the return value of the Tm1Context.validate() function.
  */
@@ -491,6 +498,18 @@ export interface TM1ContextValidation extends JsonMap {
     accountShareExtractionIsValid:  boolean;
   };
 }
+
+//
+//
+//
+//
+//─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+// Metadata XML Types
+//─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+//
+//
+//
+//
 
 /**
  * Type. Represents a specific instance of a metadata type in a package manifest (package.xml).

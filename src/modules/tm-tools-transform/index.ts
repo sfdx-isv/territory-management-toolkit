@@ -131,7 +131,7 @@ export class TmToolsTransform {
   //───────────────────────────────────────────────────────────────────────────┐
   /**
    * @constructs  TmToolsTransform
-   * @param       {TM1Context}  tm1Context  Required.
+   * @param       {Tm1Context}  tm1Context  Required.
    * @param       {TM1ExtractionReport} tm1ExtractionReport Required.
    * @param       {TM1TransformFilePaths} tm1TransformFilePaths  Required.
    * @description Takes a Prepared TM1 Context and the directory paths where
@@ -595,7 +595,7 @@ export class TmToolsTransform {
   //───────────────────────────────────────────────────────────────────────────┘
   private createSharingRuleObjects():void {
 
-    // Make a deep clone of the Account, Lead, and Opportunity SharingRules that are known to the TM1Context.
+    // Make a deep clone of the Account, Lead, and Opportunity SharingRules that are known to the Tm1Context object.
     const accountSharingRules     = cloneDeep(this._tm1Context.accountSharingRules);
     const leadSharingRules        = cloneDeep(this._tm1Context.leadSharingRules);
     const opportunitySharingRules = cloneDeep(this._tm1Context.opportunitySharingRules);
