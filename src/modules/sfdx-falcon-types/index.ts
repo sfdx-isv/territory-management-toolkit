@@ -12,6 +12,7 @@
 // Import External Modules/Types
 import {Connection}           from  '@salesforce/core';         // Why?
 import {AnyJson}              from  '@salesforce/ts-types';     // Why?
+import {JsonMap}              from  '@salesforce/ts-types';     // Why?
 import * as inquirer          from  'inquirer';                 // Why?
 import {QueryResult}          from  'jsforce';                  // Why?
 import {RequestInfo}          from  'jsforce';                  // Why?
@@ -27,10 +28,17 @@ import {SfdxOrgInfo}          from  '../sfdx-falcon-util/sfdx'; // Class. Stores
 import {ScratchOrgInfo}       from  '../sfdx-falcon-util/sfdx'; // Class. Stores information about a scratch orgs that is connected to the local Salesforce CLI.
 import {SfdxFalconTableData}  from  '../sfdx-falcon-util/ux';   // Interface. Represents and array of SfdxFalconKeyValueTableDataRow objects.
 
-
-// ────────────────────────────────────────────────────────────────────────────────────────────────┐
+//
+//
+//
+//
+//─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
 // Falcon and SFDX Config-related interfaces and types.
-// ────────────────────────────────────────────────────────────────────────────────────────────────┘
+//─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+//
+//
+//
+//
 
 /**
  * Represents the status code and JSON result that is sent to the caller when SFDX-Falcon CLI Commands are run.
@@ -40,95 +48,17 @@ export interface SfdxFalconJsonResponse {
   falconResult: AnyJson;
 }
 
-/**
- * Interface. Represents the SFDX-Falcon specific part of a project's sfdx-project.json config file.
- */
-export interface SfdxFalconProjectConfig {
-  developerAlias?:  string;                   // eg. 'univ-ctrs'
-  developerName?:   string;                   // eg. 'Universal Containers'
-  projectAlias?:    string;                   // eg. 'my-sfdx-falcon-project'
-  projectName?:     string;                   // eg. 'My SFDX Falcon Project'
-  projectFamily?:   string;                   // 'ADK' | 'APK'
-  projectType?:     string;                   // '1GP:managed' | '1GP:unmanaged' | '2GP:managed' | '2GP:unlocked' | 'single-demo' | 'multi-demo'
-  defaultRecipe?:   string;                   // eg. 'demo-recipe-1.json'
-  gitRemoteUri?:    string;                   // eg. 'https://github.com/my-org/my-sfdx-falcon-project.git'
-  gitHubUrl?:       string;                   // eg. 'https://github.com/my-org/my-sfdx-falcon-project'
-  projectVersion?:  string;                   // eg. '1.5.1'
-  schemaVersion?:   string;                   // eg. '1.0.0'
-  pluginVersion?:   string;                   // eg. '1.0.0'
-  appxPackage?:     AppxPackageProjectConfig;
-  appxDemo?:        AppxDemoProjectConfig;
-}
-
-/**
- * Interface. Represents the special, hidden "local config" file for an SFDX-Falcon project.
- */
-export interface SfdxFalconLocalConfig {
-  devHubAlias?:   string;                   // eg. 'My_DevHub'
-  envHubAlias?:   string;                   // eg. 'My_EnvHub'
-  pkgOrgAlias?:   string;                   // eg. 'My_PkgOrg'
-  appxPackage?:   AppxPackageLocalConfig;
-  appxDemo?:      AppxDemoLocalConfig;
-}
-
-/**
- * Interface. Represents a "global" SFDX-Falcon configuration data structure. Not yet implmented.
- */
-export interface SfdxFalconGlobalConfig {
-  propertiesTBD?: any;                       // tslint:disable-line: no-any
-}
-
-/**
- * Interface. Represents the portion of an SFDX-Falcon Project Config that is specific to ADK projects.
- */
-export interface AppxDemoProjectConfig {
-  demoRecipes:      string[];               // eg. ['demo-recipe-1.json', 'demo-recipe-2.json']
-  partnerAlias:     string;                 // eg. 'appy-inc'
-  partnerName:      string;                 // eg. 'Appy Apps, Incorporated'
-}
-
-/**
- * Interface. Represents the portion of the hidden SFDX-Falcon "local config" that is specific to ADK projects.
- */
-export interface AppxDemoLocalConfig {
-  propertiesTBD: any;                       // tslint:disable-line: no-any
-}
-
-/**
- * Interface. Represents the portion of an SFDX-Falcon Project Config that is specific to APK projects.
- */
-export interface AppxPackageProjectConfig {
-  developerRecipes:   string[];             // eg. ['developer-recipe-1.json', 'developer-recipe-2.json']
-  namespacePrefix:    string;               // eg. 'my_ns_prefix'
-  packageName:        string;               // eg. 'My Package Name'
-  metadataPackageId:  string;               // eg. '033000000000000'
-  packageVersionId: {
-    stable: string;                         // eg. '04t111111111111'
-    beta:   string;                         // eg. '04t222222222222'
-  };
-}
-
-/**
- * Interface. Represents the portion of the hidden SFDX-Falcon "local config" that is specific to APK projects.
- */
-export interface AppxPackageLocalConfig {
-  propertiesTBD: any;                       // tslint:disable-line: no-any
-}
-
-/**
- * Interface. Represents the options that can be set when calling SfdxFalconProject.resolve().
- */
-export interface ProjectResolutionOptions {
-  resolveProjectConfig?: boolean;
-  resolveLocalConfig?:   boolean;
-  resolveGlobalConfig?:  boolean;
-}
-
-
-// ────────────────────────────────────────────────────────────────────────────────────────────────┐
+//
+//
+//
+//
+//─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
 // Packaging-related types.
-// ────────────────────────────────────────────────────────────────────────────────────────────────┘
-
+//─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+//
+//
+//
+//
 
 /**
  * Interface. Represents a Metadata Package (033). Can be managed or unmanaged.
@@ -154,11 +84,17 @@ export interface MetadataPackageVersion {
   ReleaseState:       string;
 }
 
-
-// ────────────────────────────────────────────────────────────────────────────────────────────────┐
+//
+//
+//
+//
+//─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
 // Listr related interfaces and types.
-// ────────────────────────────────────────────────────────────────────────────────────────────────┘
-
+//─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+//
+//
+//
+//
 
 /**
  * Interface. Represents a "runnable" Listr object (ie. an object that has the run() method attached).
@@ -219,7 +155,7 @@ export type ListrContext = any; // tslint:disable-line: no-any
 /**
  * Interface. Represents the Listr Context variables used by the "finalizeGit" task collection.
  */
-export interface ListrContextFinalizeGit {
+export interface ListrContextFinalizeGit extends JsonMap {
   gitInstalled:           boolean;
   gitInitialized:         boolean;
   projectFilesStaged:     boolean;
@@ -231,45 +167,39 @@ export interface ListrContextFinalizeGit {
 /**
  * Interface. Represents the Listr Context variables used by the "Package Retrieve/Extract/Convert" task collection.
  */
-export interface ListrContextPkgRetExCon {
+export interface ListrContextPkgRetExCon extends JsonMap {
   packagesRetrieved:  boolean;
   sourceExtracted:    boolean;
   sourceConverted:    boolean;
 }
 
 /**
- * Represents an Observable for use with Listr.
+ * Type. Alias to an rxjs Observer<unknown> type.
  */
-export type ListrObservable = any;  // tslint:disable-line: no-any
+export type Observer = Observer<unknown>;
 
 /**
- * Type. Alias to an rxjs Observer<any> type.
+ * Type. Alias to an rxjs Subscriber<unknown> type.
  */
-export type Observer = Observer<any>;  // tslint:disable-line: no-any
+export type Subscriber = Subscriber<unknown>;
 
-/**
- * Type. Alias to an rxjs Subscriber<any> type.
- */
-export type Subscriber = Subscriber<any>; // tslint:disable-line: no-any
-
-
-// ────────────────────────────────────────────────────────────────────────────────────────────────┐
+//
+//
+//
+//
+//─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
 // Yeoman/Inquirer/SfdxFalconInterview/SfdxFalconPrompt related interfaces and types.
-// ────────────────────────────────────────────────────────────────────────────────────────────────┘
+//─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+//
+//
+//
+//
 
-
-export type InquirerChoice<A=any>   = inquirer.objects.Choice<A>;   // tslint:disable-line: no-any
-export type InquirerChoices<A=any>  = inquirer.objects.Choices<A>;  // tslint:disable-line: no-any
-export type InquirerQuestion        = inquirer.Question;
-export type InquirerQuestions       = inquirer.Questions;
-export type InquirerAnswers         = inquirer.Answers;
-
-/**
- * Represents an answer hash (basically AnyJson) for Yeoman/Inquirer.
- */
-export interface YeomanAnswerHash {
-  [key:string]: any;  // tslint:disable-line: no-any
-}
+export type InquirerChoice<U=unknown>   = inquirer.objects.Choice<U>;
+export type InquirerChoices<U=unknown>  = inquirer.objects.Choices<U>;
+export type InquirerQuestion            = inquirer.Question;
+export type InquirerQuestions           = inquirer.Questions;
+export type InquirerAnswers             = inquirer.Answers;
 
 /**
  * Represents a Yeoman/Inquirer choice object.
@@ -283,24 +213,10 @@ export interface YeomanChoice {
 }
 
 /**
- * Represents a "checkbox choice" in Yeoman/Inquirer.
- */
-export interface YeomanCheckboxChoice extends YeomanChoice {
-  key?:       string;
-  checked?:   boolean;
-  disabled?:  boolean|string|YeomanChoiceDisabledFunction;
-}
-
-/**
- * Represents the function signature for a "Disabled" function.
- */
-export type YeomanChoiceDisabledFunction = (answers:any) => boolean|string; // tslint:disable-line: no-any
-
-/**
  * Represents what an answers hash should look like during Yeoman/Inquirer interactions
  * where the user is being asked to proceed/retry/abort something.
  */
-export interface ConfirmationAnswers {
+export interface ConfirmationAnswers extends JsonMap {
   proceed:  boolean;
   restart:  boolean;
   abort:    boolean;
@@ -398,11 +314,17 @@ export type Questions = Questions;
  */
 export type Question = Question;
 
-
-// ────────────────────────────────────────────────────────────────────────────────────────────────┐
+//
+//
+//
+//
+//─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
 // Salesforce DX / JSForce related types.
-// ────────────────────────────────────────────────────────────────────────────────────────────────┘
-
+//─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+//
+//
+//
+//
 
 /**
  * Type. Represents either an Org Alias or a JSForce Connection.
@@ -557,11 +479,17 @@ export interface ObjectDescribe {
   urls?:                any;      // tslint:disable-line: no-any
 }
 
-
-// ────────────────────────────────────────────────────────────────────────────────────────────────┐
+//
+//
+//
+//
+//─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
 // SObject related types.
-// ────────────────────────────────────────────────────────────────────────────────────────────────┘
-
+//─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+//
+//
+//
+//
 
 /**
  * Interface. Represents a baseline SObject.
