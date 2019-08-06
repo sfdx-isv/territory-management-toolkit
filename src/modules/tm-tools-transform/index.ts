@@ -777,7 +777,7 @@ export class TmToolsTransform {
     for (const accountShareRecord of this._tm1Context.accountShareRecords) {
       const territoryDevName = 'NOT_IMPLEMENTED';
       objectTerritory2AssociationRecords.push({
-        AssociationCause: 'TERRITORY2_MANUAL',
+        AssociationCause: 'Territory2Manual',
         ObjectId:         accountShareRecord.AccountId,
         SobjectType:      'Account',
         Territory2Id:     `T2ID_PENDING_${territoryDevName}`
@@ -785,7 +785,7 @@ export class TmToolsTransform {
     }
     SfdxFalconDebug.obj(`${dbgNs}writeOT2AIntermediateCsv:objectTerritory2AssociationRecords:`, objectTerritory2AssociationRecords);
 
-    // Stream the Territory DevName Mappings JSON to disk.
+    // Stream the ObjectTerritory2Association Records JSON to disk.
     await csv.streamJsonToCsvFile(
       objectTerritory2AssociationRecords,
       this._filePaths.objectTerritory2AssociationIntermediateCsv,
