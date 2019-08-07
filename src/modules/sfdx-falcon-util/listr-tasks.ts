@@ -1956,6 +1956,7 @@ export function runPostDeploymentTasks(tmToolsDeploy:TmToolsDeploy):ListrObject 
               })
               .catch(async error => {
                 await waitASecond(3);
+                SfdxFalconDebug.obj(`${dbgNs}asyncTaskError:runPostDeploymentTasks:PDT1:`, error);
                 finalizeObservableTaskResult(otr, error);
               });
           });
@@ -1984,24 +1985,25 @@ export function runPostDeploymentTasks(tmToolsDeploy:TmToolsDeploy):ListrObject 
               })
               .catch(async error => {
                 await waitASecond(3);
+                SfdxFalconDebug.obj(`${dbgNs}asyncTaskError:runPostDeploymentTasks:PDT2:`, error);
                 finalizeObservableTaskResult(otr, error);
               });
           });
         }
       },
-      // ── POST-DEPLOYMENT TASK 3: Finalize Transformation of Intermediate Files ──────────────────
+      // ── POST-DEPLOYMENT TASK 3: Finalize Transformation of User/Territory2 Association Files ───
       {
-        title:  'Finalize Transformation of Intermediate Files',
+        title:  'Finalize Transformation of User/Territory2 Association Files',
         task:   (listrContext:object, thisTask:ListrTask) => {
           return new Observable(observer => {
     
             // Initialize an OTR (Observable Task Result).
             const otr = initObservableTaskResult(`${dbgNs}runPostDeploymentTasks:PDT3`, listrContext, thisTask, observer, this.sharedData, this.generatorResult,
-                        `Finalizing transformation of UserTerritory2Association.csv and ObjectTerritory2Association.csv`);
+                        `Finalizing transformation of UserTerritory2Association.csv`);
     
             // Define the Task Logic to be executed.
             const asyncTask = async () => {
-              await tmToolsDeploy.transformIntermediateData();
+              await tmToolsDeploy.transformUserTerritory2Associations();
             };
 
             // Execute the Task Logic.
@@ -2012,20 +2014,50 @@ export function runPostDeploymentTasks(tmToolsDeploy:TmToolsDeploy):ListrObject 
               })
               .catch(async error => {
                 await waitASecond(3);
+                SfdxFalconDebug.obj(`${dbgNs}asyncTaskError:runPostDeploymentTasks:PDT3:`, error);
                 finalizeObservableTaskResult(otr, error);
               });
           });
         }
       },
-      // ── POST-DEPLOYMENT TASK 4: Generate Deployment Report ─────────────────────────────────────
+      // ── POST-DEPLOYMENT TASK 4: Finalize Transformation of Object/Territory2 Association Files ─
+      {
+        title:  'Finalize Transformation of Object/Territory2 Association Files',
+        task:   (listrContext:object, thisTask:ListrTask) => {
+          return new Observable(observer => {
+    
+            // Initialize an OTR (Observable Task Result).
+            const otr = initObservableTaskResult(`${dbgNs}runPostDeploymentTasks:PDT4`, listrContext, thisTask, observer, this.sharedData, this.generatorResult,
+                        `Finalizing transformation of ObjectTerritory2Association.csv`);
+    
+            // Define the Task Logic to be executed.
+            const asyncTask = async () => {
+              await tmToolsDeploy.transformObjectTerritory2Associations();
+            };
+
+            // Execute the Task Logic.
+            asyncTask()
+              .then(async result => {
+                await waitASecond(3);
+                finalizeObservableTaskResult(otr);
+              })
+              .catch(async error => {
+                await waitASecond(3);
+                SfdxFalconDebug.obj(`${dbgNs}asyncTaskError:runPostDeploymentTasks:PDT4:`, error);
+                finalizeObservableTaskResult(otr, error);
+              });
+          });
+        }
+      },
+      // ── POST-DEPLOYMENT TASK 5: Generate Deployment Report ─────────────────────────────────────
       {
         title:  'Generate Deployment Report',
         task:   (listrContext:object, thisTask:ListrTask) => {
           return new Observable(observer => {
     
             // Initialize an OTR (Observable Task Result).
-            const otr = initObservableTaskResult(`${dbgNs}runPostDeploymentTasks:PDT4`, listrContext, thisTask, observer, this.sharedData, this.generatorResult,
-                        `Writing TM2 deployment report to ${tmToolsDeploy.tm2Context.tm2FilePaths.tm2DeploymentReportPath}`);
+            const otr = initObservableTaskResult(`${dbgNs}runPostDeploymentTasks:PDT5`, listrContext, thisTask, observer, this.sharedData, this.generatorResult,
+                        `Writing TM2 deployment report to ${tmToolsDeploy.filePaths.tm2DeploymentReportPath}`);
     
             // Define the Task Logic to be executed.
             const asyncTask = async () => {
@@ -2040,6 +2072,7 @@ export function runPostDeploymentTasks(tmToolsDeploy:TmToolsDeploy):ListrObject 
               })
               .catch(async error => {
                 await waitASecond(3);
+                SfdxFalconDebug.obj(`${dbgNs}asyncTaskError:runPostDeploymentTasks:PDT5:`, error);
                 finalizeObservableTaskResult(otr, error);
               });
           });

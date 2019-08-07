@@ -10,52 +10,26 @@
  */
 //─────────────────────────────────────────────────────────────────────────────────────────────────┘
 // Import External Libraries & Modules
-import  {fs}                              from  '@salesforce/core'; // File System utility from the Core SFDX library.
-//import  {cloneDeep}                       from  'lodash';           // Useful function for detecting empty objects.
-//import  * as path                         from  'path';             // Node's path library.
+import  {fs}                              from  '@salesforce/core';   // File System utility from the Core SFDX library.
 
 // Import Internal Libraries
-//import  * as csv                          from  '../sfdx-falcon-util/csv';  // ???
-import  * as sfdxHelper                   from  '../sfdx-falcon-util/sfdx';  // ???
+import  * as csv                          from  '../sfdx-falcon-util/csv';    // Library. Provides utilities and services for manipulating CSV files.
+import  * as sfdxHelper                   from  '../sfdx-falcon-util/sfdx';   // Library. Collection of helper functions that make calling the Salesforce CLI from code easier.
 
 // Import Internal Classes & Functions
-import  {SfdxFalconDebug}                 from  '../sfdx-falcon-debug';                     // Specialized debug provider for SFDX-Falcon code.
-import  {SfdxFalconError}                 from  '../sfdx-falcon-error';                     // Class. Extends SfdxError to provide specialized error structures for SFDX-Falcon modules.
-import  {SfdxFalconResult}                from  '../sfdx-falcon-result';                     // Class. Implements a framework for creating results-driven, informational objects with a concept of heredity (child results) and the ability to "bubble up" both Errors (thrown exceptions) and application-defined "failures".
-//import  {DestructiveChanges}              from  '../tm-tools-objects/destructive-changes';  // Class. Models Salesforce "DestructiveChanges" metadata as needed for deployment to a TM2 org.
-//import  {Package}                         from  '../tm-tools-objects/package';              // Class. Models Salesforce "Package" metadata as needed for deployment to a TM2 org.
-//import  {SharingRules}                    from  '../tm-tools-objects/sharing-rules';        // Class. Models Salesforce "SharingRules" metadata.
-//import  {Territory2}                      from  '../tm-tools-objects/territory2';           // Class. Models Salesforce "Territory2" metadata as needed for deployment to a TM2 org.
-//import  {Territory2Model}                 from  '../tm-tools-objects/territory2-model';     // Class. Models Salesforce "Territory2Model" metadata as needed for deployment to a TM2 org.
-//import  {Territory2Rule}                  from  '../tm-tools-objects/territory2-rule';      // Class. Models Salesforce "Territory2Rule" metadata as needed for deployment to a TM2 org.
-//import  {Territory2Type}                  from  '../tm-tools-objects/territory2-type';      // Class. Models Salesforce "Territory2Type" metadata as needed for deployment to a TM2 org.
-//import  {Tm1Context}                      from  '../tm-tools-objects/tm1-context';          // Models the entirety of an exported set of TM1 data, including helpful transforms.
-import  {Tm2Context}                      from  '../tm-tools-objects/tm2-context';          // Models the entirety of a transformed set of TM2 data, including intermediate data.
+import  {SfdxFalconDebug}                 from  '../sfdx-falcon-debug';               // Specialized debug provider for SFDX-Falcon code.
+import  {SfdxFalconError}                 from  '../sfdx-falcon-error';               // Class. Extends SfdxError to provide specialized error structures for SFDX-Falcon modules.
+import  {SfdxFalconResult}                from  '../sfdx-falcon-result';              // Class. Implements a framework for creating results-driven, informational objects with a concept of heredity (child results) and the ability to "bubble up" both Errors (thrown exceptions) and application-defined "failures".
+import  {Tm2Context}                      from  '../tm-tools-objects/tm2-context';    // Models the entirety of a transformed set of TM2 data, including intermediate data.
 
 // Import TM-Tools Types
-import  {DeploymentResult}                from  '../tm-tools-types';   // Type. Represents the JSON returned by a call to force:mdapi:deploy
-
-//import  {ObjectTerritory2AssociationRecord} from  '../tm-tools-types';   // Interface. Represents an ObjectTerritory2Association Record.
-//import  {SharingRulesFqdns}                 from  '../tm-tools-types';   // Interface. Represents a FQDN (Fully Qualified Developer Name) collection for Criteria and Owner-based Sharing Rules.
-//import  {SharingRulesJson}                  from  '../tm-tools-types';   // Interface. Represents a collection of Criteria, Ownership, and Territory-based Sharing Rules.
-//import  {SharingRulesObjectsByDevName}      from  '../tm-tools-types';   // Type. Represents a map of SharingRules Objects by Developer Name.
-import  {Status}                           from  '../tm-tools-types';   // Enum. Represents the valid set of Status values that help determine state in the TM-Tools environment.
-//import  {TerritoryDevNameMapping}           from  '../tm-tools-types';   // Interface. Represents the mapping of a Territory developer name and record ID to a Territory2 developer name and record ID.
-//import  {Territory2ObjectsByDevName}        from  '../tm-tools-types';   // Type. Represents a map of Territory2 Objects by Developer Name.
-//import  {Territory2ModelObjectsByDevName}   from  '../tm-tools-types';   // Type. Represents a map of Territory2Model Objects by Developer Name.
-//import  {Territory2RuleObjectsByDevName}    from  '../tm-tools-types';   // Type. Represents a map of Territory2Rule Objects by Developer Name.
-//import  {Territory2TypeObjectsByDevName}    from  '../tm-tools-types';   // Type. Represents a map of Territory2Type Objects by Developer Name.
-import  {TM1AnalysisReport}                 from  '../tm-tools-types';   // Interface. Represents the data that is generated by a TM1 Analysis Report.
-import  {TM1ExtractionReport}               from  '../tm-tools-types';   // Interface. Represents the data that is generated by a TM1 Extraction Report.
-import  {TM1TransformationReport}           from  '../tm-tools-types';   // Interface. Represents the data that is generated by a TM1 Transformation Report.
-//import  {TM1TransformFilePaths}             from  '../tm-tools-types';   // Interface. Represents the complete suite of file paths required by the TM1 Transform command.
-import  {TM2DeployFilePaths}                from  '../tm-tools-types';   // Interface. Represents the complete suite of file paths required by the TM2 Deploy command.
-import  {TM2DeploymentReport}               from  '../tm-tools-types';   // Interface. Represents the data that is generated by a TM2 Deployment Report.
-//import  {UserTerritory2AssociationRecord}   from  '../tm-tools-types';   // Interface. Represents an UserTerritory2Association Record.
-
-// Set file local globals
-//const territory2ModelDevName  = 'Imported_Territory';
-//const territory2TypeDevName   = 'Imported_Territory';
+import  {DeploymentResult}                from  '../tm-tools-types';    // Type. Represents the JSON returned by a call to force:mdapi:deploy
+import  {Status}                          from  '../tm-tools-types';    // Enum. Represents the valid set of Status values that help determine state in the TM-Tools environment.
+import  {TM1AnalysisReport}               from  '../tm-tools-types';    // Interface. Represents the data that is generated by a TM1 Analysis Report.
+import  {TM1ExtractionReport}             from  '../tm-tools-types';    // Interface. Represents the data that is generated by a TM1 Extraction Report.
+import  {TM1TransformationReport}         from  '../tm-tools-types';    // Interface. Represents the data that is generated by a TM1 Transformation Report.
+import  {TM2DeployFilePaths}              from  '../tm-tools-types';    // Interface. Represents the complete suite of file paths required by the TM2 Deploy command.
+import  {TM2DeploymentReport}             from  '../tm-tools-types';    // Interface. Represents the data that is generated by a TM2 Deployment Report.
 
 // Set the File Local Debug Namespace
 const dbgNs = 'MODULE:tm-tools-deploy:';
@@ -290,7 +264,7 @@ export class TmToolsDeploy {
     SfdxFalconDebug.obj(`${dbgNs}saveReport:arguments:`, arguments);
 
     // Default target file to the one from the TM File Paths collection unless the caller overrides.
-    targetFile = targetFile || this.filePaths.tm2DeploymentReportPath;
+    targetFile = targetFile || this._filePaths.tm2DeploymentReportPath;
 
     // Validate the target file.
     if (typeof targetFile !== 'string' || targetFile === '' || targetFile === null) {
@@ -317,19 +291,58 @@ export class TmToolsDeploy {
 
   //───────────────────────────────────────────────────────────────────────────┐
   /**
-   * @method      transformIntermediateData
+   * @method      transformObjectTerritory2Associations
    * @return      {Promise<void>}
    * @description ???
    * @public @async
    */
   //───────────────────────────────────────────────────────────────────────────┘
-  public async transformIntermediateData():Promise<void> {
+  public async transformObjectTerritory2Associations():Promise<void> {
 
-    // TODO: Implement this method.
+    // Tell the TM2 Context to build it's ObjectTerritory2Association records.
+    await this._tm2Context.buildObjectT2AssociationRecords();
 
-    // transformOT2Associations
-    // transformUT2Associations
+    // Stream the newly-built ObjectTerritory2Association records JSON to disk.
+    await csv.streamJsonToCsvFile(
+      this._tm2Context.objectTerritory2AssociationRecords,
+      this._filePaths.objectTerritory2AssociationCsv,
+      {
+        fields: [
+          'AssociationCause',
+          'ObjectId',
+          'SobjectType',
+          'Territory2Id'
+        ]
+      }
+    );
+  }
 
+  //───────────────────────────────────────────────────────────────────────────┐
+  /**
+   * @method      transformUserTerritory2Associations
+   * @return      {Promise<void>}
+   * @description ???
+   * @public @async
+   */
+  //───────────────────────────────────────────────────────────────────────────┘
+  public async transformUserTerritory2Associations():Promise<void> {
+
+    // Tell the TM2 Context to build it's UserTerritory2Association records.
+    await this._tm2Context.buildUserT2AssociationRecords();
+
+    // Stream the newly-built UserTerritory2Association records JSON to disk.
+    await csv.streamJsonToCsvFile(
+      this._tm2Context.userTerritory2AssociationRecords,
+      this._filePaths.userTerritory2AssociationCsv,
+      {
+        fields: [
+          'IsActive',
+          'RoleInTerritory2',
+          'Territory2Id',
+          'UserId'
+        ]
+      }
+    );
   }
 
   //───────────────────────────────────────────────────────────────────────────┐
@@ -342,28 +355,26 @@ export class TmToolsDeploy {
   //───────────────────────────────────────────────────────────────────────────┘
   public async updateTerritoryDevNameMap():Promise<void> {
 
-    // TODO: Implement this method.
+    // Update the Record Maps in the TM2 Context.
+    await this._tm2Context.updateRecordMaps();
+
+    // Stream the updated Territory DevName Mappings JSON to disk.
+    await csv.streamJsonToCsvFile(
+      this._tm2Context.territoryDevNameMappings,
+      this._filePaths.tm1ToTm2DevnameMapCsv,
+      {
+        fields: [
+          'territoryDevName',
+          'territoryId',
+          'territory2ModelDevName',
+          'territory2DevName',
+          'territory2Id',
+          'territory2ParentDevName',
+          'territory2ParentId'
+        ]
+      }
+    );
   }
-
-
-
-
-
-// deployMainMetadata
-// deployCleanupMetadata
-// deploySharingRulesMetadata
-
-// fetchTerritory2Records
-
-// transformOT2Associations
-// transformUT2Associations
-
-// updateTerritoryDevNameMap
-
-
-
-
-
 
   //───────────────────────────────────────────────────────────────────────────┐
   /**
