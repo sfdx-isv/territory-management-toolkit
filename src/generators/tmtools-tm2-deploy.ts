@@ -298,43 +298,48 @@ export default class Tm2Deploy extends SfdxFalconYeomanGenerator<InterviewAnswer
     // Show a message to the User letting them know we're going to start these tasks.
     console.log(chalk`{yellow Running Post-Deployment Tasks...}`);
     
-    // Run the "Post-Deployment" tasks. Make sure to use await since Listr will run asynchronously.
+    // Run the "Post-Deployment" tasks. These are not "all or nothing", so we will have to process a rejected promise.
     const postDeploymentTasksResults = await postDeploymentTasks.run()
-    .catch(utilityResult => {
+    .then(listrResult => {
+      SfdxFalconDebug.obj(`${dbgNs}_runPostDeploymentTasks:listrResult:`, listrResult);
 
-      // DEBUG
-      SfdxFalconDebug.obj(`${dbgNs}_runPostDeploymentTasks:utilityResult:`, utilityResult);
+      // Add a success message
+      this.generatorStatus.addMessage({
+        type:     'success',
+        title:    `Post-Deployment Tasks`,
+        message:  `Success - Post-Deployment transformations and other tasks completed successfully`
+      });
+      return listrResult;
+    })
+    .catch(listrError => {
+      SfdxFalconDebug.obj(`${dbgNs}_runPostDeploymentTasks:listrError:`, listrError);
 
-      // If we get an Error, just throw it.
-      if (utilityResult instanceof Error) {
-        throw utilityResult;
+      // Add a warning message
+      this.generatorStatus.addMessage({
+        type:     'warning',
+        title:    `Post-Deployment Tasks`,
+        message:  `Warning - Some post-deployment tasks did not complete successfully (see above)`
+      });
+
+      // Since the TM1 Extraction Validation tasks DO NOT exit on error, we need to process the results.
+      if (typeof listrError === 'object' && Array.isArray(listrError.errors)) {
+        const caughtErrors = [];
+        for (const error of listrError.errors) {
+          caughtErrors.push({
+            name:     error.name,
+            message:  error.message,
+            cause:    (error.cause) ? {name: error.cause.name, message: error.cause.message, stack: error.cause.stack} : 'NOT_SPECIFIED'
+          });
+        }
+        SfdxFalconDebug.obj(`${dbgNs}_runPostDeploymentTasks:caughtErrors:`, caughtErrors);
       }
-
-      // If we get an SfdxFalconResult, link its Error Object to a new SfdxFalconError and throw it.
-      if (utilityResult instanceof SfdxFalconResult) {
-        throw new SfdxFalconError( `One or more post-deployment tasks failed.`
-                                  , `Tm2PostDeploymentError`
-                                  , `${dbgNs}_runPostDeploymentTasks`
-                                  , utilityResult.errObj);
-      }
-
-      // If we get here, who knows what we got. Wrap it as an SfdxFalconError and throw it.
-      throw SfdxFalconError.wrap(utilityResult);
     });
+
+    // DEBUG
     SfdxFalconDebug.obj(`${dbgNs}_runPostDeploymentTasks:postDeploymentTasksResults:`, postDeploymentTasksResults);
-
-    // Add a success message
-    this.generatorStatus.addMessage({
-      type:     'success',
-      title:    `Post-Deployment Tasks`,
-      message:  `Success - TM2 post-deployment tasks were completed successfully`
-    });
 
     // Add a line break to separate the output of this section from others
     console.log('');
-
-    // Done with TM1 Transformation.
-    return;
   }
 
   //───────────────────────────────────────────────────────────────────────────┐
