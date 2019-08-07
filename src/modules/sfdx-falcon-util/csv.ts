@@ -44,6 +44,15 @@ export type Csv2JsonOptions = csv2json.Options;
  */
 export type Json2CsvOptions = import('json2csv/JSON2CSVBase').json2csv.Options<JsonMap>;
 
+/**
+ * Interface. Represents the collection of functions that should be applied to CSV data during transformation.
+ */
+export interface TransformationFunctions {
+  onRowData:  (data:JsonMap) => JsonMap;
+  onHeaders?: (headers:string[]) => void;
+  onEnd?:     (results?:JsonMap[]) => void;
+}
+
 // Set the File Local Debug Namespace
 const dbgNs = 'UTILITY:csv:';
 SfdxFalconDebug.msg(`${dbgNs}`, `Debugging initialized for ${dbgNs}`);
@@ -125,6 +134,36 @@ export class CsvFile {
 
     // Pass the CsvFile object back to the caller.
     return csvFile;
+  }
+
+  //───────────────────────────────────────────────────────────────────────────┐
+  /**
+   * @method      transform
+   * @param       {string|JsonMap[]}  sourceData  Required. One of three
+   *              possible things: 1) A string containing the path to a CSV
+   *              file. 2) A string containing valid CSV data. 3) A JsonMap
+   *              array with data destined for a CSV file.
+   * @param       {function}  tranformationFunction Required. The function that
+   *              will be called on to transform each row.
+   * @param       {string}  csvFilePath Required. Complete path to the location
+   *              that the caller wants to eventually write CSV data to disk.
+   * @param       {Json2CsvOptions} j2cOpts  Required. CSV file creation options.
+   * @param       {Csv2JsonOptions} [c2jOpts]  Optional. CSV file parser options.
+   *              Required if the first argument is a string, ie. a path to a
+   *              CSV file or a string containing CSV data.
+   * @return      {Promise<CsvFile>}
+   * @description Given some sort of valid Source Data, instantiates a CsvFile
+   *              object then prepares it by transforming the Source Data using
+   *              the transformation function that the caller specified. The
+   *              result is a CsvFile object that is read to write its contents
+   *              to disk.
+   * @public @static @async
+   */
+  //───────────────────────────────────────────────────────────────────────────┘
+  public static async transform(sourceData:string|JsonMap[], tranformationFunction:unknown, csvFilePath:string, j2cOpts:Json2CsvOptions, c2jOpts?:Csv2JsonOptions):Promise<CsvFile> {
+
+    throw new Error('Method Not Implemented. Please try again later.');
+
   }
 
   // Private Members
@@ -586,6 +625,112 @@ export async function streamJsonToCsvFile(jsonData:JsonMap[], csvFilePath:string
                               , `ParserError`
                               , `${dbgNs}streamJsonToCsvFile`
                               , parserError);
+  });
+}
+
+//─────────────────────────────────────────────────────────────────────────────────────────────────┐
+/**
+ * @function    transformCsvFileToCsvFile
+ * @param       {string}  csvSourceFilePath Required. Path to location of the original CSV file.
+ * @param       {string}  csvTargetFilePath Required. Path to where the CSV file will be written to.
+ * @param       {TransformationFunctions} tranformationFunctions  Required. The set of functions
+ *              that the header, data, and end events will execute as part of the transformation.
+ * @param       {Json2CsvOptions} opts  Required. JSON-to-CSV conversion options.
+ * @param       {Csv2JsonOptions} [opts]  Optional. Options for the CSV file parser.
+ * @returns     {Promise<void>}
+ * @description TODO: Update this description. Intention here is to make it easy to transform
+ *              directly from one CSV file to another.
+ * @public @async
+ */
+//─────────────────────────────────────────────────────────────────────────────────────────────────┘
+export async function transformCsvFileToCsvFile():Promise<void> {
+
+  // TODO: Implement this function.
+  throw new Error('Not Implemented. Please try again later');
+}
+
+//─────────────────────────────────────────────────────────────────────────────────────────────────┐
+/**
+ * @function    transformFile
+ * @param       {string}  csvFilePath Required. Path to a CSV file.
+ * @param       {TransformationFunctions} tranformationFunctions  Required. The set of functions
+ *              that the header, data, and end events will execute as part of the transformation.
+ * @param       {Csv2JsonOptions} [opts]  Optional. Options for the CSV file parser.
+ * @returns     {Promise<JsonMap[]>} Array of JSON Maps, one for each row of the CSV file.
+ * @description Given the path to a valid CSV file, parses that file while applying the
+ *              transformation functions that the caller specified. Returns an array of
+ *              JSON Maps, one for each row of the CSV file.
+ * @public @async
+ */
+//─────────────────────────────────────────────────────────────────────────────────────────────────┘
+export async function transformFile(csvFilePath:string, tranformationFunctions:TransformationFunctions, opts:Csv2JsonOptions={}):Promise<JsonMap[]> {
+
+  // Debug incoming arguments
+  SfdxFalconDebug.obj(`${dbgNs}transformFile:arguments:`, arguments);
+
+  // Results will be an array of JSON Maps.
+  const results = [] as JsonMap[];
+
+  // Wrap the file system stream read in a promise.
+  return new Promise((resolve, reject) => {
+    fse.createReadStream(csvFilePath)
+    .on('error', (error:Error) => {
+      reject(new SfdxFalconError( `Unable to read '${csvFilePath}'.  ${error.message}`
+                                , `FileStreamError`
+                                , `${dbgNs}transformFile`
+                                , error));
+    })
+    .pipe(csv2json(opts))
+    .on('headers', (headers:string[]) => {
+      if (typeof tranformationFunctions.onHeaders === 'function') {
+        try {
+          tranformationFunctions.onHeaders(headers);
+        }
+        catch (headerError) {
+          reject(new SfdxFalconError( `Header Transformation Error: ${headerError.message}`
+                                    , `HeaderTransformationError`
+                                    , `${dbgNs}transformFile`
+                                    , headerError));
+        }
+      }
+    })
+    .on('data', (data:JsonMap) => {
+      if (typeof tranformationFunctions.onRowData === 'function') {
+        try {
+          results.push(tranformationFunctions.onRowData(data));
+        }
+        catch (rowDataError) {
+          reject(new SfdxFalconError( `Row Data Transformation Error: ${rowDataError.message}`
+                                    , `RowDataTransformationError`
+                                    , `${dbgNs}transformFile`
+                                    , rowDataError));
+        }
+      }
+      else {
+        results.push(data);
+      }
+    })
+    .on('end',  () => {
+      if (typeof tranformationFunctions.onEnd === 'function') {
+        try {
+          tranformationFunctions.onEnd(results);
+        }
+        catch (endError) {
+          reject(new SfdxFalconError( `End Transformation Error: ${endError.message}`
+                                    , `EndTransformationError`
+                                    , `${dbgNs}transformFile`
+                                    , endError));
+        }
+      }
+      SfdxFalconDebug.obj(`${dbgNs}transformFile:results:`, results, `results: `);
+      resolve(results);
+    })
+    .on('error', (error:Error) => {
+      reject(new SfdxFalconError( `Unable to parse '${csvFilePath}'.  ${error.message}`
+                                , `CsvParsingError`
+                                , `${dbgNs}transformFile`
+                                , error));
+    });
   });
 }
 
