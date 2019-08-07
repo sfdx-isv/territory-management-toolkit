@@ -19,6 +19,7 @@ import {SfdxFalconError}              from  '../sfdx-falcon-error';   // Class. 
 // Import TM-Tools Types
 import {TMFileNames}                  from  '../tm-tools-types';   // ???
 import {TM1AnalyzeFilePaths}          from  '../tm-tools-types';   // ???
+import {TM1ContextFilePaths}          from  '../tm-tools-types';   // ???
 import {TM1ExtractFilePaths}          from  '../tm-tools-types';   // ???
 import {TM1TransformFilePaths}        from  '../tm-tools-types';   // ???
 import {TM1CleanupFilePaths}          from  '../tm-tools-types';   // ???
@@ -37,6 +38,7 @@ const tm2DataLoadReportFileName                   = 'tm2-dataload.json';
 const accountShareCsv                             = 'AccountShare.csv';
 const ataRuleCsv                                  = 'AccountTerritoryAssignmentRule.csv';
 const ataRuleItemCsv                              = 'AccountTerritoryAssignmentRuleItem.csv';
+const groupCsv                                    = 'Group.csv';
 const territoryCsv                                = 'Territory.csv';
 const territory2Csv                               = 'Territory2.csv';
 const userTerritoryCsv                            = 'UserTerritory.csv';
@@ -52,7 +54,7 @@ const extractedDataDir                            = 'extracted-data';
 const extractedMetadataDir                        = 'extracted-metadata';
 const extractedMetadataPackageDir                 = 'unpackaged';
 
-const transformedDataDir                          = 'tm1-transformation';
+const transformedDataDir                          = 'transformed-data';
 const transformedMetadataDir                      = 'transformed-metadata';
 const tm1SharingRulesCleanupDir                   = 'tm1-sharing-rules-cleanup';
 const tm2MainDeploymentDir                        = 'tm2-main-deployment';
@@ -95,6 +97,7 @@ export default class TmFilePaths {
       accountShareCsv:                              accountShareCsv,
       ataRuleCsv:                                   ataRuleCsv,
       ataRuleItemCsv:                               ataRuleItemCsv,
+      groupCsv:                                     groupCsv,
       territoryCsv:                                 territoryCsv,
       territory2Csv:                                territory2Csv,
       userTerritoryCsv:                             userTerritoryCsv,
@@ -108,6 +111,37 @@ export default class TmFilePaths {
     // DEBUG and send back to caller.
     SfdxFalconDebug.obj(`${dbgNs}getFileNames:tmFileNames:`, tmFileNames);
     return tmFileNames;
+  }
+
+  //───────────────────────────────────────────────────────────────────────────┐
+  /**
+   * @method      getTm1ContextFilePaths
+   * @param       {string}  baseDirectory Required.
+   * @returns     {TM1ContextFilePaths} Paths required by TM1 Context.
+   * @description ???
+   * @public @static
+   */
+  //───────────────────────────────────────────────────────────────────────────┘
+  public static getTm1ContextFilePaths(baseDirectory:string):TM1ContextFilePaths {
+
+    // Validate incoming arguments.
+    TmFilePaths.validateBaseDirectoryArgument.apply(null, arguments);
+
+    // Build the File Paths.
+    const tm1ContextFilePaths:TM1ContextFilePaths = {
+      baseDirectory:    baseDirectory,
+      accountShareCsv:  path.join(baseDirectory, tm1ExtractionDir, extractedDataDir, accountShareCsv),
+      ataRuleCsv:       path.join(baseDirectory, tm1ExtractionDir, extractedDataDir, ataRuleCsv),
+      ataRuleItemCsv:   path.join(baseDirectory, tm1ExtractionDir, extractedDataDir, ataRuleItemCsv),
+      groupCsv:         path.join(baseDirectory, tm1ExtractionDir, extractedDataDir, groupCsv),
+      territoryCsv:     path.join(baseDirectory, tm1ExtractionDir, extractedDataDir, territoryCsv),
+      tm1MetadataDir:   path.join(baseDirectory, tm1ExtractionDir, extractedMetadataDir, extractedMetadataPackageDir),
+      userTerritoryCsv: path.join(baseDirectory, tm1ExtractionDir, extractedDataDir, userTerritoryCsv)
+    };
+
+    // DEBUG and send back to caller.
+    SfdxFalconDebug.obj(`${dbgNs}getTm1ContextFilePaths:tm1ContextFilePaths:`, tm1ContextFilePaths);
+    return tm1ContextFilePaths;
   }
 
   //───────────────────────────────────────────────────────────────────────────┐
@@ -161,6 +195,7 @@ export default class TmFilePaths {
           accountShareCsv:              path.join(baseDirectory, tm1ExtractionDir, extractedDataDir, accountShareCsv),
           ataRuleCsv:                   path.join(baseDirectory, tm1ExtractionDir, extractedDataDir, ataRuleCsv),
           ataRuleItemCsv:               path.join(baseDirectory, tm1ExtractionDir, extractedDataDir, ataRuleItemCsv),
+          groupCsv:                     path.join(baseDirectory, tm1ExtractionDir, extractedDataDir, groupCsv),
           territoryCsv:                 path.join(baseDirectory, tm1ExtractionDir, extractedDataDir, territoryCsv),
           userTerritoryCsv:             path.join(baseDirectory, tm1ExtractionDir, extractedDataDir, userTerritoryCsv),
         extractedMetadataDir:           path.join(baseDirectory, tm1ExtractionDir, extractedMetadataDir),

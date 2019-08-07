@@ -165,6 +165,15 @@ export interface AtaRuleItemRecord extends SObjectRecord {
 }
 
 /**
+ * Interface. Represents a Group Record.
+ */
+export interface GroupRecord extends SObjectRecord {
+  DeveloperName?: DeveloperName;
+  RelatedId?:     SObjectRecordId;
+  Type?:          string;
+}
+
+/**
  * Interface. Represents an ObjectTerritory2Association Record.
  */
 export interface ObjectTerritory2AssociationRecord extends SObjectRecord {
@@ -254,6 +263,16 @@ export type AtaRuleItemRecordsByRuleId = Map<SObjectRecordId, AtaRuleItemRecords
  * Type. Represents a map of an array of AccountTerritoryAssignmentRule Records by Territory ID.
  */
 export type AtaRuleRecordsByTerritoryId = Map<SObjectRecordId, AtaRuleRecords>;
+
+/**
+ * Type. Represents an array of Group Records.
+ */
+export type GroupRecords = GroupRecord[];
+
+/**
+ * Type. Represents a map of Group Records by Group ID.
+ */
+export type GroupRecordsById = Map<SObjectRecordId, GroupRecord>;
 
 /**
  * Type. Represents an array of ObjectTerritory2Association Records.
@@ -485,6 +504,7 @@ export interface TM1ContextValidation extends JsonMap {
     extractedAtaRuleItemRecords:    AtaRuleItemRecords;
     extractedUserTerritoryRecords:  UserTerritoryRecords;
     extractedAccountShareRecords:   AccountShareRecords;
+    extractedGroupRecords:          GroupRecords;
   };
   expectedRecordCounts:             TM1RecordCounts;
   actualRecordCounts:               TM1RecordCounts;
@@ -496,6 +516,7 @@ export interface TM1ContextValidation extends JsonMap {
     ataRuleItemExtractionIsValid:   boolean;
     userTerritoryExtractionIsValid: boolean;
     accountShareExtractionIsValid:  boolean;
+    groupExtractionIsValid:         boolean;
   };
 }
 
@@ -618,6 +639,7 @@ export interface TM1RecordCounts extends JsonMap {
   ataRuleRecordCount:         number;
   ataRuleItemRecordCount:     number;
   accountShareRecordCount:    number;
+  groupRecordCount:           number;
 }
 
 /**
@@ -776,12 +798,14 @@ export interface TM2DataLoadReport extends JsonMap {
  * Interface. Represents the complete suite of CSV and Metadata file paths required to create a TM1 Context.
  */
 export interface TM1ContextFilePaths extends JsonMap {
-  accountShareCsv:  string;
-  ataRuleCsv:       string;
-  ataRuleItemCsv:   string;
-  territoryCsv:     string;
-  userTerritoryCsv: string;
-  tm1MetadataDir:   string;
+  accountShareCsv:              string;
+  ataRuleCsv:                   string;
+  ataRuleItemCsv:               string;
+  baseDirectory:                string;
+  groupCsv:                     string;
+  territoryCsv:                 string;
+  tm1MetadataDir:               string;
+  userTerritoryCsv:             string;
 }
 
 /**
@@ -797,6 +821,7 @@ export interface TMFileNames extends JsonMap {
   accountShareCsv:                              string;
   ataRuleCsv:                                   string;
   ataRuleItemCsv:                               string;
+  groupCsv:                                     string;
   territoryCsv:                                 string;
   territory2Csv:                                string;
   userTerritoryCsv:                             string;
@@ -826,6 +851,7 @@ export interface TM1ExtractFilePaths extends TM1AnalyzeFilePaths {
       accountShareCsv:              string;
       ataRuleCsv:                   string;
       ataRuleItemCsv:               string;
+      groupCsv:                     string;
       territoryCsv:                 string;
       userTerritoryCsv:             string;
     extractedMetadataDir:           string;

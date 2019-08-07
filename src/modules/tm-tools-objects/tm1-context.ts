@@ -15,10 +15,11 @@ import * as path    from  'path';             // Node's path library.
 import * as convert from  'xml-js';           // Convert XML text to Javascript object / JSON text (and vice versa).
 
 // Import Internal Modules
-import {SfdxFalconDebug}              from  '../sfdx-falcon-debug';       // Class. Specialized debug provider for SFDX-Falcon code.
-import {SfdxFalconError}              from  '../sfdx-falcon-error';       // Class. Extends SfdxError to provide specialized error structures for SFDX-Falcon modules.
-import {parseFile}                    from  '../sfdx-falcon-util/csv';    // Class. Extends SfdxError to provide specialized error structures for SFDX-Falcon modules.
-import {createDeveloperName}          from  '../sfdx-falcon-util/mdapi';  // Function. Given any string, returns a transformed version of that string that is compatible with the Salesforce Developer Name / Full Name conventions.
+import {SfdxFalconDebug}              from  '../sfdx-falcon-debug';               // Class. Specialized debug provider for SFDX-Falcon code.
+import {SfdxFalconError}              from  '../sfdx-falcon-error';               // Class. Extends SfdxError to provide specialized error structures for SFDX-Falcon modules.
+import {parseFile}                    from  '../sfdx-falcon-util/csv';            // Class. Extends SfdxError to provide specialized error structures for SFDX-Falcon modules.
+import {createDeveloperName}          from  '../sfdx-falcon-util/mdapi';          // Function. Given any string, returns a transformed version of that string that is compatible with the Salesforce Developer Name / Full Name conventions.
+import TmFilePaths                    from  '../tm-tools-objects/tm-file-paths';  // Class. Utility for generatig File Paths required by various TM-Tools commands.
 
 // Import TM-Tools Types
 import {AccountShareRecords}          from  '../tm-tools-types';   // Type. Represents an array of AccountShare Records.
@@ -29,6 +30,9 @@ import {AtaRuleRecord}                from  '../tm-tools-types';   // Interface.
 import {AtaRuleRecords}               from  '../tm-tools-types';   // Type. Represents an array of AccountTerritoryAssignmentRule Records.
 import {AtaRuleRecordsById}           from  '../tm-tools-types';   // Type. Represents a map of AccountTerritoryAssignmentRule Records by Rule ID.
 import {AtaRuleRecordsByTerritoryId}  from  '../tm-tools-types';   // Type. Represents a map of an array of AccountTerritoryAssignmentRule Records by Territory ID.
+import {GroupRecord}                  from  '../tm-tools-types';   // Interface. Represents a Group Record.
+import {GroupRecords}                 from  '../tm-tools-types';   // Type. Represents an array of Group Records.
+import {GroupRecordsById}             from  '../tm-tools-types';   // Type. Represents a map of Group Records by Group ID.
 import {FilterItem}                   from  '../tm-tools-types';   // Interface. Represents a single filter item. Usually used as part an array of Filter Items.
 import {SharingGroup}                 from  '../tm-tools-types';   // Interface. Represents a Sharing Group inside Salesforce.
 import {SharingRulesJson}             from  '../tm-tools-types';   // Interface. Represents a collection of Criteria, Ownership, and Territory-based Sharing Rules
@@ -59,8 +63,7 @@ export class Tm1Context {
    * @method      prepare
    * @param       {TM1AnalysisReport} tm1AnalysisReport Required. The TM1
    *              analysis that was the basis for extraction.
-   * @param       {string} exportedMetadataPath
-   * @param       {string} exportedRecordDataPath
+   * @param       {string}  baseDirectory Required.
    * @returns     {Promise<Tm1Context>} A fully-populated "Territory Management
    *              1.0 Context" object.
    * @description Given the paths to exported TM1 metadata and record data,
@@ -71,9 +74,9 @@ export class Tm1Context {
    * @public @static @async
    */
   //───────────────────────────────────────────────────────────────────────────┘
-  public static async prepare(tm1AnalysisReport:TM1AnalysisReport, exportedMetadataPath:string, exportedRecordDataPath:string):Promise<Tm1Context> {
+  public static async prepare(tm1AnalysisReport:TM1AnalysisReport, baseDirectory:string):Promise<Tm1Context> {
 
-    const tm1Context = new Tm1Context(tm1AnalysisReport, exportedMetadataPath, exportedRecordDataPath);
+    const tm1Context = new Tm1Context(tm1AnalysisReport, TmFilePaths.getTm1ContextFilePaths(baseDirectory));
     await tm1Context.parseCsvFiles();
     await tm1Context.transformCsvFiles();
     await tm1Context.parseXmlFiles();
@@ -86,23 +89,21 @@ export class Tm1Context {
    * @method      validate
    * @param       {TM1AnalysisReport} tm1AnalysisReport Required. The TM1
    *              analysis that was the basis for extraction.
-   * @param       {string}  tm1MetadataDir  Required. Path to location of
-   *              extracted TM1 metadata.
-   * @param       {string}  tm1DataDir  Required. Path to location of extracted
-   *              TM1 data.
+   * @param       {string}  baseDirectory Required. Location where the TM1
+   *              Analysis Report is located.
    * @description Given a TM1 Analysis object AND the paths to extracted TM1
    *              metadata and record data, checks to make sure that the
    *              extracted files match what was expected by the TM1 Analysis.
    * @public @static @async
    */
   //───────────────────────────────────────────────────────────────────────────┘
-  public static async validate(tm1AnalysisReport:TM1AnalysisReport, tm1MetadataDir:string, tm1DataDir:string):Promise<TM1ContextValidation> {
+  public static async validate(tm1AnalysisReport:TM1AnalysisReport, baseDirectory:string):Promise<TM1ContextValidation> {
 
     // Debug incoming arguments.
     SfdxFalconDebug.obj(`${dbgNs}validate:arguments:`, arguments);
 
     // Create a new TM1 Context object and Parse the CSV and XML Files.
-    const tm1Context = new Tm1Context(tm1AnalysisReport, tm1MetadataDir, tm1DataDir);
+    const tm1Context = new Tm1Context(tm1AnalysisReport, TmFilePaths.getTm1ContextFilePaths(baseDirectory));
     await tm1Context.parseCsvFiles();
     await tm1Context.parseXmlFiles();
 
@@ -113,21 +114,24 @@ export class Tm1Context {
         extractedAtaRuleRecords:        tm1Context._ataRuleRecords,
         extractedAtaRuleItemRecords:    tm1Context._ataRuleItemRecords,
         extractedUserTerritoryRecords:  tm1Context._userTerritoryRecords,
-        extractedAccountShareRecords:   tm1Context._accountShareRecords
+        extractedAccountShareRecords:   tm1Context._accountShareRecords,
+        extractedGroupRecords:          tm1Context._groupRecords
       },
       expectedRecordCounts: {
         territoryRecordCount:       tm1AnalysisReport.tm1RecordCounts.territoryRecordCount,
         ataRuleRecordCount:         tm1AnalysisReport.tm1RecordCounts.ataRuleRecordCount,
         ataRuleItemRecordCount:     tm1AnalysisReport.tm1RecordCounts.ataRuleItemRecordCount,
         userTerritoryRecordCount:   tm1AnalysisReport.tm1RecordCounts.userTerritoryRecordCount,
-        accountShareRecordCount:    tm1AnalysisReport.tm1RecordCounts.accountShareRecordCount
+        accountShareRecordCount:    tm1AnalysisReport.tm1RecordCounts.accountShareRecordCount,
+        groupRecordCount:           tm1AnalysisReport.tm1RecordCounts.groupRecordCount
       },
       actualRecordCounts: {
         territoryRecordCount:       tm1Context._territoryRecords.length,
         ataRuleRecordCount:         tm1Context._ataRuleRecords.length,
         ataRuleItemRecordCount:     tm1Context._ataRuleItemRecords.length,
         userTerritoryRecordCount:   tm1Context._userTerritoryRecords.length,
-        accountShareRecordCount:    tm1Context._accountShareRecords.length
+        accountShareRecordCount:    tm1Context._accountShareRecords.length,
+        groupRecordCount:           tm1Context._groupRecords.length
       },
       expectedMetadataCounts: {
         accountSharingRulesCount: {
@@ -164,7 +168,8 @@ export class Tm1Context {
         ataRuleExtractionIsValid:       (tm1AnalysisReport.tm1RecordCounts.ataRuleRecordCount       === tm1Context._ataRuleRecords.length),
         ataRuleItemExtractionIsValid:   (tm1AnalysisReport.tm1RecordCounts.ataRuleItemRecordCount   === tm1Context._ataRuleItemRecords.length),
         userTerritoryExtractionIsValid: (tm1AnalysisReport.tm1RecordCounts.userTerritoryRecordCount === tm1Context._userTerritoryRecords.length),
-        accountShareExtractionIsValid:  (tm1AnalysisReport.tm1RecordCounts.accountShareRecordCount  === tm1Context._accountShareRecords.length)
+        accountShareExtractionIsValid:  (tm1AnalysisReport.tm1RecordCounts.accountShareRecordCount  === tm1Context._accountShareRecords.length),
+        groupExtractionIsValid:         (tm1AnalysisReport.tm1RecordCounts.groupRecordCount         === tm1Context._groupRecords.length)
       }
     };
 
@@ -184,6 +189,8 @@ export class Tm1Context {
   private _ataRuleRecordsByTerritoryId: AtaRuleRecordsByTerritoryId;
   private _ataRuleItemRecordsByRuleId:  AtaRuleItemRecordsByRuleId;
   private _ataRuleDevNamesByRuleId:     AtaRuleDevNamesByRuleId;
+  private _groupRecords:                GroupRecords;
+  private _groupRecordsById:            GroupRecordsById;
   private _leadSharingRules:            SharingRulesJson;
   private _opportunitySharingRules:     SharingRulesJson;
   private _territoryRecords:            TerritoryRecords;
@@ -202,6 +209,8 @@ export class Tm1Context {
   public get ataRuleItemRecords()           { return this.contextIsPrepared() ? this._ataRuleItemRecords : undefined; }
   public get ataRuleItemRecordsByRuleId()   { return this.contextIsPrepared() ? this._ataRuleItemRecordsByRuleId : undefined; }
   public get ataRuleDevNamesByRuleId()      { return this.contextIsPrepared() ? this._ataRuleDevNamesByRuleId : undefined; }
+  public get groupRecords()                 { return this.contextIsPrepared() ? this._groupRecords : undefined; }
+  public get groupRecordsById()             { return this.contextIsPrepared() ? this._groupRecordsById : undefined; }
   public get leadSharingRules()             { return this.contextIsPrepared() ? this._leadSharingRules : undefined; }
   public get opportunitySharingRules()      { return this.contextIsPrepared() ? this._opportunitySharingRules : undefined; }
   public get territoryRecords()             { return this.contextIsPrepared() ? this._territoryRecords : undefined; }
@@ -215,8 +224,7 @@ export class Tm1Context {
   /**
    * @constructs  Tm1Context
    * @param       {TM1AnalysisReport} tm1AnalysisReport Required.
-   * @param       {string} exportedMetadataPath Required.
-   * @param       {string} exportedRecordDataPath Required.
+   * @param       {TM1ContextFilePaths} tm1ContextFilePaths Required.
    * @description Given the paths to exported TM1 metadata and record data,
    *              performs a number of import and transformation operations.
    *              The end result is a fully-populated "Territory Management 1.0
@@ -225,17 +233,10 @@ export class Tm1Context {
    * @private
    */
   //───────────────────────────────────────────────────────────────────────────┘
-  private constructor(tm1AnalysisReport:TM1AnalysisReport, exportedMetadataPath:string, exportedRecordDataPath:string) {
+  private constructor(tm1AnalysisReport:TM1AnalysisReport, tm1ContextFilePaths:TM1ContextFilePaths) {
 
     // Define the expected TM1 file paths.
-    this._tm1FilePaths = {
-      accountShareCsv:  path.join(exportedRecordDataPath, 'AccountShare.csv'),
-      ataRuleCsv:       path.join(exportedRecordDataPath, 'AccountTerritoryAssignmentRule.csv'),
-      ataRuleItemCsv:   path.join(exportedRecordDataPath, 'AccountTerritoryAssignmentRuleItem.csv'),
-      territoryCsv:     path.join(exportedRecordDataPath, 'Territory.csv'),
-      userTerritoryCsv: path.join(exportedRecordDataPath, 'UserTerritory.csv'),
-      tm1MetadataDir:   path.join(exportedMetadataPath,   'unpackaged')
-    };
+    this._tm1FilePaths = tm1ContextFilePaths;
 
     // Save the TM1 Analysis Report
     this._tm1AnalysisReport = tm1AnalysisReport;
@@ -246,6 +247,7 @@ export class Tm1Context {
     this._ataRuleRecordsByTerritoryId = new Map<string, AtaRuleRecords>();
     this._ataRuleItemRecordsByRuleId  = new Map<string, AtaRuleItemRecords>();
     this._ataRuleDevNamesByRuleId     = new Map<string, string>();
+    this._groupRecordsById            = new Map<string, GroupRecord>();
 
     // Initialize Arrays
     this._accountSharingRules = {
@@ -387,6 +389,7 @@ export class Tm1Context {
     this._ataRuleItemRecords    = await parseFile(this._tm1FilePaths.ataRuleItemCsv);
     this._territoryRecords      = await parseFile(this._tm1FilePaths.territoryCsv);
     this._userTerritoryRecords  = await parseFile(this._tm1FilePaths.userTerritoryCsv);
+    this._groupRecords          = await parseFile(this._tm1FilePaths.groupCsv);
 
     // DEBUG
     SfdxFalconDebug.obj(
@@ -396,7 +399,8 @@ export class Tm1Context {
         _ataRuleRecords:        this._ataRuleRecords,
         _ataRuleItemRecords:    this._ataRuleItemRecords,
         _userTerritoryRecords:  this._userTerritoryRecords,
-        _accountShareRecords:   this._accountShareRecords
+        _accountShareRecords:   this._accountShareRecords,
+        _groupRecords:          this._groupRecords
       }
     );
   }
@@ -705,6 +709,11 @@ export class Tm1Context {
 
       // Add the group of related ATA Rule Item records to the AtaRuleItemRecordsByRuleId Map.
       this._ataRuleItemRecordsByRuleId.set(ataRuleRecord.Id, ataRuleItemRecords);
+    }
+
+    // Build GroupRecordsById Map.
+    for (const groupRecord of this._groupRecords) {
+      this._groupRecordsById.set(groupRecord.Id, groupRecord);
     }
   }
 }

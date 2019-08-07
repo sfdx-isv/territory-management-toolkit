@@ -308,9 +308,9 @@ export class TmToolsDeploy {
       this._filePaths.objectTerritory2AssociationCsv,
       {
         fields: [
-          'AssociationCause',
           'ObjectId',
           'SobjectType',
+          'AssociationCause',
           'Territory2Id'
         ]
       }
@@ -336,10 +336,10 @@ export class TmToolsDeploy {
       this._filePaths.userTerritory2AssociationCsv,
       {
         fields: [
-          'IsActive',
+          'UserId',
           'RoleInTerritory2',
-          'Territory2Id',
-          'UserId'
+          'IsActive',
+          'Territory2Id'
         ]
       }
     );

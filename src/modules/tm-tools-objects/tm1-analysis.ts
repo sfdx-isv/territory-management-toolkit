@@ -82,6 +82,7 @@ export class Tm1Analysis {
   private _accountSharingRulesCount:      SharingRulesCount;
   private _leadSharingRulesCount:         SharingRulesCount;
   private _opportunitySharingRulesCount:  SharingRulesCount;
+  private _groupRecordCount:              number;
   private _territoryRecordCount:          number;
   private _userTerritoryRecordCount:      number;
   private _dateAnalyzed:                  string;
@@ -104,6 +105,7 @@ export class Tm1Analysis {
   public get accountSharingRulesCount()     { this.checkPrepared(); return this._accountSharingRulesCount; }
   public get leadSharingRulesCount()        { this.checkPrepared(); return this._leadSharingRulesCount; }
   public get opportunitySharingRulesCount() { this.checkPrepared(); return this._opportunitySharingRulesCount; }
+  public get groupRecordCount()             { this.checkPrepared(); return this._groupRecordCount; }
   public get territoryRecordCount()         { this.checkPrepared(); return this._territoryRecordCount; }
   public get userTerritoryRecordCount()     { this.checkPrepared(); return this._userTerritoryRecordCount; }
   public get prepared()                     { return this._prepared; }
@@ -129,6 +131,7 @@ export class Tm1Analysis {
     this._hardTm1DependencyCount    = -1;
     this._softTm1DependencyCount    = -1;
     this._territoryRecordCount      = -1;
+    this._groupRecordCount          = -1;
     this._userTerritoryRecordCount  = -1;
     this._accountSharingRulesCount  = {
       sharingCriteriaRulesCount:  -1,
@@ -344,6 +347,62 @@ export class Tm1Analysis {
 
     // Return the result.
     return this._ataRuleRecordCount;
+  }
+
+  //───────────────────────────────────────────────────────────────────────────┐
+  /**
+   * @method      analyzeGroups
+   * @return      {number}  Number of Group records present in the target org
+   *              with "Territory" or "TerritoryAndSubordinates" as their Type.
+   * @description ???
+   * @public @async
+   */
+  //───────────────────────────────────────────────────────────────────────────┘
+  public async analyzeGroups():Promise<number> {
+
+    // Make sure we have a UserName
+    this.checkAliasOrUsername();
+
+    // Add a delay for dramatic effect.
+    await waitASecond(this._defaultDelay);
+
+    // Prep the SOQL Query
+    const soqlQuery = `SELECT count() FROM Group WHERE Type='Territory' OR Type='TerritoryAndSubordinates'`;
+
+    // Execute the SOQL Query
+    await sfdxHelper.executeSoqlQuery(
+      this._aliasOrUsername,
+      soqlQuery,
+      {
+        apiVersion:     falcon.sfdcApiVersion,
+        logLevel:       'warn',
+        useToolingApi:  false,
+        perfLog:        false,
+        json:           true
+      }
+    )
+    .then((successResult:SfdxFalconResult) => {
+      SfdxFalconDebug.obj(`${dbgNs}analyzeGroups:successResult:`, successResult);
+      this._groupRecordCount = sfdxHelper.getRecordCountFromResult(successResult);
+    })
+    .catch((failureResult:SfdxFalconResult|Error) => {
+      SfdxFalconDebug.obj(`${dbgNs}analyzeGroups:failureResult:`, failureResult);
+      if (failureResult instanceof SfdxFalconResult) {
+        // Add additional context and repackage the Error contained by the SfdxFalconResult
+        throw failureResult.error(
+          new SfdxFalconError ( `The target org (${this._aliasOrUsername}) does not appear to have Territory Management (TM1) enabled.`
+                              , `MissingTM1Config`
+                              , `${dbgNs}analyzeGroups`
+                              ,  failureResult.errObj)
+        );
+      }
+      else {
+        throw failureResult;
+      }
+    });
+
+    // Return the result.
+    return this._groupRecordCount;
   }
 
   //───────────────────────────────────────────────────────────────────────────┐
@@ -643,7 +702,8 @@ export class Tm1Analysis {
         userTerritoryRecordCount:   this._userTerritoryRecordCount,
         ataRuleRecordCount:         this._ataRuleRecordCount,
         ataRuleItemRecordCount:     this._ataRuleItemRecordCount,
-        accountShareRecordCount:    this._accountShareRecordCount
+        accountShareRecordCount:    this._accountShareRecordCount,
+        groupRecordCount:           this._groupRecordCount
       },
       tm1MetadataCounts: {
         accountSharingRulesCount: {

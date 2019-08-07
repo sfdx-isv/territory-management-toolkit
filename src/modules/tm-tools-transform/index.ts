@@ -85,7 +85,7 @@ export class TmToolsTransform {
     SfdxFalconDebug.obj(`${dbgNs}prepare:arguments:`, arguments);
 
     // Create a TM1 Context.
-    const tm1Context  = await Tm1Context.prepare(tm1AnalysisReport, tm1TransformFilePaths.extractedMetadataDir, tm1TransformFilePaths.extractedDataDir);
+    const tm1Context  = await Tm1Context.prepare(tm1AnalysisReport, tm1TransformFilePaths.baseDirectory);
     SfdxFalconDebug.obj(`${dbgNs}prepare:tm1Context:`, tm1Context);
 
     // Build a TM Tools Transform object.
@@ -210,7 +210,8 @@ export class TmToolsTransform {
         userTerritoryRecordCount:   -1,
         ataRuleRecordCount:         -1,
         ataRuleItemRecordCount:     -1,
-        accountShareRecordCount:    -1
+        accountShareRecordCount:    -1,
+        groupRecordCount:           -1
       },
       tm1MetadataCounts: {
         accountSharingRulesCount: {
@@ -762,6 +763,47 @@ export class TmToolsTransform {
 
   //───────────────────────────────────────────────────────────────────────────┐
   /**
+   * @method      getTerritoryDevNameFromGroupId
+   * @return      {void}
+   * @description Given a GroupId, finds the related Territory Developer Name.
+   * @private
+   */
+  //───────────────────────────────────────────────────────────────────────────┘
+  private getTerritoryDevNameFromGroupId(groupId:string):string {
+
+    // Find the Group Record that's associated with the given Group ID.
+    const groupRecord = this._tm1Context.groupRecordsById.get(groupId);
+
+    // Make sure we found a Group Record.
+    if (typeof groupRecord !== 'object' || typeof groupRecord.RelatedId !== 'string' || groupRecord.RelatedId.startsWith('04T') !== true) {
+      throw new SfdxFalconError ( `A Group Record with a valid Territory-specific RelatedId could not be found for GroupId '${groupId}'`
+                                + (typeof groupRecord === 'object' && typeof groupRecord.RelatedId === 'string') ? ` (RelatedId: '${groupRecord.RelatedId}').` : `.`
+                                , `MissingOrInvalidGroupRecord`
+                                , `${dbgNs}getTerritoryDevNameFromGroupId`);
+    }
+
+    // If we found a Group Record, the "RelatedId" field for the Group will be the Territory ID.
+    const territoryId = groupRecord.RelatedId;
+
+    // Using the Territory ID, find the associated Territory Record.
+    const territoryRecord = this._tm1Context.territoryRecordsById.get(territoryId);
+
+    // Make sure we found a Territory Record.
+    if (typeof territoryRecord !== 'object' || typeof territoryRecord.DeveloperName !== 'string' || territoryRecord.DeveloperName === '' || territoryRecord.DeveloperName === null) {
+      throw new SfdxFalconError ( `A Territory Record with a non-null, non-empty Developer Name could not be found for TerritoryId '${territoryId}'.`
+                                , `MissingOrInvalidTerritoryRecord`
+                                , `${dbgNs}getTerritoryDevNameFromGroupId`);
+    }
+
+    // DEBUG
+    SfdxFalconDebug.str(`${dbgNs}getTerritoryDevNameFromGroupId:DeveloperName:`, territoryRecord.DeveloperName);
+
+    // Return the Territory Record's Developer Name.
+    return territoryRecord.DeveloperName;
+  }
+
+  //───────────────────────────────────────────────────────────────────────────┐
+  /**
    * @method      writeObjectTerritory2AssociationIntermediateCsv
    * @return      {void}
    * @description ???
@@ -775,7 +817,7 @@ export class TmToolsTransform {
 
     // Iterate over the AccountShare Records from the TM1 Context to build new ObjectTerritory2Association records.
     for (const accountShareRecord of this._tm1Context.accountShareRecords) {
-      const territoryDevName = 'NOT_IMPLEMENTED';
+      const territoryDevName = this.getTerritoryDevNameFromGroupId(accountShareRecord.UserOrGroupId);
       objectTerritory2AssociationRecords.push({
         AssociationCause: 'Territory2Manual',
         ObjectId:         accountShareRecord.AccountId,
@@ -791,9 +833,9 @@ export class TmToolsTransform {
       this._filePaths.objectTerritory2AssociationIntermediateCsv,
       {
         fields: [
-          'AssociationCause',
           'ObjectId',
           'SobjectType',
+          'AssociationCause',
           'Territory2Id'
         ]
       }
@@ -877,10 +919,10 @@ export class TmToolsTransform {
       this._filePaths.userTerritory2AssociationIntermediateCsv,
       {
         fields: [
-          'IsActive',
+          'UserId',
           'RoleInTerritory2',
-          'Territory2Id',
-          'UserId'
+          'IsActive',
+          'Territory2Id'
         ]
       }
     );
