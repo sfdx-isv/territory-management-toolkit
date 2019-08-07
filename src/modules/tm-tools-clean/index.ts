@@ -1,10 +1,10 @@
 //─────────────────────────────────────────────────────────────────────────────────────────────────┐
 /**
- * @file          modules/tm-tools-transform/index.ts
+ * @file          modules/tm-tools-clean/index.ts
  * @copyright     Vivek M. Chawla - 2019
  * @author        Vivek M. Chawla <@VivekMChawla>
- * @summary       Exports the Transform class. Lets user take a TM1 Context and build TM2 metadata.
- * @description   Exports the Transform class. Lets user take a TM1 Context and build TM2 metadata.
+ * @summary       Exports the TmToolsClean class. Lets user...
+ * @description   Exports the TmToolsClean class. Lets user...
  * @version       1.0.0
  * @license       MIT
  */
@@ -51,21 +51,19 @@ const territory2ModelDevName  = 'Imported_Territory';
 const territory2TypeDevName   = 'Imported_Territory';
 
 // Set the File Local Debug Namespace
-const dbgNs = 'MODULE:tm-tools-transform:';
+const dbgNs = 'MODULE:tm-tools-clean:';
 SfdxFalconDebug.msg(`${dbgNs}`, `Debugging initialized for ${dbgNs}`);
 
 
 //─────────────────────────────────────────────────────────────────────────────────────────────────┐
 /**
- * @class       TmToolsTransform
- * @summary     Provides TM1 to TM2 transformation services given the location of source config.
- * @description If provided with the location of TM1 metadata and TM1 data, as well as the location
- *              on disk where the transformed config (data+metadata) should go, provides the full
- *              set of transformation services.
+ * @class       TmToolsClean
+ * @summary     Provides...
+ * @description ???
  * @public
  */
 //─────────────────────────────────────────────────────────────────────────────────────────────────┘
-export class TmToolsTransform {
+export class TmToolsClean {
 
   //───────────────────────────────────────────────────────────────────────────┐
   /**
@@ -79,17 +77,17 @@ export class TmToolsTransform {
    * @public @static @async
    */
   //───────────────────────────────────────────────────────────────────────────┘
-  public static async prepare(tm1AnalysisReport:TM1AnalysisReport, tm1ExtractionReport:TM1ExtractionReport, tm1TransformFilePaths:TM1TransformFilePaths):Promise<TmToolsTransform> {
+  public static async prepare(tm1AnalysisReport:TM1AnalysisReport, tm1ExtractionReport:TM1ExtractionReport, tm1TransformFilePaths:TM1TransformFilePaths):Promise<TmToolsClean> {
 
     // Debug incoming arguments
     SfdxFalconDebug.obj(`${dbgNs}prepare:arguments:`, arguments);
 
     // Create a TM1 Context.
-    const tm1Context  = await Tm1Context.prepare(tm1AnalysisReport, tm1TransformFilePaths.extractedMetadataDir, tm1TransformFilePaths.extractedDataDir);
+    const tm1Context  = await Tm1Context.prepare(tm1AnalysisReport, tm1TransformFilePaths.baseDirectory);
     SfdxFalconDebug.obj(`${dbgNs}prepare:tm1Context:`, tm1Context);
 
     // Build a TM Tools Transform object.
-    const tmToolsTransform = new TmToolsTransform(tm1Context, tm1ExtractionReport, tm1TransformFilePaths);
+    const tmToolsTransform = new TmToolsClean(tm1Context, tm1ExtractionReport, tm1TransformFilePaths);
 
     // Mark the instantiated obeject as "prepared".
     tmToolsTransform._prepared = true;
@@ -210,7 +208,8 @@ export class TmToolsTransform {
         userTerritoryRecordCount:   -1,
         ataRuleRecordCount:         -1,
         ataRuleItemRecordCount:     -1,
-        accountShareRecordCount:    -1
+        accountShareRecordCount:    -1,
+        groupRecordCount:           -1
       },
       tm1MetadataCounts: {
         accountSharingRulesCount: {

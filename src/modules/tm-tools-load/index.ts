@@ -1,10 +1,10 @@
 //─────────────────────────────────────────────────────────────────────────────────────────────────┐
 /**
- * @file          modules/tm-tools-transform/index.ts
+ * @file          modules/tm-tools-load/index.ts
  * @copyright     Vivek M. Chawla - 2019
  * @author        Vivek M. Chawla <@VivekMChawla>
- * @summary       Exports the Transform class. Lets user take a TM1 Context and build TM2 metadata.
- * @description   Exports the Transform class. Lets user take a TM1 Context and build TM2 metadata.
+ * @summary       Exports the TmToolsLoad class. Uses a TM2 Context to load TM2 data/metadata.
+ * @description   Exports the TmToolsLoad class. Uses a TM2 Context to load TM2 data/metadata.
  * @version       1.0.0
  * @license       MIT
  */
@@ -15,7 +15,7 @@ import  {cloneDeep}                       from  'lodash';           // Useful fu
 import  * as path                         from  'path';             // Node's path library.
 
 // Import Internal Libraries
-import  * as csv                          from  '../sfdx-falcon-util/csv';  // ???
+import  * as csv                          from  '../sfdx-falcon-util/csv';  // Library. Provides utilities and services for manipulating CSV files.
 
 // Import Internal Classes & Functions
 import  {SfdxFalconDebug}                 from  '../sfdx-falcon-debug';                     // Specialized debug provider for SFDX-Falcon code.
@@ -51,21 +51,21 @@ const territory2ModelDevName  = 'Imported_Territory';
 const territory2TypeDevName   = 'Imported_Territory';
 
 // Set the File Local Debug Namespace
-const dbgNs = 'MODULE:tm-tools-transform:';
+const dbgNs = 'MODULE:tm-tools-load:';
 SfdxFalconDebug.msg(`${dbgNs}`, `Debugging initialized for ${dbgNs}`);
 
 
 //─────────────────────────────────────────────────────────────────────────────────────────────────┐
 /**
- * @class       TmToolsTransform
- * @summary     Provides TM1 to TM2 transformation services given the location of source config.
- * @description If provided with the location of TM1 metadata and TM1 data, as well as the location
- *              on disk where the transformed config (data+metadata) should go, provides the full
- *              set of transformation services.
+ * @class       TmToolsLoad
+ * @summary     Provides TM2 metadata/data loading services given transformed TM2 config.
+ * @description If provided with the location of transformed TM2 metadata and data, as well as a
+ *              deployed AND activated Territory2 model, enables the final metadata deployment and
+ *              data loading steps needed to complete a TM1 to TM2 migration.
  * @public
  */
 //─────────────────────────────────────────────────────────────────────────────────────────────────┘
-export class TmToolsTransform {
+export class TmToolsLoad {
 
   //───────────────────────────────────────────────────────────────────────────┐
   /**
@@ -79,17 +79,17 @@ export class TmToolsTransform {
    * @public @static @async
    */
   //───────────────────────────────────────────────────────────────────────────┘
-  public static async prepare(tm1AnalysisReport:TM1AnalysisReport, tm1ExtractionReport:TM1ExtractionReport, tm1TransformFilePaths:TM1TransformFilePaths):Promise<TmToolsTransform> {
+  public static async prepare(tm1AnalysisReport:TM1AnalysisReport, tm1ExtractionReport:TM1ExtractionReport, tm1TransformFilePaths:TM1TransformFilePaths):Promise<TmToolsLoad> {
 
     // Debug incoming arguments
     SfdxFalconDebug.obj(`${dbgNs}prepare:arguments:`, arguments);
 
     // Create a TM1 Context.
-    const tm1Context  = await Tm1Context.prepare(tm1AnalysisReport, tm1TransformFilePaths.extractedMetadataDir, tm1TransformFilePaths.extractedDataDir);
+    const tm1Context  = await Tm1Context.prepare(tm1AnalysisReport, tm1TransformFilePaths.baseDirectory);
     SfdxFalconDebug.obj(`${dbgNs}prepare:tm1Context:`, tm1Context);
 
     // Build a TM Tools Transform object.
-    const tmToolsTransform = new TmToolsTransform(tm1Context, tm1ExtractionReport, tm1TransformFilePaths);
+    const tmToolsTransform = new TmToolsLoad(tm1Context, tm1ExtractionReport, tm1TransformFilePaths);
 
     // Mark the instantiated obeject as "prepared".
     tmToolsTransform._prepared = true;
@@ -210,7 +210,8 @@ export class TmToolsTransform {
         userTerritoryRecordCount:   -1,
         ataRuleRecordCount:         -1,
         ataRuleItemRecordCount:     -1,
-        accountShareRecordCount:    -1
+        accountShareRecordCount:    -1,
+        groupRecordCount:           -1
       },
       tm1MetadataCounts: {
         accountSharingRulesCount: {
@@ -777,7 +778,7 @@ export class TmToolsTransform {
     for (const accountShareRecord of this._tm1Context.accountShareRecords) {
       const territoryDevName = 'NOT_IMPLEMENTED';
       objectTerritory2AssociationRecords.push({
-        AssociationCause: 'TERRITORY2_MANUAL',
+        AssociationCause: 'Territory2Manual',
         ObjectId:         accountShareRecord.AccountId,
         SobjectType:      'Account',
         Territory2Id:     `T2ID_PENDING_${territoryDevName}`
