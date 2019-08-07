@@ -47,7 +47,8 @@ export type Json2CsvOptions = import('json2csv/JSON2CSVBase').json2csv.Options<J
 /**
  * Interface. Represents the collection of functions that should be applied to CSV data during transformation.
  */
-export interface TransformationFunctions {
+export interface TransformationFunctions<T> {
+  context?:   T;
   onRowData:  (data:JsonMap) => JsonMap;
   onHeaders?: (headers:string[]) => void;
   onEnd?:     (results?:JsonMap[]) => void;
@@ -663,7 +664,7 @@ export async function transformCsvFileToCsvFile():Promise<void> {
  * @public @async
  */
 //─────────────────────────────────────────────────────────────────────────────────────────────────┘
-export async function transformFile(csvFilePath:string, tranformationFunctions:TransformationFunctions, opts:Csv2JsonOptions={}):Promise<JsonMap[]> {
+export async function transformFile(csvFilePath:string, tranformationFunctions:TransformationFunctions<unknown>, opts:Csv2JsonOptions={}):Promise<JsonMap[]> {
 
   // Debug incoming arguments
   SfdxFalconDebug.obj(`${dbgNs}transformFile:arguments:`, arguments);
@@ -684,7 +685,12 @@ export async function transformFile(csvFilePath:string, tranformationFunctions:T
     .on('headers', (headers:string[]) => {
       if (typeof tranformationFunctions.onHeaders === 'function') {
         try {
-          tranformationFunctions.onHeaders(headers);
+          if (tranformationFunctions.context) {
+            tranformationFunctions.onHeaders.call(tranformationFunctions.context, headers);
+          }
+          else {
+            tranformationFunctions.onHeaders(headers);
+          }
         }
         catch (headerError) {
           reject(new SfdxFalconError( `Header Transformation Error: ${headerError.message}`
@@ -697,7 +703,12 @@ export async function transformFile(csvFilePath:string, tranformationFunctions:T
     .on('data', (data:JsonMap) => {
       if (typeof tranformationFunctions.onRowData === 'function') {
         try {
-          results.push(tranformationFunctions.onRowData(data));
+          if (tranformationFunctions.context) {
+            results.push(tranformationFunctions.onRowData.call(tranformationFunctions.context, data));
+          }
+          else {
+            results.push(tranformationFunctions.onRowData(data));
+          }
         }
         catch (rowDataError) {
           reject(new SfdxFalconError( `Row Data Transformation Error: ${rowDataError.message}`
@@ -713,7 +724,12 @@ export async function transformFile(csvFilePath:string, tranformationFunctions:T
     .on('end',  () => {
       if (typeof tranformationFunctions.onEnd === 'function') {
         try {
-          tranformationFunctions.onEnd(results);
+          if (tranformationFunctions.context) {
+            results.push(tranformationFunctions.onEnd.call(tranformationFunctions.context, results));
+          }
+          else {
+            tranformationFunctions.onEnd(results);
+          }
         }
         catch (endError) {
           reject(new SfdxFalconError( `End Transformation Error: ${endError.message}`
