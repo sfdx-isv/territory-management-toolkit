@@ -33,6 +33,23 @@ import {SfdxFalconTableData}  from  '../sfdx-falcon-util/ux';   // Interface. Re
 //
 //
 //─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+// Fundamental Types
+//─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+//
+//
+//
+//
+
+/**
+ * Type. Represents the constructor for a Class, ie. something that can be the right operand of the instanceof operator.
+ */
+export type ClassConstructor = any;  // tslint:disable-line: no-any
+
+//
+//
+//
+//
+//─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
 // Falcon and SFDX Config-related interfaces and types.
 //─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 //
@@ -236,15 +253,15 @@ export type ErrorOrResult = Error | SfdxFalconResult;
  * Interface. Represents the options that can be set by the SfdxFalconPrompt constructor.
  */
 export interface PromptOptions<T extends object> {
-  questions:            Questions | QuestionsBuilder;             // Required. Questions for the user.
-  questionsArgs?:       any[];  // tslint:disable-line: no-any    // Optional. Array of arguments to be passed to a QuestionsBuilder function.
-  defaultAnswers:       T;                                        // Required. Default answers to the Questions.
-  confirmation?:        Questions | QuestionsBuilder;             // Optional. Confirmation Questions.
-  confirmationArgs?:    any[];  // tslint:disable-line: no-any    // Optional. Array of arguments to be passed to a QuestionsBuilder function.
-  invertConfirmation?:  boolean;                                  // Optional. Treats
-  display?:             AnswersDisplay<T>;                        // ???
-  context?:             object;                                   // Optional. The scope of the caller who creates an SfdxFalconPrompt.
-  data?:                object;                                   // Optional. ???
+  questions:            Questions | QuestionsBuilder; // Required. Questions for the user.
+  questionsArgs?:       unknown[];                    // Optional. Array of arguments to be passed to a QuestionsBuilder function.
+  defaultAnswers:       T;                            // Required. Default answers to the Questions.
+  confirmation?:        Questions | QuestionsBuilder; // Optional. Confirmation Questions.
+  confirmationArgs?:    unknown[];                    // Optional. Array of arguments to be passed to a QuestionsBuilder function.
+  invertConfirmation?:  boolean;                      // Optional. Treats
+  display?:             AnswersDisplay<T>;            // ???
+  context?:             object;                       // Optional. The scope of the caller who creates an SfdxFalconPrompt.
+  data?:                object;                       // Optional. ???
 }
 
 /**
@@ -266,9 +283,9 @@ export interface InterviewOptions<T extends object> {
  */
 export interface InterviewGroupOptions<T extends object> {
   questions:            Questions | QuestionsBuilder;
-  questionsArgs?:       any[];  // tslint:disable-line: no-any
+  questionsArgs?:       unknown[];
   confirmation?:        Questions | QuestionsBuilder;
-  confirmationArgs?:    any[];  // tslint:disable-line: no-any
+  confirmationArgs?:    unknown[];
   invertConfirmation?:  boolean;
   display?:             AnswersDisplay<T>;
   when?:                ShowInterviewGroup;
