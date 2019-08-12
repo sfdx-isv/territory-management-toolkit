@@ -17,15 +17,13 @@ import  {isEmpty}           from  'lodash';                 // Useful function f
 import  {SfdxFalconDebug}   from  '../sfdx-falcon-debug';   // Class. Specialized debug provider for SFDX-Falcon code.
 import  {SfdxFalconError}   from  '../sfdx-falcon-error';   // Class. Extends SfdxError to provide specialized error structures for SFDX-Falcon modules.
 
+// Import Internal Types
+import  {ClassConstructor}  from  '../sfdx-falcon-types';   // Type. Represents the constructor for a Class, ie. something that can be the right operand of the instanceof operator.
+
 // Set the File Local Debug Namespace
 const dbgNs = 'VALIDATOR:type:';
 SfdxFalconDebug.msg(`${dbgNs}`, `Debugging initialized for ${dbgNs}`);
 
-
-/**
- * Type. Represents an Object Constructor.
- */
-type ClassConstructor = any;  // tslint:disable-line: no-any
 
 // ────────────────────────────────────────────────────────────────────────────────────────────────┐
 /**
@@ -476,6 +474,179 @@ export function isNullInvalidObject(variable:unknown):boolean {
 // ────────────────────────────────────────────────────────────────────────────────────────────────┘
 export function isNullInvalidString(variable:unknown):boolean {
   return (typeof variable !== 'string' || variable === null);
+}
+
+// ────────────────────────────────────────────────────────────────────────────────────────────────┐
+/**
+ * @function    isNotEmptyNullInvalidArray
+ * @param       {unknown} variable  Required. The variable whose type will be validated.
+ * @returns     {boolean}
+ * @description Checks for the inverse of isEmptyNullInvalidArray().
+ * @public
+ */
+// ────────────────────────────────────────────────────────────────────────────────────────────────┘
+export function isNotEmptyNullInvalidArray(variable:unknown):boolean {
+  return !isEmptyNullInvalidArray(variable);
+}
+
+// ────────────────────────────────────────────────────────────────────────────────────────────────┐
+/**
+ * @function    isNotEmptyNullInvalidString
+ * @param       {unknown} variable  Required. The variable whose type will be validated.
+ * @returns     {boolean}
+ * @description Checks for the inverse of isEmptyNullInvalidString().
+ * @public
+ */
+// ────────────────────────────────────────────────────────────────────────────────────────────────┘
+export function isNotEmptyNullInvalidString(variable:unknown):boolean {
+  return !isEmptyNullInvalidString(variable);
+}
+
+// ────────────────────────────────────────────────────────────────────────────────────────────────┐
+/**
+ * @function    isNotEmptyNullInvalidObject
+ * @param       {unknown} variable  Required. The variable whose type will be validated.
+ * @returns     {boolean}
+ * @description Checks for the inverse of isEmptyNullInvalidObject().
+ * @public
+ */
+// ────────────────────────────────────────────────────────────────────────────────────────────────┘
+export function isNotEmptyNullInvalidObject(variable:unknown):boolean {
+  return !isEmptyNullInvalidObject(variable);
+}
+
+// ────────────────────────────────────────────────────────────────────────────────────────────────┐
+/**
+ * @function    isNotInvalidArray
+ * @param       {unknown} variable  Required. The variable whose type will be validated.
+ * @returns     {boolean}
+ * @description Checks for the inverse of isInvalidArray().
+ * @public
+ */
+// ────────────────────────────────────────────────────────────────────────────────────────────────┘
+export function isNotInvalidArray(variable:unknown):boolean {
+  return !isInvalidArray(variable);
+}
+
+// ────────────────────────────────────────────────────────────────────────────────────────────────┐
+/**
+ * @function    isNotInvalidBoolean
+ * @param       {unknown} variable  Required. The variable whose type will be validated.
+ * @returns     {boolean}
+ * @description Checks for the inverse of isInvalidBoolean().
+ * @public
+ */
+// ────────────────────────────────────────────────────────────────────────────────────────────────┘
+export function isNotInvalidBoolean(variable:unknown):boolean {
+  return !isInvalidBoolean(variable);
+}
+
+// ────────────────────────────────────────────────────────────────────────────────────────────────┐
+/**
+ * @function    isNotInvalidInstance
+ * @param       {unknown} variable  Required. The variable whose type will be validated.
+ * @param       {ClassConstructor}  classConstructor  Required. Constructor function of the object
+ *              that the variable will be tested against.
+ * @returns     {boolean}
+ * @description Checks for the inverse of isInvalidInstance().
+ * @public
+ */
+// ────────────────────────────────────────────────────────────────────────────────────────────────┘
+export function isNotInvalidInstance(variable:unknown, classConstructor:ClassConstructor):boolean {
+  return !isInvalidInstance(variable, classConstructor);
+}
+
+// ────────────────────────────────────────────────────────────────────────────────────────────────┐
+/**
+ * @function    isNotInvalidObject
+ * @param       {unknown} variable  Required. The variable whose type will be validated.
+ * @returns     {boolean}
+ * @description Checks for the inverse of isInvalidObject().
+ * @public
+ */
+// ────────────────────────────────────────────────────────────────────────────────────────────────┘
+export function isNotInvalidObject(variable:unknown):boolean {
+  return !isInvalidObject(variable);
+}
+
+// ────────────────────────────────────────────────────────────────────────────────────────────────┐
+/**
+ * @function    isNotInvalidString
+ * @param       {unknown} variable  Required. The variable whose type will be validated.
+ * @returns     {boolean}
+ * @description Checks for the inverse of isInvalidString().
+ * @public
+ */
+// ────────────────────────────────────────────────────────────────────────────────────────────────┘
+export function isNotInvalidString(variable:unknown):boolean {
+  return !isInvalidString(variable);
+}
+
+// ────────────────────────────────────────────────────────────────────────────────────────────────┐
+/**
+ * @function    isNotNullInvalidArray
+ * @param       {unknown} variable  Required. The variable whose type will be validated.
+ * @returns     {boolean}
+ * @description Checks for the inverse of isNullInvalidArray().
+ * @public
+ */
+// ────────────────────────────────────────────────────────────────────────────────────────────────┘
+export function isNotNullInvalidArray(variable:unknown):boolean {
+  return !isNullInvalidArray(variable);
+}
+
+// ────────────────────────────────────────────────────────────────────────────────────────────────┐
+/**
+ * @function    isNotNullInvalidBoolean
+ * @param       {unknown} variable  Required. The variable whose type will be validated.
+ * @returns     {boolean}
+ * @description Checks for the inverse of isNullInvalidBoolean().
+ * @public
+ */
+// ────────────────────────────────────────────────────────────────────────────────────────────────┘
+export function isNotNullInvalidBoolean(variable:unknown):boolean {
+  return !isNullInvalidBoolean(variable);
+}
+
+// ────────────────────────────────────────────────────────────────────────────────────────────────┐
+/**
+ * @function    isNotNullInvalidInstance
+ * @param       {unknown} variable  Required. The variable whose type will be validated.
+ * @param       {ClassConstructor}  classConstructor  Required. Constructor function of the object
+ *              that the variable will be tested against.
+ * @returns     {boolean}
+ * @description Checks for the inverse of isNullInvalidInstance().
+ * @public
+ */
+// ────────────────────────────────────────────────────────────────────────────────────────────────┘
+export function isNotNullInvalidInstance(variable:unknown, classConstructor:ClassConstructor):boolean {
+  return !isNullInvalidInstance(variable, classConstructor);
+}
+
+// ────────────────────────────────────────────────────────────────────────────────────────────────┐
+/**
+ * @function    isNotNullInvalidObject
+ * @param       {unknown} variable  Required. The variable whose type will be validated.
+ * @returns     {boolean}
+ * @description Checks for the inverse of isNullInvalidObject().
+ * @public
+ */
+// ────────────────────────────────────────────────────────────────────────────────────────────────┘
+export function isNotNullInvalidObject(variable:unknown):boolean {
+  return !isNullInvalidObject(variable);
+}
+
+// ────────────────────────────────────────────────────────────────────────────────────────────────┐
+/**
+ * @function    isNotNullInvalidString
+ * @param       {unknown} variable  Required. The variable whose type will be validated.
+ * @returns     {boolean}
+ * @description Checks for the inverse of isNullInvalidString().
+ * @public
+ */
+// ────────────────────────────────────────────────────────────────────────────────────────────────┘
+export function isNotNullInvalidString(variable:unknown):boolean {
+  return !isNullInvalidString(variable);
 }
 
 // ────────────────────────────────────────────────────────────────────────────────────────────────┐
