@@ -10,34 +10,43 @@
  * @license       MIT
  */
 //─────────────────────────────────────────────────────────────────────────────────────────────────┘
-// Import External Modules
+// Import External Libraries, Modules, and Types
+import chalk          from  'chalk';            // Helps write colored text to the console.
 import * as path      from  'path';             // Library. Helps resolve local paths at runtime.
-import * as Generator from  'yeoman-generator'; // Generator class must extend this.
+import * as Generator from  'yeoman-generator'; // Class. Custom Generator classes must extend this.
 
-// Import Internal Modules
-import * as gitHelper             from  '../sfdx-falcon-util/git';          // Library. Git Helper functions specific to SFDX-Falcon.
-import * as listrTasks            from  '../sfdx-falcon-util/listr-tasks';  // Library. Helper functions that make using Listr with SFDX-Falcon easier.
+// Import Internal Libraries
+import * as gitHelper             from  '../sfdx-falcon-util/git';                  // Library. Git Helper functions specific to SFDX-Falcon.
+import * as listrTasks            from  '../sfdx-falcon-util/listr-tasks';          // Library. Helper functions that make using Listr with SFDX-Falcon easier.
+import * as typeValidator         from  '../sfdx-falcon-validators/type-validator'; // Library of SFDX Helper functions specific to SFDX-Falcon.
 
+// Import Internal Classes & Functions
 import {SfdxFalconDebug}          from  '../sfdx-falcon-debug';           // Class. Specialized debug provider for SFDX-Falcon code.
 import {SfdxFalconError}          from  '../sfdx-falcon-error';           // Class. Specialized Error object. Wraps SfdxError.
 import {SfdxFalconInterview}      from  '../sfdx-falcon-interview';       // Class. Provides a standard way of building a multi-group Interview to collect user input.
 import {SfdxFalconResult}         from  '../sfdx-falcon-result';          // Class. Used to communicate results of SFDX-Falcon code execution at a variety of levels.
+import {printStyledMessage}       from  '../sfdx-falcon-util/ux';         // Function. Prints a Styled Message to the console using Chalk.
 import {SfdxFalconKeyValueTable}  from  '../sfdx-falcon-util/ux';         // Class. Uses table creation code borrowed from the SFDX-Core UX library to make it easy to build "Key/Value" tables.
-import {SfdxFalconTableData}      from  '../sfdx-falcon-util/ux';         // Interface. Represents and array of SfdxFalconKeyValueTableDataRow objects.
 import {GeneratorStatus}          from  '../sfdx-falcon-util/yeoman';     // Class. Status tracking object for use with Yeoman Generators.
+
+// Import Internal Types
+import {GeneratorRequirements}    from  '../sfdx-falcon-types';           // Interface. Represents the initialization requirements for Yeoman Generators that implement SfdxFalconYeomanGenerator.
+import {InquirerChoices}          from  '../sfdx-falcon-types';           // Type. Represents a single "choice" option in an Inquirer multi-choice/multi-select question.
+import {ListrContextFinalizeGit}  from  '../sfdx-falcon-types';           // Interface. Represents the Listr Context variables used by the "finalizeGit" task collection.
+import {ListrTaskBundle}          from  '../sfdx-falcon-types';           // Interface. Represents the suite of information required to run a Listr Task Bundle.
+import {StatusMessageType}        from  '../sfdx-falcon-types';           // Enum. Represents the various types/states of a Status Message.
+import {StyledMessage}            from  '../sfdx-falcon-types';           // Interface. Allows for specification of a message string and chalk-specific styling information.
+import {SfdxFalconTableData}      from  '../sfdx-falcon-util/ux';         // Interface. Represents and array of SfdxFalconKeyValueTableDataRow objects.
 import {GeneratorOptions}         from  '../sfdx-falcon-yeoman-command';  // Interface. Specifies options used when spinning up an SFDX-Falcon Yeoman environment.
 
-// Import Falcon Types
-import {ListrContextFinalizeGit}  from  '../sfdx-falcon-types';           // Interface. Represents the Listr Context variables used by the "finalizeGit" task collection.
-
 // Requires
-const chalk             = require('chalk');                 // Utility for creating colorful console output.
 const {version}         = require('../../../package.json'); // The version of the SFDX-Falcon plugin
 const {falcon}          = require('../../../package.json'); // The custom "falcon" key from package.json. This holds custom project-level values.
 const yosay             = require('yosay');                 // ASCII art creator brings Yeoman to life.
 
 // Set the File Local Debug Namespace
 const dbgNs = 'GENERATOR:sfdx-falcon-yeoman-generator:';
+SfdxFalconDebug.msg(`${dbgNs}`, `Debugging initialized for ${dbgNs}`);
 
 
 //─────────────────────────────────────────────────────────────────────────────────────────────────┐
@@ -63,6 +72,7 @@ export abstract class SfdxFalconYeomanGenerator<T extends object> extends Genera
   protected openingMessage:         string;                     // Message that is displayed by the yosay "Yeoman" ASCII art when the generator is loaded.
   protected generatorStatus:        GeneratorStatus;            // Used to keep track of status and to return messages to the caller.
   protected generatorResult:        SfdxFalconResult;           // Used to keep track of status and to return messages to the caller.
+  protected generatorRequirements:  GeneratorRequirements;      // Determines which steps are followed during the Default Initialization process.
   protected generatorType:          string;                     // Tracks the name (type) of generator being run, eg. 'clone-appx-package-project'.
   protected initializingComplete:   boolean;                    // Indicates that the initializing() function completed successfully.
   protected promptingComplete:      boolean;                    // Indicates that the prompting() function completed successfully.
@@ -76,7 +86,14 @@ export abstract class SfdxFalconYeomanGenerator<T extends object> extends Genera
   protected finalAnswers:           T;                          // Why?
   protected metaAnswers:            T;                          // Provides a means to send meta values (usually template tags) to EJS templates.
   protected confirmationQuestion:   string;                     // Why?
-  protected sharedData:             object;                     // Why?
+  protected standardOrgAliasChoices:      InquirerChoices;      // Array of ALL Standard (ie. non-scratch) Org aliases/usernames in the form of Inquirer choices.
+  protected scratchOrgAliasChoices:       InquirerChoices;      // Array of ALL Scratch Org aliases/usernames in the form of Inquirer choices.
+  protected devHubAliasChoices:           InquirerChoices;      // Array of DevOrg aliases/usernames in the form of Inquirer choices.
+  protected envHubAliasChoices:           InquirerChoices;      // Array of EnvHub aliases/usernames in the form of Inquirer choices.
+  protected pkgOrgAliasChoices:           InquirerChoices;      // Array of ALL Packaging Org aliases/usernames in the form of Inquirer choices.
+  protected managedPkgOrgAliasChoices:    InquirerChoices;      // Array of MANAGED Packaging Org aliases/usernames in the form of Inquirer choices.
+  protected unmanagedPkgOrgAliasChoices:  InquirerChoices;      // Array of UNMANAGED Packaging Org aliases/usernames in the form of Inquirer choices.
+  protected sharedData:                   object;               // Used to share data between the Generator, Inqurirer Prompts, and Listr Tasks.
 
   //───────────────────────────────────────────────────────────────────────────┐
   /**
@@ -117,8 +134,15 @@ export abstract class SfdxFalconYeomanGenerator<T extends object> extends Genera
     this.defaultAnswers       = {} as T;                        // Set of default answers.
     this.finalAnswers         = {} as T;                        // Set of final answers, ie. merging of User and Default answers in case user did not supply some answers.
     this.metaAnswers          = {} as T;                        // Special set of answers that can be used by special file copy templates.
-    this.sharedData           = {} as object;                   // ???
-
+    this.sharedData           = {} as object;                   // Special context for sharing data between Generator, Inquirer Questions, and Listr Tasks.
+    this.standardOrgAliasChoices      = [] as InquirerChoices;  // Eventually populated if generatorRequirements.standardOrgs is TRUE.
+    this.scratchOrgAliasChoices       = [] as InquirerChoices;  // Eventually populated if generatorRequirements.scratchOrgs is TRUE.
+    this.devHubAliasChoices           = [] as InquirerChoices;  // Eventually populated if generatorRequirements.devHubOrgs is TRUE.
+    this.envHubAliasChoices           = [] as InquirerChoices;  // Eventually populated if generatorRequirements.envHubOrgs is TRUE.
+    this.pkgOrgAliasChoices           = [] as InquirerChoices;  // Eventually populated if generatorRequirements.pkgHubOrgs is TRUE.
+    this.managedPkgOrgAliasChoices    = [] as InquirerChoices;  // Eventually populated if generatorRequirements.managedPkgOrgs is TRUE.
+    this.unmanagedPkgOrgAliasChoices  = [] as InquirerChoices;  // Eventually populated if generatorRequirements.unmanagedPkgOrgs is TRUE.
+    
     // Set defaults for the success, failure, and warning messages.
     this.successMessage   = `${this.cliCommandName} completed successfully`;
     this.failureMessage   = `${this.cliCommandName} exited without completing the expected tasks`;
@@ -136,12 +160,36 @@ export abstract class SfdxFalconYeomanGenerator<T extends object> extends Genera
       interviewQuestions: null
     });
 
+    // Set defaults for the Generator Requirements. By default, all should be FALSE or EMPTY.
+    this.generatorRequirements = {
+      git:              false,
+      gitRemoteUri:     '',
+      localFile:        '',
+      localDirectory:   '',
+      standardOrgs:     false,
+      scratchOrgs:      false,
+      devHubOrgs:       false,
+      envHubOrgs:       false,
+      managedPkgOrgs:   false,
+      unmanagedPkgOrgs: false
+    };
+
     // Initialize the "Confirmation Question". This should be overridden by the subclass.
     this.confirmationQuestion = 'Would you like to proceed based on the above settings?';
 
+    // Initialize Shared Data.
+    this.sharedData['cliCommandName']               = this.cliCommandName;
+    this.sharedData['generatorRequirements']        = this.generatorRequirements;
+    this.sharedData['standardOrgAliasChoices']      = this.standardOrgAliasChoices;
+    this.sharedData['scratchOrgAliasChoices']       = this.scratchOrgAliasChoices;
+    this.sharedData['devHubAliasChoices']           = this.devHubAliasChoices;
+    this.sharedData['envHubAliasChoices']           = this.envHubAliasChoices;
+    this.sharedData['pkgOrgAliasChoices']           = this.pkgOrgAliasChoices;
+    this.sharedData['managedPkgOrgAliasChoices']    = this.managedPkgOrgAliasChoices;
+    this.sharedData['unmanagedPkgOrgAliasChoices']  = this.unmanagedPkgOrgAliasChoices;
+
     // DEBUG
-    SfdxFalconDebug.str(`${dbgNs}constructor:`, this.cliCommandName,                        `this.cliCommandName: `);
-    SfdxFalconDebug.obj(`${dbgNs}constructor:`, this.defaultAnswers   as unknown as object, `this.defaultAnswers: `);
+    SfdxFalconDebug.str(`${dbgNs}constructor:`, this.cliCommandName, `this.cliCommandName: `);
   }
 
   // Define abstract methods.
@@ -183,7 +231,7 @@ export abstract class SfdxFalconYeomanGenerator<T extends object> extends Genera
       .then(listrContext => {
         // Add a message that the cloning was successful.
         this.generatorStatus.addMessage({
-          type:     'success',
+          type:     StatusMessageType.SUCCESS,
           title:    `Project Cloned Successfully`,
           message:  `Project cloned to ${localProjectPath}`
         });
@@ -191,7 +239,7 @@ export abstract class SfdxFalconYeomanGenerator<T extends object> extends Genera
       })
       .catch(gitCloneError => {
         this.generatorStatus.abort({
-          type:     'error',
+          type:     StatusMessageType.ERROR,
           title:    `Git Clone Error`,
           message:  gitCloneError.cause ? String(gitCloneError.cause.message).trim() : gitCloneError.message
         });
@@ -225,7 +273,7 @@ export abstract class SfdxFalconYeomanGenerator<T extends object> extends Genera
 
       // Add an "abort" item to the Generator Status object.
       this.generatorStatus.abort({
-        type:     'error',
+        type:     StatusMessageType.ERROR,
         title:    'Initialization Error',
         message:  `${this.cliCommandName} command aborted because one or more initialization tasks failed`
       });
@@ -244,6 +292,10 @@ export abstract class SfdxFalconYeomanGenerator<T extends object> extends Genera
   //───────────────────────────────────────────────────────────────────────────┐
   /**
    * @method      _default_prompting
+   * @param       {StyledMessage} [preInterviewMessage] Optional. Message to
+   *              display to the user before the Interview starts.
+   * @param       {StyledMessage} [postInterviewMessage]  Optional. Message to
+   *              display to the user after the Interview ends.
    * @returns     {Promise<void>}
    * @description STEP TWO in the Yeoman run-loop. Interviews the User to get
    *              information needed by the "writing" and "installing" phases.
@@ -253,13 +305,16 @@ export abstract class SfdxFalconYeomanGenerator<T extends object> extends Genera
    * @protected @async
    */
   //───────────────────────────────────────────────────────────────────────────┘
-  protected async _default_prompting():Promise<void> {
+  protected async _default_prompting(preInterviewMessage?:StyledMessage, postInterviewMessage?:StyledMessage):Promise<void> {
 
     // Check if we need to abort the Yeoman interview/installation process.
     if (this.generatorStatus.aborted) {
       SfdxFalconDebug.msg(`${dbgNs}prompting:`, `generatorStatus.aborted found as TRUE inside prompting()`);
       return;
     }
+
+    // Show the pre-interview message.
+    printStyledMessage(preInterviewMessage);
 
     // Build the User Interview.
     this.userInterview = this._buildInterview();
@@ -273,14 +328,14 @@ export abstract class SfdxFalconYeomanGenerator<T extends object> extends Genera
     // Check if the user aborted the Interview.
     if (this.userInterview.status.aborted) {
       this.generatorStatus.abort({
-        type:     'error',
+        type:     StatusMessageType.ERROR,
         title:    'Command Aborted',
         message:  `${this.cliCommandName} canceled by user. ${this.userInterview.status.reason}`
       });
     }
 
-    // Add a final line break in the console.
-    console.log('');
+    // Show the post-interview message.
+    printStyledMessage(postInterviewMessage);
 
     // Done
     return;
@@ -371,7 +426,7 @@ export abstract class SfdxFalconYeomanGenerator<T extends object> extends Genera
 
       // Add a final error message
       this.generatorStatus.addMessage({
-        type:     'error',
+        type:     StatusMessageType.ERROR,
         title:    'Command Failed',
         message:  `${this.failureMessage}\n`
       });
@@ -380,7 +435,7 @@ export abstract class SfdxFalconYeomanGenerator<T extends object> extends Genera
       // Generator completed successfully. Final message depends on presence of Generator Status Warnings.
       this.generatorStatus.complete([
         {
-          type:     'success',
+          type:     StatusMessageType.SUCCESS,
           title:    'Command Succeded',
           message:  this.generatorStatus.hasWarning
                     ? `${this.warningMessage}\n`
@@ -408,7 +463,7 @@ export abstract class SfdxFalconYeomanGenerator<T extends object> extends Genera
   protected async _executeInitializationTasks():Promise<void> {
 
     // Define the first group of tasks (Git Initialization).
-    const gitInitTasks = listrTasks.gitInitTasks.call(this);
+    const gitInitTasks = listrTasks.gitInitTasks.call(this, this.generatorRequirements.gitRemoteUri);
 
     // Define the second group of tasks (SFDX Initialization).
     const sfdxInitTasks = listrTasks.sfdxInitTasks.call(this);
@@ -416,14 +471,23 @@ export abstract class SfdxFalconYeomanGenerator<T extends object> extends Genera
     // Show a message to the User letting them know we're going to initialize this command.
     console.log(chalk`{yellow Initializing ${this.cliCommandName}...}`);
 
-    // Run the Git Init Tasks. Make sure to use await since Listr will run asynchronously.
-    const gitInitResults = await gitInitTasks.run();
-    SfdxFalconDebug.obj(`${dbgNs}_executeInitializationTasks:`, gitInitResults, `gitInitResults: `);
+    // If required, run the Git Init Tasks.
+    if (this.generatorRequirements.git || this.generatorRequirements.gitRemoteUri) {
+      const gitInitResults = await gitInitTasks.run();
+      SfdxFalconDebug.obj(`${dbgNs}_executeInitializationTasks:`, gitInitResults, `gitInitResults: `);
+    }
 
-    // Followed by the SFDX Init Tasks.
-    const sfdxInitResults = await sfdxInitTasks.run();
-    SfdxFalconDebug.obj(`${dbgNs}_executeInitializationTasks:`, sfdxInitResults, `sfdxInitResults: `);
-
+    // If required, run the SFDX Init Tasks.
+    if (    this.generatorRequirements.standardOrgs     === true
+        ||  this.generatorRequirements.scratchOrgs      === true
+        ||  this.generatorRequirements.devHubOrgs       === true
+        ||  this.generatorRequirements.envHubOrgs       === true
+        ||  this.generatorRequirements.managedPkgOrgs   === true
+        ||  this.generatorRequirements.unmanagedPkgOrgs === true
+    ) {
+      const sfdxInitResults = await sfdxInitTasks.run();
+      SfdxFalconDebug.obj(`${dbgNs}_executeInitializationTasks:`, sfdxInitResults, `sfdxInitResults: `);
+    }
   }
 
   //───────────────────────────────────────────────────────────────────────────┐
@@ -445,7 +509,7 @@ export abstract class SfdxFalconYeomanGenerator<T extends object> extends Genera
     // Make sure that the caller really WANTS to initialize Git.
     if (isInitializingGit !== true) {
       this.generatorStatus.addMessage({
-        type:     'success',
+        type:     StatusMessageType.SUCCESS,
         title:    `Git Initialization`,
         message:  `Skipped - Git initialization skipped at user's request`
       });
@@ -477,7 +541,7 @@ export abstract class SfdxFalconYeomanGenerator<T extends object> extends Genera
     // Check if Git was installed in the local environment.
     if (finalizeGitCtx.gitInstalled !== true) {
       this.generatorStatus.addMessage({
-        type:     'warning',
+        type:     StatusMessageType.WARNING,
         title:    `Initializing Git`,
         message:  `Warning - git executable not found in your environment - no Git operations attempted`
       });
@@ -489,14 +553,14 @@ export abstract class SfdxFalconYeomanGenerator<T extends object> extends Genera
     // Check if the project was successfully initialized (ie. "git init" was run in the project directory).
     if (finalizeGitCtx.gitInitialized) {
       this.generatorStatus.addMessage({
-        type:     'success',
+        type:     StatusMessageType.SUCCESS,
         title:    `Git Initialization`,
         message:  `Success - Repository created successfully (${projectAlias})`
       });
     }
     else {
       this.generatorStatus.addMessage({
-        type:     'warning',
+        type:     StatusMessageType.WARNING,
         title:    `Git Initialization`,
         message:  `Warning - Git could not be initialized in your project folder`
       });
@@ -508,14 +572,14 @@ export abstract class SfdxFalconYeomanGenerator<T extends object> extends Genera
     // Check if the files were staged and committed successfully.
     if (finalizeGitCtx.projectFilesStaged && finalizeGitCtx.projectFilesCommitted) {
       this.generatorStatus.addMessage({
-        type:     'success',
+        type:     StatusMessageType.SUCCESS,
         title:    `Git Commit`,
         message:  `Success - Staged all project files and executed the initial commit`
       });
     }
     else {
       this.generatorStatus.addMessage({
-        type:     'warning',
+        type:     StatusMessageType.WARNING,
         title:    `Git Commit`,
         message:  `Warning - Attempt to stage and commit project files failed - Nothing to commit`
       });
@@ -527,7 +591,7 @@ export abstract class SfdxFalconYeomanGenerator<T extends object> extends Genera
       // Check if the Git Remote is valid/reachable
       if (finalizeGitCtx.gitRemoteIsValid !== true) {
         this.generatorStatus.addMessage({
-          type:     'warning',
+          type:     StatusMessageType.WARNING,
           title:    `Git Remote`,
           message:  `Warning - Could not add Git Remote - ${gitRemoteUri} is invalid/unreachable`
         });
@@ -535,14 +599,14 @@ export abstract class SfdxFalconYeomanGenerator<T extends object> extends Genera
       else {
         if (finalizeGitCtx.gitRemoteAdded) {
           this.generatorStatus.addMessage({
-            type:     'success',
+            type:     StatusMessageType.SUCCESS,
             title:    `Git Remote`,
             message:  `Success - Remote repository ${gitRemoteUri} added as "origin"`
           });
         }
         else {
           this.generatorStatus.addMessage({
-            type:     'warning',
+            type:     StatusMessageType.WARNING,
             title:    `Git Remote`,
             message:  `Warning - Could not add Git Remote - A remote named "origin" already exists`
           });
@@ -582,7 +646,7 @@ export abstract class SfdxFalconYeomanGenerator<T extends object> extends Genera
 
     // If we get here, it means that a local SFDX-Falcon config file was likely created.
     this.generatorStatus.addMessage({
-      type:     'success',
+      type:     StatusMessageType.SUCCESS,
       title:    `Local Config Created`,
       message:  `.sfdx-falcon/sfdx-falcon-config.json created and customized successfully`
     });
@@ -622,7 +686,7 @@ export abstract class SfdxFalconYeomanGenerator<T extends object> extends Genera
 
     // Add a "project creation" success message to Generator Status.
     this.generatorStatus.addMessage({
-      type:     'success',
+      type:     StatusMessageType.SUCCESS,
       title:    `Project Creation`,
       message:  `Success - Project created at ${this.destinationRoot()}`
     });
@@ -632,5 +696,111 @@ export abstract class SfdxFalconYeomanGenerator<T extends object> extends Genera
 
     // If we get this far, return TRUE so additional finalization code knows it should run.
     return true;
+  }
+
+  //───────────────────────────────────────────────────────────────────────────┐
+  /**
+   * @method      _runListrTasks
+   * @param       {ListrTaskBundle} taskBundle  Required. JavaScript object
+   *              representing the suite of information required to run a Listr
+   *              Task Bundle.
+   * @returns     {Promise<unknown>}
+   * @description Generic task execution container for Listr Tasks. Requires the
+   *              caller to specify standard pre and post-task messaging as well
+   *              as GeneratorStatus messages for both task execution success
+   *              and failure.
+   * @protected @async
+   */
+  //───────────────────────────────────────────────────────────────────────────┘
+  protected async _runListrTaskBundle(taskBundle:ListrTaskBundle):Promise<unknown> {
+    
+    // Debug incoming arguments.
+    SfdxFalconDebug.obj(`${dbgNs}_runListrTasks:arguments`, arguments);
+    
+    // Validate incoming arguments.
+    typeValidator.throwOnEmptyNullInvalidObject (taskBundle,                         `${dbgNs}_runListrTasks`, `taskBundle`);
+    typeValidator.throwOnEmptyNullInvalidObject (taskBundle.listrObject,             `${dbgNs}_runListrTasks`, `taskBundle.listrObject`);
+    typeValidator.throwOnEmptyNullInvalidString (taskBundle.dbgNsLocal,              `${dbgNs}_runListrTasks`, `taskBundle.dbgNsLocal`);
+    typeValidator.throwOnEmptyNullInvalidObject (taskBundle.generatorStatusSuccess,  `${dbgNs}_runListrTasks`, `taskBundle.generatorStatusSuccess`);
+    typeValidator.throwOnEmptyNullInvalidObject (taskBundle.generatorStatusFailure,  `${dbgNs}_runListrTasks`, `taskBundle.generatorStatusFailure`);
+    typeValidator.throwOnNullInvalidBoolean     (taskBundle.throwOnFailure,          `${dbgNs}_runListrTasks`, `taskBundle.throwOnFailure`);
+
+    // Show the pre-task message.
+    printStyledMessage(taskBundle.preTaskMessage);
+    
+    // Run the Listr Tasks.
+    const listrResult = await taskBundle.listrObject.run()
+    // Handle Success.
+    .then(listrSuccess => {
+      SfdxFalconDebug.obj(`${taskBundle.dbgNsLocal}listrSuccess:`, listrSuccess);
+      this.generatorStatus.addMessage(taskBundle.generatorStatusSuccess);
+      return listrSuccess;
+    })
+    // Handle Failure.
+    .catch(listrError => {
+      SfdxFalconDebug.obj(`${taskBundle.dbgNsLocal}listrError:`, listrError);
+
+      // If the FAILURE status message is of type ERROR or FATAL, mark Generator Status as ABORTED.
+      // This gives the caller some indirect control of how failures are handled.
+      if (taskBundle.generatorStatusFailure.type === StatusMessageType.ERROR || taskBundle.generatorStatusFailure.type === StatusMessageType.FATAL) {
+        this.generatorStatus.abort(taskBundle.generatorStatusFailure);
+      }
+      else {
+        this.generatorStatus.addMessage(taskBundle.generatorStatusFailure);
+      }
+
+      // Declare an SfdxFalconError object to be thrown (if requested by the caller).
+      let finalError:SfdxFalconError = null;
+
+      // If the listrError has an "errors" array, extract the suppressed errors it holds and send to DEBUG.
+      if (typeof listrError === 'object' && listrError !== null && Array.isArray(listrError.errors)) {
+        const suppressedErrors = [];
+        for (const error of listrError.errors) {
+          suppressedErrors.push({
+            name:     error.name,
+            message:  error.message,
+            cause:    (error.cause) ? {name: error.cause.name, message: error.cause.message, stack: error.cause.stack} : 'NOT_SPECIFIED'
+          });
+        }
+        SfdxFalconDebug.obj(`${taskBundle.dbgNsLocal}suppressedErrors:`, suppressedErrors);
+        finalError = new SfdxFalconError( `One or more tasks threw an error. See error.detail for more information.`
+                                        , `MultiTaskError`
+                                        , `${taskBundle.dbgNsLocal}`
+                                        , listrError);
+        finalError.setDetail(suppressedErrors);
+      }
+
+      // If listrError is an SfdxFalconResult, extract its Error Object. Otherwise, just wrap whatever we got.
+      if (listrError instanceof SfdxFalconResult) {
+        finalError = new SfdxFalconError( `A task threw an SfdxFalconResult as an error. See error.detail for more information.`
+                                        , `TaskError`
+                                        , `${taskBundle.dbgNsLocal}`
+                                        , listrError.errObj);
+        finalError.setDetail(listrError);
+      }
+      else {
+        finalError = SfdxFalconError.wrap(listrError, `${taskBundle.dbgNsLocal}`);
+      }
+
+      // Throw the Final Error if the caller wants us to, otherwise just return whatever we got back from Listr.
+      if (taskBundle.throwOnFailure === true) {
+        if (finalError === null) {
+          finalError = new SfdxFalconError( `An unhandled exception has occured.`
+                                          , `UnhandledException`
+                                          , `${taskBundle.dbgNsLocal}`);
+          finalError.setDetail(listrError);
+        }
+        throw finalError;
+      }
+      else {
+        return listrError;
+      }
+    });
+
+    // Show the post-task message.
+    printStyledMessage(taskBundle.postTaskMessage);
+
+    // Send whatever we got back from Listr to the caller.
+    return listrResult;
   }
 }

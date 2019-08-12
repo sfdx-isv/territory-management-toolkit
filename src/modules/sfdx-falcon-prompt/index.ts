@@ -50,8 +50,8 @@ export class SfdxFalconPrompt<T extends object> {
   // Private members
   private readonly _questions:          Questions | QuestionsBuilder;           // ???
   private readonly _confirmation:       Questions | QuestionsBuilder;           // ???
-  private readonly _questionsArgs:      any[];  // tslint:disable-line: no-any  // ???
-  private readonly _confirmationArgs:   any[];  // tslint:disable-line: no-any  // ???
+  private readonly _questionsArgs:      unknown[];  // tslint:disable-line: no-any  // ???
+  private readonly _confirmationArgs:   unknown[];  // tslint:disable-line: no-any  // ???
   private readonly _display:            AnswersDisplay<T>;                      // ???
   private readonly _invertConfirmation: boolean;                                // ???
 

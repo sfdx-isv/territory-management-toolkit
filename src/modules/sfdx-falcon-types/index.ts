@@ -24,7 +24,7 @@ import {Question}             from  'yeoman-generator';         // Interface. Re
 
 // Import Internal Modules/Types
 import {SfdxFalconResult}     from  '../sfdx-falcon-result';    // Class. Implements a framework for creating results-driven, informational objects with a concept of heredity (child results) and the ability to "bubble up" both Errors (thrown exceptions) and application-defined "failures".
-import {SfdxOrgInfo}          from  '../sfdx-falcon-util/sfdx'; // Class. Stores information about an org that is connected to the local Salesforce CLI.
+import {StandardOrgInfo}      from  '../sfdx-falcon-util/sfdx'; // Class. Stores information about a standard (ie. non-scratch) org that is connected to the local Salesforce CLI.
 import {ScratchOrgInfo}       from  '../sfdx-falcon-util/sfdx'; // Class. Stores information about a scratch orgs that is connected to the local Salesforce CLI.
 import {SfdxFalconTableData}  from  '../sfdx-falcon-util/ux';   // Interface. Represents and array of SfdxFalconKeyValueTableDataRow objects.
 
@@ -93,7 +93,7 @@ export enum StatusMessageType {
 /**
  * Represents the status code and JSON result that is sent to the caller when SFDX-Falcon CLI Commands are run.
  */
-export interface SfdxFalconJsonResponse {
+export interface SfdxFalconJsonResponse extends JsonMap {
   falconStatus: number;
   falconResult: AnyJson;
 }
@@ -113,7 +113,7 @@ export interface SfdxFalconJsonResponse {
 /**
  * Interface. Represents a Metadata Package (033). Can be managed or unmanaged.
  */
-export interface MetadataPackage {
+export interface MetadataPackage extends JsonMap {
   Id:                       string;
   Name:                     string;
   NamespacePrefix:          string;
@@ -123,7 +123,7 @@ export interface MetadataPackage {
 /**
  * Interface. Represents a Metadata Package Version (04t).
  */
-export interface MetadataPackageVersion {
+export interface MetadataPackageVersion extends JsonMap {
   Id:                 string;
   Name:               string;
   MetadataPackageId:  string;
@@ -265,22 +265,35 @@ export type Subscriber = Subscriber<unknown>;
 //
 //
 
+/*
 export type InquirerChoice<U=unknown>   = inquirer.objects.Choice<U>;
 export type InquirerChoices<U=unknown>  = inquirer.objects.Choices<U>;
 export type InquirerQuestion            = inquirer.Question;
 export type InquirerQuestions           = inquirer.Questions;
 export type InquirerAnswers             = inquirer.Answers;
+//*/
+export type InquirerChoice<U=unknown>   = import('inquirer/lib/objects/choice')<U>;
+export type InquirerSeparator           = import('inquirer/lib/objects/separator');
+export type InquirerChoices             = Array<InquirerChoice|InquirerSeparator>;
+export type InquirerQuestion            = import('inquirer').Question;
+export type InquirerQuestions           = inquirer.Questions;
+//export type InquirerQuestions           = import('inquirer').QuestionCollection;
+export type InquirerAnswers             = import('inquirer').Answers;
 
 /**
  * Represents a Yeoman/Inquirer choice object.
  */
-export interface YeomanChoice {
-  name:   string;
-  value:  string;
-  short:  string;
-  type?:  string;
-  line?:  string;
-}
+export type  YeomanChoice = InquirerChoice;
+
+/**
+ * Type. Represents a "checkbox choice" in Yeoman/Inquirer.
+ */
+export type YeomanCheckboxChoice = InquirerChoice;
+
+/**
+ * Type. Represents the function signature for a "Disabled" function.
+ */
+export type YeomanChoiceDisabledFunction = (answers:unknown) => boolean|string; // tslint:disable-line: no-any
 
 /**
  * Represents what an answers hash should look like during Yeoman/Inquirer interactions
@@ -384,6 +397,22 @@ export type Questions = Questions;
  */
 export type Question = Question;
 
+/**
+ * Interface. Represents the initialization requirements for Yeoman Generators that implement SfdxFalconYeomanGenerator.
+ */
+export interface GeneratorRequirements {
+  git:              boolean;
+  gitRemoteUri:     string;
+  localFile:        string;
+  localDirectory:   string;
+  standardOrgs:     boolean;
+  scratchOrgs:      boolean;
+  devHubOrgs:       boolean;
+  envHubOrgs:       boolean;
+  managedPkgOrgs:   boolean;
+  unmanagedPkgOrgs: boolean;
+}
+
 //
 //
 //
@@ -429,55 +458,55 @@ export type PackageVersionMap = Map<string, MetadataPackageVersion[]>;
 export type QueryResult<T> = QueryResult<T>;
 
 /**
- * Interface. Represents the "nonScratchOrgs" data returned by the sfdx force:org:list command.
+ * Interface. Represents the "nonScratchOrgs" (aka "standard orgs") data returned by the sfdx force:org:list command.
  */
-export interface RawSfdxOrgInfo {
-  orgId:                    string;                       // Why?
-  username:                 string;                       // Why?
-  alias:                    string;                       // Why?
-  accessToken:              string;                       // Why?
-  instanceUrl:              string;                       // Why?
-  loginUrl:                 string;                       // Why?
-  clientId:                 string;                       // Why?
-  isDevHub:                 boolean;                      // Why?
-  isDefaultDevHubUsername:  boolean;                      // Why?
-  defaultMarker:            string;                       // Why?
-  connectedStatus:          string;                       // Why?
-  lastUsed:                 string;                       // Why?
+export interface RawStandardOrgInfo {
+  orgId?:                   string;     // Why?
+  username?:                string;     // Why?
+  alias?:                   string;     // Why?
+  accessToken?:             string;     // Why?
+  instanceUrl?:             string;     // Why?
+  loginUrl?:                string;     // Why?
+  clientId?:                string;     // Why?
+  isDevHub?:                boolean;    // Why?
+  isDefaultDevHubUsername?: boolean;    // Why?
+  defaultMarker?:           string;     // Why?
+  connectedStatus?:         string;     // Why?
+  lastUsed?:                string;     // Why?
 }
 
 /**
  * Interface. Represents the "scratchOrgs" data returned by the sfdx force:org:list --all command.
  */
 export interface RawScratchOrgInfo {
-  orgId:                    string;                       // Why?
-  username:                 string;                       // Why?
-  alias:                    string;                       // Why?
-  accessToken:              string;                       // Why?
-  instanceUrl:              string;                       // Why?
-  loginUrl:                 string;                       // Why?
-  clientId:                 string;                       // Why?
-  createdOrgInstance:       string;                       // Why?
-  created:                  string;                       // Wyy?
-  devHubUsername:           string;                       // Why?
-  connectedStatus:          string;                       // Why?
-  lastUsed:                 string;                       // Why?
-  attributes:               object;                       // Why?
-  orgName:                  string;                       // Why?
-  status:                   string;                       // Why?
-  createdBy:                string;                       // Why?
-  createdDate:              string;                       // Why?
-  expirationDate:           string;                       // Why?
-  edition:                  string;                       // Why?
-  signupUsername:           string;                       // Why?
-  devHubOrgId:              string;                       // Why?
-  isExpired:                boolean;                      // Why?
+  orgId?:                   string;     // Why?
+  username?:                string;     // Why?
+  alias?:                   string;     // Why?
+  accessToken?:             string;     // Why?
+  instanceUrl?:             string;     // Why?
+  loginUrl?:                string;     // Why?
+  clientId?:                string;     // Why?
+  createdOrgInstance?:      string;     // Why?
+  created?:                 string;     // Wyy?
+  devHubUsername?:          string;     // Why?
+  connectedStatus?:         string;     // Why?
+  lastUsed?:                string;     // Why?
+  attributes?:              object;     // Why?
+  orgName?:                 string;     // Why?
+  status?:                  string;     // Why?
+  createdBy?:               string;     // Why?
+  createdDate?:             string;     // Why?
+  expirationDate?:          string;     // Why?
+  edition?:                 string;     // Why?
+  signupUsername?:          string;     // Why?
+  devHubOrgId?:             string;     // Why?
+  isExpired?:               boolean;    // Why?
 }
 
 /**
- * Type. Alias for a Map with string keys holding SfdxOrgInfo values.
+ * Type. Alias for a Map with string keys holding StandardOrgInfo values.
  */
-export type SfdxOrgInfoMap = Map<string, SfdxOrgInfo>;
+export type StandardOrgInfoMap = Map<string, StandardOrgInfo>;
 
 /**
  * Type. Alias for a Map with string keys holding ScratchOrgInfo values.
@@ -485,15 +514,10 @@ export type SfdxOrgInfoMap = Map<string, SfdxOrgInfo>;
 export type ScratchOrgInfoMap = Map<string, ScratchOrgInfo>;
 
 /**
- * Interface. Represents the subset of Org Information that's relevant to SFDX-Falcon logic.
+ * Interface. Represents the options that can be set when constructing a StandardOrgInfo object.
  */
-export interface SfdxOrgInfoSetup {
-  alias:                    string;                       // Why?
-  username:                 string;                       // Why?
-  orgId:                    string;                       // Why?
-  connectedStatus:          string;                       // Why?
-  isDevHub:                 boolean;                      // Why?
-  metadataPackageResults?:  QueryResult<MetadataPackage>; // Why?
+export interface StandardOrgInfoOptions extends RawStandardOrgInfo {
+  metadataPackageResults?:  QueryResult<MetadataPackage>;
 }
 
 /**
