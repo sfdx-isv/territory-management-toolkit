@@ -19,6 +19,7 @@ import {isEmpty}              from  'lodash';               // Useful function f
 import * as path              from  'path';                 // Library. Helps resolve local paths at runtime.
 
 // Import Internal Libraries
+import * as typeValidator     from  '../sfdx-falcon-validators/type-validator';     // Library of type validation helper functions.
 import * as yoValidate        from  '../sfdx-falcon-validators/yeoman-validator';   // Library of validation functions for Yeoman interview inputs, specific to SFDX-Falcon.
 
 // Import Internal Classes and Functions
@@ -29,7 +30,7 @@ import {filterLocalPath}      from  '../sfdx-falcon-util/yeoman';   // Function.
 
 // Import Falcon Types
 import {Questions}            from  '../sfdx-falcon-types';   // Interface. Represents mulitple Inquirer Questions.
-import {YeomanChoice}         from  '../sfdx-falcon-types';   // Interface. Represents a Yeoman/Inquirer choice object.
+import {InquirerChoices}      from  '../sfdx-falcon-types';   // Interface. Represents a Yeoman/Inquirer choice object.
 
 // Import TM-Tools Types
 
@@ -41,14 +42,14 @@ SfdxFalconDebug.msg(`${dbgNs}`, `Debugging initialized for ${dbgNs}`);
 /**
  * @function    chooseTm1Org
  * @param       {string[]}  [promptText]  Optional. Array of strings used as text for each prompt.
- * @param       {YeomanChoice[]}  [targetOrgChoices]  Optional. Array of Target Org choices.
- * @param       {YeomanChoice[]}  [scratchOrgChoices] Optional. Array of Scratch Org choices.
+ * @param       {InquirerChoices} [standardOrgChoices]  Optional. Array of Target Org choices.
+ * @param       {InquirerChoices} [scratchOrgChoices] Optional. Array of Scratch Org choices.
  * @returns     {Question}  A single Inquirer Question.
  * @description Prompts the user to select a target org from the list provided by targetOrgChoices.
  * @public
  */
 // ────────────────────────────────────────────────────────────────────────────────────────────────┘
-export function chooseTm1Org(promptText:string[]=[], targetOrgChoices:YeomanChoice[]=[], scratchOrgChoices:YeomanChoice[]=[]):Questions {
+export function chooseTm1Org(promptText:string[]=[], standardOrgChoices:InquirerChoices=[], scratchOrgChoices:InquirerChoices=[]):Questions {
 
   // Debug arguments.
   SfdxFalconDebug.obj(`${dbgNs}chooseTm1Org:arguments:`, arguments);
@@ -58,34 +59,24 @@ export function chooseTm1Org(promptText:string[]=[], targetOrgChoices:YeomanChoi
     promptText = [];
   }
 
-  // If the caller didn't supply Target Org Choices, try to grab them from Shared Data.
-  if (isEmpty(targetOrgChoices)) {
+  // If the caller didn't supply Standard Org Choices, try to grab them from Shared Data.
+  if (isEmpty(standardOrgChoices)) {
     SfdxFalconInterview.validateInterviewScope(this);
-    targetOrgChoices = this.sharedData['targetOrgAliasChoices'] || [];
+    standardOrgChoices = this.sharedData['standardOrgAliasChoices'] || [];
   }
 
-  // If the caller didn't supply Target Scratch Org Choices, try to grab them from Shared Data.
+  // If the caller didn't supply Scratch Org Choices, try to grab them from Shared Data.
   if (isEmpty(scratchOrgChoices)) {
     SfdxFalconInterview.validateInterviewScope(this);
     scratchOrgChoices = this.sharedData['scratchOrgAliasChoices'] || [];
   }
 
-  // By now targetOrgChoices should be an Array.
-  if (Array.isArray(targetOrgChoices) !== true) {
-    throw new SfdxFalconError( `Expected targetOrgChoices to be an Array. Got type '${typeof targetOrgChoices}' instead. `
-                             , `TypeError`
-                             , `${dbgNs}chooseTm1Org`);
-  }
-
-  // By now scratchOrgChoices should be an Array.
-  if (Array.isArray(scratchOrgChoices) !== true) {
-    throw new SfdxFalconError( `Expected scratchOrgChoices to be an Array. Got type '${typeof scratchOrgChoices}' instead. `
-                             , `TypeError`
-                             , `${dbgNs}chooseTm1Org`);
-  }
+  // By now both standardOrgChoices and scratchOrgChoices should be valid Arrays.
+  typeValidator.throwOnNullInvalidArray(standardOrgChoices, `${dbgNs}chooseTm1Org`, `standardOrgChoices`);
+  typeValidator.throwOnNullInvalidArray(scratchOrgChoices,  `${dbgNs}chooseTm1Org`, `scratchOrgChoices`);
 
   // DEBUG
-  SfdxFalconDebug.obj(`${dbgNs}chooseTm1Org:targetOrgChoices:`,   targetOrgChoices);
+  SfdxFalconDebug.obj(`${dbgNs}chooseTm1Org:standardOrgChoices:`, standardOrgChoices);
   SfdxFalconDebug.obj(`${dbgNs}chooseTm1Org:scratchOrgChoices:`,  scratchOrgChoices);
 
   // Build and return the Questions.
@@ -101,8 +92,8 @@ export function chooseTm1Org(promptText:string[]=[], targetOrgChoices:YeomanChoi
       type:     'list',
       name:     'targetOrgUsername',
       message:  promptText[1] || 'From which org do you want to extract TM1 configuration?',
-      choices:  targetOrgChoices,
-      when:     answerHash => (answerHash.isScratchOrg === false && targetOrgChoices.length > 0)
+      choices:  standardOrgChoices,
+      when:     answerHash => (answerHash.isScratchOrg === false && standardOrgChoices.length > 0)
     },
     {
       type:     'list',
