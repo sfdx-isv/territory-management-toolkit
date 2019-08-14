@@ -1,54 +1,45 @@
 //─────────────────────────────────────────────────────────────────────────────────────────────────┐
 /**
  * @file          modules/tm-tools-load/index.ts
- * @copyright     Vivek M. Chawla - 2019
+ * @copyright     Vivek M. Chawla / Salesforce - 2019
  * @author        Vivek M. Chawla <@VivekMChawla>
- * @summary       Exports the TmToolsLoad class. Uses a TM2 Context to load TM2 data/metadata.
- * @description   Exports the TmToolsLoad class. Uses a TM2 Context to load TM2 data/metadata.
+ * @summary       Exports the TmToolsLoad class. Lets the user perform the FINAL TM2 metadata/data
+ *                loading services given a successful TM2 Deploy.
+ * @description   Exports the TmToolsLoad class. Lets the user perform the FINAL TM2 metadata/data
+ *                loading services given a successful TM2 Deploy.
  * @version       1.0.0
  * @license       MIT
  */
 //─────────────────────────────────────────────────────────────────────────────────────────────────┘
 // Import External Libraries & Modules
 import  {fs}                              from  '@salesforce/core'; // File System utility from the Core SFDX library.
-import  {cloneDeep}                       from  'lodash';           // Useful function for detecting empty objects.
-import  * as path                         from  'path';             // Node's path library.
+//import  {cloneDeep}                       from  'lodash';           // Useful function for detecting empty objects.
+//import  * as path                         from  'path';             // Node's path library.
 
 // Import Internal Libraries
-import  * as csv                          from  '../sfdx-falcon-util/csv';  // Library. Provides utilities and services for manipulating CSV files.
+import * as sfdxHelper          from  '../sfdx-falcon-util/sfdx';                 // Library of SFDX Helper functions specific to SFDX-Falcon.
+import * as typeValidator       from  '../sfdx-falcon-validators/type-validator'; // Library of SFDX Helper functions specific to SFDX-Falcon.
+//import * as zipHelper           from  './zip';                                    // Library of Zip Helper functions.
 
 // Import Internal Classes & Functions
-import  {SfdxFalconDebug}                 from  '../sfdx-falcon-debug';                     // Specialized debug provider for SFDX-Falcon code.
-import  {SfdxFalconError}                 from  '../sfdx-falcon-error';                     // Class. Extends SfdxError to provide specialized error structures for SFDX-Falcon modules.
-import  {DestructiveChanges}              from  '../tm-tools-objects/destructive-changes';  // Class. Models Salesforce "DestructiveChanges" metadata as needed for deployment to a TM2 org.
-import  {Package}                         from  '../tm-tools-objects/package';              // Class. Models Salesforce "Package" metadata as needed for deployment to a TM2 org.
-import  {SharingRules}                    from  '../tm-tools-objects/sharing-rules';        // Class. Models Salesforce "SharingRules" metadata.
-import  {Territory2}                      from  '../tm-tools-objects/territory2';           // Class. Models Salesforce "Territory2" metadata as needed for deployment to a TM2 org.
-import  {Territory2Model}                 from  '../tm-tools-objects/territory2-model';     // Class. Models Salesforce "Territory2Model" metadata as needed for deployment to a TM2 org.
-import  {Territory2Rule}                  from  '../tm-tools-objects/territory2-rule';      // Class. Models Salesforce "Territory2Rule" metadata as needed for deployment to a TM2 org.
-import  {Territory2Type}                  from  '../tm-tools-objects/territory2-type';      // Class. Models Salesforce "Territory2Type" metadata as needed for deployment to a TM2 org.
-import  {Tm1Context}                      from  '../tm-tools-objects/tm1-context';          // Models the entirety of an exported set of TM1 data, including helpful transforms.
+import  {SfdxFalconDebug}                 from  '../sfdx-falcon-debug';   // Specialized debug provider for SFDX-Falcon code.
+import  {SfdxFalconError}                 from  '../sfdx-falcon-error';   // Class. Extends SfdxError to provide specialized error structures for SFDX-Falcon modules.
+import  {SfdxFalconResult}                from  '../sfdx-falcon-result';  // Class. Implements a framework for creating results-driven, informational objects with a concept of heredity (child results) and the ability to "bubble up" both Errors (thrown exceptions) and application-defined "failures".
 
 // Import TM-Tools Types
-import  {ObjectTerritory2AssociationRecord} from  '../tm-tools-types';   // Interface. Represents an ObjectTerritory2Association Record.
-import  {SharingRulesFqdns}                 from  '../tm-tools-types';   // Interface. Represents a FQDN (Fully Qualified Developer Name) collection for Criteria and Owner-based Sharing Rules.
-import  {SharingRulesJson}                  from  '../tm-tools-types';   // Interface. Represents a collection of Criteria, Ownership, and Territory-based Sharing Rules.
-import  {SharingRulesObjectsByDevName}      from  '../tm-tools-types';   // Type. Represents a map of SharingRules Objects by Developer Name.
-import  {Status}                            from  '../tm-tools-types';   // Enum. Represents the valid set of Status values that help determine state in the TM-Tools environment.
-import  {TerritoryDevNameMapping}           from  '../tm-tools-types';   // Interface. Represents the mapping of a Territory developer name and record ID to a Territory2 developer name and record ID.
-import  {Territory2ObjectsByDevName}        from  '../tm-tools-types';   // Type. Represents a map of Territory2 Objects by Developer Name.
-import  {Territory2ModelObjectsByDevName}   from  '../tm-tools-types';   // Type. Represents a map of Territory2Model Objects by Developer Name.
-import  {Territory2RuleObjectsByDevName}    from  '../tm-tools-types';   // Type. Represents a map of Territory2Rule Objects by Developer Name.
-import  {Territory2TypeObjectsByDevName}    from  '../tm-tools-types';   // Type. Represents a map of Territory2Type Objects by Developer Name.
-import  {TM1AnalysisReport}                 from  '../tm-tools-types';   // Interface. Represents the data that is generated by a TM1 Analysis Report.
-import  {TM1ExtractionReport}               from  '../tm-tools-types';   // Interface. Represents the data that is generated by a TM1 Extraction Report.
-import  {TM1TransformationReport}           from  '../tm-tools-types';   // Interface. Represents the data that is generated by a TM1 Transformation Report.
-import  {TM1TransformFilePaths}             from  '../tm-tools-types';   // Interface. Represents the complete suite of file paths required by the TM1 Transform command.
-import  {UserTerritory2AssociationRecord}   from  '../tm-tools-types';   // Interface. Represents an UserTerritory2Association Record.
+import  {DeploymentResult}                from  '../tm-tools-types';    // Type. Represents the JSON returned by a call to force:mdapi:deploy
+import  {Status}                          from  '../tm-tools-types';    // Enum. Represents the valid set of Status values that help determine state in the TM-Tools environment.
+import  {Territory2ModelRecord}           from  '../tm-tools-types';    // Interface. Represents a Territory2Model Record.
+import  {TM1AnalysisReport}               from  '../tm-tools-types';    // Interface. Represents the data that is generated by a TM1 Analysis Report.
+import  {TM1ExtractionReport}             from  '../tm-tools-types';    // Interface. Represents the data that is generated by a TM1 Extraction Report.
+import  {TM1TransformationReport}         from  '../tm-tools-types';    // Interface. Represents the data that is generated by a TM1 Transformation Report.
+import  {TM2DeploymentReport}             from  '../tm-tools-types';    // Interface. Represents the data that is generated by a TM2 Deployment Report.
+import  {TM2DataLoadReport}               from  '../tm-tools-types';    // Interface. Represents the data that is generated by a TM2 DataLoad Report.
+import  {TM2DataLoadFilePaths}            from  '../tm-tools-types';    // Interface. Represents the complete suite of file paths required by the TM2 DataLoad command.
 
 // Set file local globals
 const territory2ModelDevName  = 'Imported_Territory';
-const territory2TypeDevName   = 'Imported_Territory';
+const {falcon}                = require('../../../package.json');       // The custom "falcon" key from package.json. This holds custom project-level values.
 
 // Set the File Local Debug Namespace
 const dbgNs = 'MODULE:tm-tools-load:';
@@ -58,8 +49,8 @@ SfdxFalconDebug.msg(`${dbgNs}`, `Debugging initialized for ${dbgNs}`);
 //─────────────────────────────────────────────────────────────────────────────────────────────────┐
 /**
  * @class       TmToolsLoad
- * @summary     Provides TM2 metadata/data loading services given transformed TM2 config.
- * @description If provided with the location of transformed TM2 metadata and data, as well as a
+ * @summary     Provides FINAL TM2 metadata/data loading services given a successful TM2 Deploy
+ * @description If provided with the location of FINAL transformed data/metadata, as well as a
  *              deployed AND activated Territory2 model, enables the final metadata deployment and
  *              data loading steps needed to complete a TM1 to TM2 migration.
  * @public
@@ -72,91 +63,138 @@ export class TmToolsLoad {
    * @method      prepare
    * @param       {TM1AnalysisReport} tm1AnalysisReport Required.
    * @param       {TM1ExtractionReport} tm1ExtractionReport Required.
-   * @param       {TM1TransformFilePaths} tm1TransformFilePaths  Required.
-   * @description Given the paths to exported TM1 metadata and record data,
-   *              prepares a "Territory Management 1.0 Context" and makes ready
-   *              to perform the actual transformation.
+   * @param       {TM1TransformationReport} tm1TransformationReport Required.
+   * @param       {TM2DeploymentReport} tm2DeploymentReport Required.
+   * @param       {TM2DataLoadFilePaths}  tm2DataLoadFilePaths  Required.
+   * @description Given reports for all TM-Tools commands that should have been
+   *              executed before a DataLoad, and the set of TM2 Data Load file
+   *              paths, prepares a TmToolsLoad object which can be used to
+   *              perform the FINAL deployment and data load.
    * @public @static @async
    */
   //───────────────────────────────────────────────────────────────────────────┘
-  public static async prepare(tm1AnalysisReport:TM1AnalysisReport, tm1ExtractionReport:TM1ExtractionReport, tm1TransformFilePaths:TM1TransformFilePaths):Promise<TmToolsLoad> {
+  public static async prepare(tm1AnalysisReport:TM1AnalysisReport,
+                              tm1ExtractionReport:TM1ExtractionReport,
+                              tm1TransformationReport:TM1TransformationReport,
+                              tm2DeploymentReport:TM2DeploymentReport,
+                              tm2DataLoadFilePaths:TM2DataLoadFilePaths):Promise<TmToolsLoad> {
 
     // Debug incoming arguments
     SfdxFalconDebug.obj(`${dbgNs}prepare:arguments:`, arguments);
 
-    // Create a TM1 Context.
-    const tm1Context  = await Tm1Context.prepare(tm1AnalysisReport, tm1TransformFilePaths.baseDirectory);
-    SfdxFalconDebug.obj(`${dbgNs}prepare:tm1Context:`, tm1Context);
+    // Define a query to find a Territory2 Model with the Developer Name used by TM-Tools.
+    const soqlQuery = `SELECT Id,Name,DeveloperName,State,ActivatedDate,DeactivatedDate,LastModifiedById,LastModifiedDate FROM Territory2Model WHERE DeveloperName='${territory2ModelDevName}'`;
 
-    // Build a TM Tools Transform object.
-    const tmToolsTransform = new TmToolsLoad(tm1Context, tm1ExtractionReport, tm1TransformFilePaths);
+    // Query the org specified in the TM2 Deployment Report for the expected Territory2 Model.
+    const queryResults:Territory2ModelRecord[] = await sfdxHelper.executeSoqlQuery(
+      tm2DeploymentReport.orgInfo.username,
+      soqlQuery,
+      {
+        apiVersion:     falcon.sfdcApiVersion,
+        logLevel:       'warn',
+        useToolingApi:  false,
+        perfLog:        false,
+        json:           true
+      }
+    )
+    .then((successResult:SfdxFalconResult) => {
+      SfdxFalconDebug.obj(`${dbgNs}prepare:successResult:`, successResult);
+      return sfdxHelper.getRecordsFromResult(successResult);
+    })
+    .catch((failureResult:SfdxFalconResult|Error) => {
+      SfdxFalconDebug.obj(`${dbgNs}prepare:failureResult:`, failureResult);
+      if (failureResult instanceof SfdxFalconResult) {
+        // Add additional context and repackage the Error contained by the SfdxFalconResult
+        throw failureResult.error(
+          new SfdxFalconError ( `The state of the Territory2 Model '${territory2ModelDevName}' in target org (${tm2DeploymentReport.orgInfo.username}) could not be determined.`
+                              , `TM2ModelStateUnknown`
+                              , `${dbgNs}prepare`
+                              ,  failureResult.errObj)
+        );
+      }
+      else {
+        throw failureResult;
+      }
+    });
+    SfdxFalconDebug.debugObject(`${dbgNs}prepare:queryResults:`, queryResults);
+
+    // Inspect the Query Results to see if the State is "Active". Anything else is NOT acceptable.
+    if (typeValidator.isEmptyNullInvalidArray(queryResults)
+        || queryResults.length !== 1
+        || queryResults[0].State !== 'Active') {
+
+      throw new SfdxFalconError ( `Territory2 Model '${territory2ModelDevName}' in target org (${tm2DeploymentReport.orgInfo.username}) is not Active. `
+                                + (queryResults[0].State ? `The model's current state is '${queryResults[0].State}'.` : ``)
+                                , `TM2ModelStateInvalid`
+                                , `${dbgNs}prepare`);
+    }
+
+    // Build a TM Tools Load object.
+    const tmToolsLoad = new TmToolsLoad(tm1AnalysisReport,
+                                        tm1ExtractionReport,
+                                        tm1TransformationReport,
+                                        tm2DeploymentReport,
+                                        tm2DataLoadFilePaths);
 
     // Mark the instantiated obeject as "prepared".
-    tmToolsTransform._prepared = true;
+    tmToolsLoad._prepared = true;
 
     // Return the instantiated TM Tools Transform object.
-    return tmToolsTransform;
+    return tmToolsLoad;
   }
 
   // Private Members
-  private _tm1Context:                      Tm1Context;
-  private _tm1ExtractionReport:             TM1ExtractionReport;
-  private _mainPackage:                     Package;
-  private _sharingRulesPackage:             Package;
-  private _cleanupPackage:                  Package;
-  private _destructiveChanges:              DestructiveChanges;
-  private _sharingRulesObjectsByDevName:    SharingRulesObjectsByDevName;
-  private _territory2ObjectsByDevName:      Territory2ObjectsByDevName;
-  private _territory2ModelObjectsByDevName: Territory2ModelObjectsByDevName;
-  private _territory2TypeObjectsByDevName:  Territory2TypeObjectsByDevName;
-  private _territory2RuleObjectsByDevName:  Territory2RuleObjectsByDevName;
-  private _filePaths:                       TM1TransformFilePaths;
-  private _prepared:                        boolean;
+  private _tm1AnalysisReport:             TM1AnalysisReport;
+  private _tm1ExtractionReport:           TM1ExtractionReport;
+  private _tm1TransformationReport:       TM1TransformationReport;
+  private _tm2DeploymentReport:           TM2DeploymentReport;
+  private _tm2DataLoadReport:             TM2DataLoadReport;
+  private _sharingRulesDeploymentResult:  DeploymentResult;
+  private _userT2ABulkJobId:              string;
+  private _objectT2ABulkJobId:            string;
+  private _filePaths:                     TM2DataLoadFilePaths;
+  private _prepared:                      boolean;
 
   // Public Accessors
-  public get tm1Context()                       { return this.isPrepared()  ? this._tm1Context                      : undefined; }
-  public get tm1ExtractionReport()              { return this.isPrepared()  ? this._tm1ExtractionReport             : undefined; }
-  public get mainPackage()                      { return this.isPrepared()  ? this._mainPackage                     : undefined; }
-  public get sharingRulesPackage()              { return this.isPrepared()  ? this._sharingRulesPackage             : undefined; }
-  public get cleanupPackage()                   { return this.isPrepared()  ? this._cleanupPackage                  : undefined; }
-  public get destructiveChanges()               { return this.isPrepared()  ? this._destructiveChanges              : undefined; }
-  public get sharingRulesObjectsByDevName()     { return this.isPrepared()  ? this._sharingRulesObjectsByDevName    : undefined; }
-  public get territory2ObjectsByDevName()       { return this.isPrepared()  ? this._territory2ObjectsByDevName      : undefined; }
-  public get territory2ModelObjectsByDevName()  { return this.isPrepared()  ? this._territory2ModelObjectsByDevName : undefined; }
-  public get territory2TypeObjectsByDevName()   { return this.isPrepared()  ? this._territory2TypeObjectsByDevName  : undefined; }
-  public get territory2RuleObjectsByDevName()   { return this.isPrepared()  ? this._territory2RuleObjectsByDevName  : undefined; }
-  public get filePaths()                        { return this._filePaths; }
-  public get prepared()                         { return this._prepared; }
+  public get tm1AnalysisReport()              { return this.isPrepared()  ? this._tm1AnalysisReport             : undefined; }
+  public get tm1ExtractionReport()            { return this.isPrepared()  ? this._tm1ExtractionReport           : undefined; }
+  public get tm1TransformationReport()        { return this.isPrepared()  ? this._tm1TransformationReport       : undefined; }
+  public get tm2DeploymentReport()            { return this.isPrepared()  ? this._tm2DeploymentReport           : undefined; }
+  public get tm2DataLoadReport()              { return this.isPrepared()  ? this._tm2DataLoadReport             : undefined; }
+  public get sharingRulesDeploymentResult()   { return this.isPrepared()  ? this._sharingRulesDeploymentResult  : undefined; }
+  public get userT2ABulkJobId()               { return this.isPrepared()  ? this._userT2ABulkJobId              : undefined; }
+  public get objectT2ABulkJobId()             { return this.isPrepared()  ? this._objectT2ABulkJobId            : undefined; }
+  public get filePaths()                      { return this._filePaths; }
+  public get prepared()                       { return this._prepared; }
 
   //───────────────────────────────────────────────────────────────────────────┐
   /**
    * @constructs  TmToolsTransform
-   * @param       {Tm1Context}  tm1Context  Required.
+   * @param       {TM1AnalysisReport} tm1AnalysisReport Required.
    * @param       {TM1ExtractionReport} tm1ExtractionReport Required.
-   * @param       {TM1TransformFilePaths} tm1TransformFilePaths  Required.
-   * @description Takes a Prepared TM1 Context and the directory paths where
-   *              transformed TM2 metadata, record data, and intermediate files
-   *              will be written.  After construction, the object is NOT ready
-   *              for consumption so its "prepared" value is always FALSE on
-   *              instantiation.
+   * @param       {TM1TransformationReport} tm1TransformationReport Required.
+   * @param       {TM2DeploymentReport} tm2DeploymentReport Required.
+   * @param       {TM2DataLoadFilePaths}  tm2DataLoadFilePaths  Required.
+   * @description Takes a reports from all previous TM-Tools commands.  After
+   *              construction, the object should be ready to perform the FINAL
+   *              TM2 deployment/data load.
    * @private
    */
   //───────────────────────────────────────────────────────────────────────────┘
-  private constructor(tm1Context:Tm1Context, tm1ExtractionReport:TM1ExtractionReport, tm1TransformFilePaths:TM1TransformFilePaths) {
+  private constructor(tm1AnalysisReport:TM1AnalysisReport,
+                      tm1ExtractionReport:TM1ExtractionReport,
+                      tm1TransformationReport:TM1TransformationReport,
+                      tm2DeploymentReport:TM2DeploymentReport,
+                      tm2DataLoadFilePaths:TM2DataLoadFilePaths) {
 
-    // Save the TM1 Context and TM1 Extraction Report
-    this._tm1Context          = tm1Context;
-    this._tm1ExtractionReport = tm1ExtractionReport;
+    // Save the various Reports.
+    this._tm1AnalysisReport       = tm1AnalysisReport;
+    this._tm1ExtractionReport     = tm1ExtractionReport;
+    this._tm1TransformationReport = tm1TransformationReport;
+    this._tm2DeploymentReport     = tm2DeploymentReport;
 
-    // Define the expected TM1 file paths.
-    this._filePaths = tm1TransformFilePaths;
-
-    // Initialize Maps
-    this._sharingRulesObjectsByDevName    = new Map<string, SharingRules>();
-    this._territory2ObjectsByDevName      = new Map<string, Territory2>();
-    this._territory2ModelObjectsByDevName = new Map<string, Territory2Model>();
-    this._territory2TypeObjectsByDevName  = new Map<string, Territory2Type>();
-    this._territory2RuleObjectsByDevName  = new Map<string, Territory2Rule>();
+    // Define the expected file paths.
+    this._filePaths = tm2DataLoadFilePaths;
 
     // Mark this object instance as UNPREPARED.
     this._prepared = false;
@@ -164,113 +202,110 @@ export class TmToolsLoad {
 
   //───────────────────────────────────────────────────────────────────────────┐
   /**
+   * @method      deploySharingRules
+   * @return      {Promise<DeploymentResult>}
+   * @description Deploys all Sharing Rules metadata to the TM2 org.
+   * @public @async
+   */
+  //───────────────────────────────────────────────────────────────────────────┘
+  public async deploySharingRules():Promise<DeploymentResult> {
+
+    // Do the deployment.
+    await sfdxHelper.deployMetadata(this._tm2DeploymentReport.orgInfo.username, this._filePaths.tm2SharingRulesDeploymentDir)
+    .then(successResult => {
+      SfdxFalconDebug.obj(`${dbgNs}deploySharingRules:successResult:`, successResult);
+      this._sharingRulesDeploymentResult = successResult.detail['stdOutParsed']['result'] as DeploymentResult;
+    })
+    .catch(errorResult => {
+      SfdxFalconDebug.obj(`${dbgNs}deploySharingRules:errorResult:`, errorResult);
+      throw errorResult;
+    });
+
+    // Send the results back to the caller.
+    SfdxFalconDebug.obj(`${dbgNs}deploySharingRules:_sharingRulesDeploymentResult:`, this._sharingRulesDeploymentResult);
+    return this._sharingRulesDeploymentResult;
+  }
+
+  //───────────────────────────────────────────────────────────────────────────┐
+  /**
    * @method      generateReport
-   * @return      {TM1TransformationReport} Builds a complete JSON representation
-   *              of the aftermath of a TM1 Transformation.
+   * @return      {TM2DataLoadReport} Builds a complete JSON representation
+   *              of the aftermath of a TM2 Data Load.
    * @description ???
    * @public
    */
   //───────────────────────────────────────────────────────────────────────────┘
-  public generateReport():TM1TransformationReport {
-    const tm1TransformationReport:TM1TransformationReport = {
-      orgInfo: this._tm1ExtractionReport.orgInfo,
+  public generateReport():TM2DataLoadReport {
+    const tm2DataLoadReport:TM2DataLoadReport = {
+      orgInfo: this._tm2DeploymentReport.orgInfo,
       status:   {
-        metadataTransformationStatus: {
-          territory2Model:          Status.COMPLETE,
-          territory2Type:           Status.COMPLETE,
-          territory2:               Status.PENDING,
-          territory2Rule:           Status.COMPLETE,
-          accountSharingRules: {
-            sharingCriteriaRules:   Status.PENDING,
-            sharingOwnerRules:      Status.PENDING
-          },
-          leadSharingRules: {
-            sharingCriteriaRules:   Status.PENDING,
-            sharingOwnerRules:      Status.PENDING
-          },
-          opportunitySharingRules: {
-            sharingCriteriaRules:   Status.PENDING,
-            sharingOwnerRules:      Status.PENDING
-          }
+        userTerritory2Association: {
+          dataSource: this._filePaths.userTerritory2AssociationCsv,
+          status:     Status.PENDING,
+          jobId:      this._userT2ABulkJobId
         },
-        dataTransformationStatus: {
-          territory2:                   Status.PENDING,
-          userTerritory2Association:    Status.PENDING,
-          objectTerritory2Association:  Status.PENDING
+        objectTerritory2Association: {
+          dataSource: this._filePaths.objectTerritory2AssociationCsv,
+          status:     Status.PENDING,
+          jobId:      this._userT2ABulkJobId
         },
-        intermediateFilesStatus: {
-          tm1ToTm2DevnameMap:           Status.PENDING,
-          territory2:                   Status.PENDING,
-          userTerritory2Association:    Status.PENDING,
-          objectTerritory2Association:  Status.PENDING
-        }
-      },
-      tm1RecordCounts:  {
-        territoryRecordCount:       -1,
-        userTerritoryRecordCount:   -1,
-        ataRuleRecordCount:         -1,
-        ataRuleItemRecordCount:     -1,
-        accountShareRecordCount:    -1,
-        groupRecordCount:           -1
-      },
-      tm1MetadataCounts: {
-        accountSharingRulesCount: {
-          sharingCriteriaRulesCount:  -1,
-          sharingOwnerRulesCount:     -1,
-          sharingTerritoryRulesCount: -1
-        },
-        leadSharingRulesCount: {
-          sharingCriteriaRulesCount:  -1,
-          sharingOwnerRulesCount:     -1
-        },
-        opportunitySharingRulesCount: {
-          sharingCriteriaRulesCount:  -1,
-          sharingOwnerRulesCount:     -1
-        }
-      },
-      tm2RecordCounts: {
-        territory2RecordCount:                  -1,
-        userTerritory2AssociationRecordCount:   -1,
-        objectTerritory2AssociationRecordCount: -1
-      },
-      tm2MetadataCounts: {
-        accountSharingRulesCount: {
-          sharingCriteriaRulesCount:  -1,
-          sharingOwnerRulesCount:     -1,
-          sharingTerritoryRulesCount: -1
-        },
-        leadSharingRulesCount: {
-          sharingCriteriaRulesCount:  -1,
-          sharingOwnerRulesCount:     -1
-        },
-        opportunitySharingRulesCount: {
-          sharingCriteriaRulesCount:  -1,
-          sharingOwnerRulesCount:     -1
-        }
+        sharingRules: this._sharingRulesDeploymentResult
       }
     };
-    SfdxFalconDebug.obj(`${dbgNs}generateReport:tm1TransformationReport:`, tm1TransformationReport);
-    return tm1TransformationReport;
+    SfdxFalconDebug.obj(`${dbgNs}generateReport:tm2DataLoadReport:`, tm2DataLoadReport);
+    return tm2DataLoadReport;
+  }
+
+  //───────────────────────────────────────────────────────────────────────────┐
+  /**
+   * @method      loadObjectTerritory2Associations
+   * @return      {Promise<string>}
+   * @description Queues up a Bulk API v2 data load for the UserTerritory2Association
+   *              data that was previously transformed during the post-deploy
+   *              steps from tmtools:tm2:deploy.
+   * @public @async
+   */
+  //───────────────────────────────────────────────────────────────────────────┘
+  public async loadObjectTerritory2Associations():Promise<string> {
+
+    // TODO: Implement
+    return null;
+  }
+
+  //───────────────────────────────────────────────────────────────────────────┐
+  /**
+   * @method      loadUserTerritory2Associations
+   * @return      {Promise<string>}
+   * @description Queues up a Bulk API v2 data load for the UserTerritory2Association
+   *              data that was previously transformed during the post-deploy
+   *              steps from tmtools:tm2:deploy.
+   * @public @async
+   */
+  //───────────────────────────────────────────────────────────────────────────┘
+  public async loadUserTerritory2Associations():Promise<string> {
+
+    // TODO: Implement
+    return null;
   }
 
   //───────────────────────────────────────────────────────────────────────────┐
   /**
    * @method      saveReport
    * @param       {string}  [targetFile] Optional.
-   * @return      {Promise<TM1TransformationReport>}
-   * @description Generates a TM1 Transformation Report and writes it to the
+   * @return      {Promise<TM2DataLoadReport>}
+   * @description Generates a TM2 Data Load Report and writes it to the
    *              local filesystem at the default TM File path, or to the
    *              filepath specified by the caller.
    * @public @async
    */
   //───────────────────────────────────────────────────────────────────────────┘
-  public async saveReport(targetFile?:string):Promise<TM1TransformationReport> {
+  public async saveReport(targetFile?:string):Promise<TM2DataLoadReport> {
 
     // Debug incoming arguments.
     SfdxFalconDebug.obj(`${dbgNs}saveReport:arguments:`, arguments);
 
     // Default target file to the one from the TM File Paths collection unless the caller overrides.
-    targetFile = targetFile || this.filePaths.tm1TransformationReportPath;
+    targetFile = targetFile || this.filePaths.tm2DataLoadReportPath;
 
     // Validate the target file.
     if (typeof targetFile !== 'string' || targetFile === '' || targetFile === null) {
@@ -285,606 +320,14 @@ export class TmToolsLoad {
     }
 
     // Generate the report.
-    const tm1TransformationReport = this.generateReport();
-    SfdxFalconDebug.obj(`${dbgNs}saveReport:tm1TransformationReport:`, tm1TransformationReport);
+    const tm2DataLoadReport = this.generateReport();
+    SfdxFalconDebug.obj(`${dbgNs}saveReport:tm2DataLoadReport:`, tm2DataLoadReport);
 
-    // Write the TM1 Analysis Report to the local filesystem.
-    await fs.writeJson(targetFile, tm1TransformationReport);
+    // Write the report to the local filesystem.
+    await fs.writeJson(targetFile, tm2DataLoadReport);
 
     // Send the report back to the caller.
-    return tm1TransformationReport;
-  }
-
-  //───────────────────────────────────────────────────────────────────────────┐
-  /**
-   * @method      transformMetadata
-   * @return      {Promise<TM1TransformationReport>}
-   * @description Executes the transformation of TM1 metadata and data into TM2
-   *              metadata and data.
-   * @public @async
-   */
-  //───────────────────────────────────────────────────────────────────────────┘
-  public async transformMetadata():Promise<TM1TransformationReport> {
-    
-    // Make sure this instance is Prepared.
-    this.isPrepared();
-
-    // Create Territory2Model Objects
-    this.createTerritory2ModelObjects();
-
-    // Create Territory2Type Objects
-    this.createTerritory2TypeObjects();
-
-    // Create Territory2Rule Objects
-    this.createTerritory2RuleObjects();
-
-    // Create Territory2 Objects
-    this.createTerritory2Objects();
-
-    // Create SharingRule Objects
-    this.createSharingRuleObjects();
-
-    // Create Package Object for the MAIN Deployment
-    this.createPackageObjectForMainDeployment();
-
-    // Create Package Object for the SHARING RULES Deployment
-    this.createPackageObjectForSharingRulesDeployment();
-
-    // Create Package Object for the CLEANUP Deployment
-    this.createPackageObjectForCleanupDeployment();
-
-    // Generate a TM1 Transformation Report and return it to the caller.
-    return this.generateReport();
-  }
-
-  //───────────────────────────────────────────────────────────────────────────┐
-  /**
-   * @method      writeAll
-   * @return      {Promise<void>}
-   * @description Writes the complete set of transformed TM2 data and metadata
-   *              to the local filesystem.
-   * @public @async
-   */
-  //───────────────────────────────────────────────────────────────────────────┘
-  public async writeAll():Promise<void> {
-
-    // Make sure this instance is Prepared.
-    this.isPrepared();
-
-    // Execute all WRITE operations.
-    await this.writeMetadata();
-    await this.writeIntermediateFiles();
-  }
-
-  //───────────────────────────────────────────────────────────────────────────┐
-  /**
-   * @method      writeIntermediateFiles
-   * @return      {Promise<TM1TransformationReport>}
-   * @description Writes special "intermediate" files to the local filesystem.
-   * @public @async
-   */
-  //───────────────────────────────────────────────────────────────────────────┘
-  public async writeIntermediateFiles():Promise<TM1TransformationReport> {
-
-    // Make sure this instance is Prepared.
-    this.isPrepared();
-
-    // Create TM1 to TM2 DevName Map.
-    await this.writeTm1ToTm2DevNameMapCsv();
-
-    // Create the intermediate User/Territory2 Association CSV file.
-    await this.writeUserTerritory2AssociationIntermediateCsv();
-
-    // Create the intermediate Object/Territory2 Association CSV file.
-    await this.writeObjectTerritory2AssociationIntermediateCsv();
-
-    // Generate a TM1 Transformation Report and return it to the caller.
-    return this.generateReport();
-  }
-
-  //───────────────────────────────────────────────────────────────────────────┐
-  /**
-   * @method      writeMetadata
-   * @return      {Promise<void>}
-   * @description Writes transformed TM2 metadata to the local filesystem.
-   * @public @async
-   */
-  //───────────────────────────────────────────────────────────────────────────┘
-  public async writeMetadata():Promise<void> {
-
-    // Make sure this instance is Prepared.
-    this.isPrepared();
-
-    // ── Build the MAIN metadata bundle ───────────────────────────────────────
-
-    // Write package manifest (package.xml) for the MAIN deployment package.
-    await this.mainPackage.writeXml(this.filePaths.tm2MainDeploymentDir);
-
-    // Write Territory2Type metadata files (territory2Types/DEV_NAME.territory2Type)
-    for (const territory2Type of this.territory2TypeObjectsByDevName.values()) {
-      await territory2Type.writeXml(this.filePaths.tm2MainDeploymentDir);
-    }
-
-    // Write Territory2Model metadata files (territory2Models/DEV_NAME/DEV_NAME.territory2Model)
-    for (const territory2Model of this.territory2ModelObjectsByDevName.values()) {
-      await territory2Model.writeXml(this.filePaths.tm2MainDeploymentDir);
-    }
-
-    // Write Territory2Rule metadata files (territory2Models/PARENT_MODEL_DEV_NAME/rules/DEV_NAME.territory2Rule)
-    for (const territory2Rule of this.territory2RuleObjectsByDevName.values()) {
-      await territory2Rule.writeXml(this.filePaths.tm2MainDeploymentDir);
-    }
-
-    // Write Territory2 metadata files (territory2Models/PARENT_MODEL_DEV_NAME/territories/DEV_NAME.territory2)
-    for (const territory2 of this.territory2ObjectsByDevName.values()) {
-      await territory2.writeXml(this.filePaths.tm2MainDeploymentDir);
-    }
-
-    // ── Build the SHARING RULES metadata bundle ──────────────────────────────
-
-    // Write package manifest (package.xml) for the SHARING RULES deployment package.
-    await this.sharingRulesPackage.writeXml(this.filePaths.tm2SharingRulesDeploymentDir);
-
-    // Write SharingRules Metadata files (sharingRules/DEV_NAME.sharingRules)
-    for (const sharingRules of this.sharingRulesObjectsByDevName.values()) {
-      await sharingRules.writeXml(this.filePaths.tm2SharingRulesDeploymentDir);
-    }
-
-    // ── Build the CLEANUP metadata bundle ────────────────────────────────────
-
-    // Write package manifest (package.xml) for the CLEANUP deployment package.
-    await this.cleanupPackage.writeXml(this.filePaths.tm1SharingRulesCleanupDir);
-
-    // Write destructive changes mainfest (destructiveChanges.xml) for the CLEANUP deployment package.
-    await this.destructiveChanges.writeXml(this.filePaths.tm1SharingRulesCleanupDir);
-  }
-
-  //───────────────────────────────────────────────────────────────────────────┐
-  /**
-   * @method      createPackageObjectForCleanupDeployment
-   * @return      {void}
-   * @description Creates a Package object (ie. package.xml) for use by the
-   *              special TM1 "cleanup deployment" operation.
-   * @private
-   */
-  //───────────────────────────────────────────────────────────────────────────┘
-  private createPackageObjectForCleanupDeployment():void {
-    const {falcon}              = require('../../../package.json'); // The version of the SFDX-Falcon plugin
-    const packageTypes          = [];
-
-    // Create local function to extract SharingRules using their "fully qualified developer name" (FQDN).
-    const extractSharingRulesDevNames = (prefix:string, sharingRules:SharingRulesJson):SharingRulesFqdns => {
-      const sharingRulesFqdns:SharingRulesFqdns = {
-        sharingCriteriaRules:   [],
-        sharingOwnerRules:      [],
-        sharingTerritoryRules:  []
-      };
-      for (const sharingRule of sharingRules.sharingCriteriaRules) {
-        sharingRulesFqdns.sharingCriteriaRules.push(`${prefix}.${sharingRule.fullName}`);
-      }
-      for (const sharingRule of sharingRules.sharingOwnerRules) {
-        sharingRulesFqdns.sharingOwnerRules.push(`${prefix}.${sharingRule.fullName}`);
-      }
-      return sharingRulesFqdns;
-    };
-
-    // Extract the Account, Lead, and Oppo
-    const accountSharingRulesToDelete     = extractSharingRulesDevNames('Account',      this._tm1Context.accountSharingRules);
-    const leadSharingRulesToDelete        = extractSharingRulesDevNames('Lead',         this._tm1Context.leadSharingRules);
-    const opportunitySharingRulesToDelete = extractSharingRulesDevNames('Opportunity',  this._tm1Context.opportunitySharingRules);
-    
-    // Concatenate the result arrays to get our final CRITERIA and OWNER SharingRules to delete.
-    const criteriaRulesToDelete = accountSharingRulesToDelete.sharingCriteriaRules.concat(leadSharingRulesToDelete.sharingCriteriaRules, opportunitySharingRulesToDelete.sharingCriteriaRules);
-    const ownerRulesToDelete    = accountSharingRulesToDelete.sharingOwnerRules.concat(leadSharingRulesToDelete.sharingOwnerRules, opportunitySharingRulesToDelete.sharingOwnerRules);
-
-    // SharingCriteriaRule
-    packageTypes.push({
-      members:  criteriaRulesToDelete,
-      name:     'SharingCriteriaRule'
-    });
-
-    // SharingOwnerRule
-    packageTypes.push({
-      members:  ownerRulesToDelete,
-      name:     'SharingOwnerRule'
-    });
-
-    // Create the CLEANUP Package object.
-    this._cleanupPackage = new Package({
-      types:    [],
-      version:  falcon.sfdcApiVersion,
-      filePath: this.filePaths.tm1SharingRulesCleanupDir
-    });
-
-    // Create the DESTRUCTIVE CHANGES Package object.
-    this._destructiveChanges = new DestructiveChanges({
-      types:    packageTypes,
-      version:  falcon.sfdcApiVersion,
-      filePath: this.filePaths.tm1SharingRulesCleanupDir
-    });
-  }
-
-  //───────────────────────────────────────────────────────────────────────────┐
-  /**
-   * @method      createPackageObjectForMainDeployment
-   * @return      {void}
-   * @description Creates a Package object (ie. package.xml) for use by the
-   *              main TM2 deployment operation (the one that first puts the
-   *              TM2 Territories in the target org).
-   * @private
-   */
-  //───────────────────────────────────────────────────────────────────────────┘
-  private createPackageObjectForMainDeployment():void {
-    const packageTypes  = [];
-    const {falcon}      = require('../../../package.json'); // The version of the SFDX-Falcon plugin
-
-    // Territory2
-    packageTypes.push({
-      members:  ['*'],
-      name:     'Territory2'
-    });
-
-    // Territory2Model
-    packageTypes.push({
-      members:  ['*'],
-      name:     'Territory2Model'
-    });
-
-    // Territory2Rule
-    packageTypes.push({
-      members:  ['*'],
-      name:     'Territory2Rule'
-    });
-
-    // Territory2Type
-    packageTypes.push({
-      members:  ['*'],
-      name:     'Territory2Type'
-    });
-
-    // Create the Package object.
-    this._mainPackage = new Package({
-      types:    packageTypes,
-      version:  falcon.sfdcApiVersion,
-      filePath: this.filePaths.tm2MainDeploymentDir
-    });
-  }
-
-  //───────────────────────────────────────────────────────────────────────────┐
-  /**
-   * @method      createPackageObjectForSharingRulesDeployment
-   * @return      {void}
-   * @description Creates a Package object (ie. package.xml) for use by the
-   *              secondary "sharing rules" TM2 deployment operation.
-   * @private
-   */
-  //───────────────────────────────────────────────────────────────────────────┘
-  private createPackageObjectForSharingRulesDeployment():void {
-    const packageTypes  = [];
-    const {falcon}      = require('../../../package.json'); // The version of the SFDX-Falcon plugin
-
-
-    // TODO: The package.xml for this use case may not be designed properly. Please test and fix.
-
-    // SharingCriteriaRule
-    packageTypes.push({
-      members:  ['*'],
-      name:     'SharingCriteriaRule'
-    });
-
-    // SharingOwnerRule
-    packageTypes.push({
-      members:  ['*'],
-      name:     'SharingOwnerRule'
-    });
-
-    // Create the Package object.
-    this._sharingRulesPackage = new Package({
-      types:    packageTypes,
-      version:  falcon.sfdcApiVersion,
-      filePath: this.filePaths.tm2SharingRulesDeploymentDir
-    });
-  }
-
-  //───────────────────────────────────────────────────────────────────────────┐
-  /**
-   * @method      createSharingRuleObjects
-   * @return      {void}
-   * @description Creates all required SharingRule objects.
-   * @private
-   */
-  //───────────────────────────────────────────────────────────────────────────┘
-  private createSharingRuleObjects():void {
-
-    // Make a deep clone of the Account, Lead, and Opportunity SharingRules that are known to the Tm1Context object.
-    const accountSharingRules     = cloneDeep(this._tm1Context.accountSharingRules);
-    const leadSharingRules        = cloneDeep(this._tm1Context.leadSharingRules);
-    const opportunitySharingRules = cloneDeep(this._tm1Context.opportunitySharingRules);
-
-    // Local function that prefixes the Territory2 Model DevName to any "Territory" or "Territory and Subordinates" groupnames.
-    const addModelPrefixToTerritoryGroupNames = (sharingRulesJson:SharingRulesJson) => {
-      for (const sharingCriteriaRule of sharingRulesJson.sharingCriteriaRules) {
-        if (sharingCriteriaRule.sharedTo.groupType === 'territory' || sharingCriteriaRule.sharedTo.groupType === 'territoryAndSubordinates') {
-          sharingCriteriaRule.sharedTo.groupMembers = territory2ModelDevName + '.' + sharingCriteriaRule.sharedTo.groupMembers;
-        }
-      }
-      for (const sharingOwnerRule of sharingRulesJson.sharingOwnerRules) {
-        if (sharingOwnerRule.sharedTo.groupType === 'territory' || sharingOwnerRule.sharedTo.groupType === 'territoryAndSubordinates') {
-          sharingOwnerRule.sharedTo.groupMembers = territory2ModelDevName + '.' + sharingOwnerRule.sharedTo.groupMembers;
-        }
-        if (sharingOwnerRule.sharedFrom.groupType === 'territory' || sharingOwnerRule.sharedFrom.groupType === 'territoryAndSubordinates') {
-          sharingOwnerRule.sharedFrom.groupMembers = territory2ModelDevName + '.' + sharingOwnerRule.sharedFrom.groupMembers;
-        }
-      }
-    };
-
-    // Run the Account, Lead, and Opportunity SharingRules through the "add model prefix" process.
-    addModelPrefixToTerritoryGroupNames(accountSharingRules);
-    addModelPrefixToTerritoryGroupNames(leadSharingRules);
-    addModelPrefixToTerritoryGroupNames(opportunitySharingRules);
-
-    // DEBUG
-    SfdxFalconDebug.obj(`${dbgNs}createSharingRuleObjects:accountSharingRules:`,      accountSharingRules);
-    SfdxFalconDebug.obj(`${dbgNs}createSharingRuleObjects:leadSharingRules:`,         leadSharingRules);
-    SfdxFalconDebug.obj(`${dbgNs}createSharingRuleObjects:opportunitySharingRules:`,  opportunitySharingRules);
-
-    // Create Account SharingRules Objects
-    this._sharingRulesObjectsByDevName.set(
-      `Account`,
-      new SharingRules({
-        developerName:  `Account`,
-        sharingCriteriaRules:   accountSharingRules.sharingCriteriaRules,
-        sharingOwnerRules:      accountSharingRules.sharingOwnerRules,
-        sharingTerritoryRules:  [],
-        filePath:       path.join(this.filePaths.tm2SharingRulesDeploymentDir, 'sharingRules')
-      })
-    );
-
-    // Create Lead SharingRules
-    this._sharingRulesObjectsByDevName.set(
-      `Lead`,
-      new SharingRules({
-        developerName:  `Lead`,
-        sharingCriteriaRules:   leadSharingRules.sharingCriteriaRules,
-        sharingOwnerRules:      leadSharingRules.sharingOwnerRules,
-        sharingTerritoryRules:  [],
-        filePath:       path.join(this.filePaths.tm2SharingRulesDeploymentDir, 'sharingRules')
-      })
-    );
-
-    // Create Opportunity SharingRules
-    this._sharingRulesObjectsByDevName.set(
-      `Opportunity`,
-      new SharingRules({
-        developerName:  `Opportunity`,
-        sharingCriteriaRules:   opportunitySharingRules.sharingCriteriaRules,
-        sharingOwnerRules:      opportunitySharingRules.sharingOwnerRules,
-        sharingTerritoryRules:  [],
-        filePath:       path.join(this.filePaths.tm2SharingRulesDeploymentDir, 'sharingRules')
-      })
-    );
-  }
-
-  //───────────────────────────────────────────────────────────────────────────┐
-  /**
-   * @method      createTerritory2Objects
-   * @return      {void}
-   * @description Creates all required Territory2 objects.
-   * @private
-   */
-  //───────────────────────────────────────────────────────────────────────────┘
-  private createTerritory2Objects():void {
-    for (const territoryRecord of this._tm1Context.territoryRecords) {
-      const parentTerritoryRecord = this._tm1Context.territoryRecordsById.get(territoryRecord.ParentTerritoryId);
-      const territory2Model       = this._territory2ModelObjectsByDevName.get('Imported_Territory');
-      const territory2Type        = this._territory2TypeObjectsByDevName.get('Imported_Territory');
-
-      // TODO: Validate territory2Model
-      // TODO: Validate territory2Type
-
-      this._territory2ObjectsByDevName.set(
-        territoryRecord.DeveloperName,
-        new Territory2({
-          territory2Model:            territory2Model,
-          territory2Type:             territory2Type,
-          territoryRecord:            territoryRecord,
-          parentTerritoryRecord:      parentTerritoryRecord,
-          ataRuleRecords:             this._tm1Context.ataRuleRecordsByTerritoryId.get(territoryRecord.Id) || [],
-          ataRuleDevNamesByRuleId:    this._tm1Context.ataRuleDevNamesByRuleId
-        })
-      );
-    }
-  }
-
-  //───────────────────────────────────────────────────────────────────────────┐
-  /**
-   * @method      createTerritory2ModelObjects
-   * @return      {void}
-   * @description Creates all required Territory2Model objects.
-   * @private
-   */
-  //───────────────────────────────────────────────────────────────────────────┘
-  private createTerritory2ModelObjects():void {
-    this._territory2ModelObjectsByDevName.set(
-      territory2ModelDevName,
-      new Territory2Model({
-        name:           `Imported Territory`,
-        developerName:  territory2ModelDevName,
-        description:    `Auto-generated Territory Model. Created as part of the TM1 to TM2 migration process.`,
-        filePath:       path.join(this.filePaths.tm2MainDeploymentDir, 'territory2Models', territory2ModelDevName)
-      })
-    );
-  }
-
-  //───────────────────────────────────────────────────────────────────────────┐
-  /**
-   * @method      createTerritory2RuleObjects
-   * @return      {void}
-   * @description Creates all required Territory2Rule objects.
-   * @private
-   */
-  //───────────────────────────────────────────────────────────────────────────┘
-  private createTerritory2RuleObjects():void {
-    for (const ataRuleRecord of this._tm1Context.ataRuleRecords) {
-      const ataRuleDevName  = this._tm1Context.ataRuleDevNamesByRuleId.get(ataRuleRecord.Id);
-      const territory2Model = this._territory2ModelObjectsByDevName.get(territory2ModelDevName);
-      this._territory2RuleObjectsByDevName.set(
-        ataRuleDevName,
-        new Territory2Rule({
-          developerName:              ataRuleDevName,
-          ataRuleRecord:              ataRuleRecord,
-          ataRuleItemRecordsByRuleId: this._tm1Context.ataRuleItemRecordsByRuleId,
-          objectType:                 'Account',
-          territory2Model:            territory2Model
-        })
-      );
-    }
-  }
-
-  //───────────────────────────────────────────────────────────────────────────┐
-  /**
-   * @method      createTerritory2TypeObjects
-   * @return      {void}
-   * @description Creates all required Territory2Type objects.
-   * @private
-   */
-  //───────────────────────────────────────────────────────────────────────────┘
-  private createTerritory2TypeObjects():void {
-    this._territory2TypeObjectsByDevName.set(
-      territory2TypeDevName,
-      new Territory2Type({
-        name:           `Imported Territory`,
-        developerName:  territory2TypeDevName,
-        priority:       `1`,
-        filePath:       path.join(this.filePaths.tm2MainDeploymentDir, 'territory2Types')
-      })
-    );
-  }
-
-  //───────────────────────────────────────────────────────────────────────────┐
-  /**
-   * @method      writeObjectTerritory2AssociationIntermediateCsv
-   * @return      {void}
-   * @description ???
-   * @private @async
-   */
-  //───────────────────────────────────────────────────────────────────────────┘
-  private async writeObjectTerritory2AssociationIntermediateCsv():Promise<void> {
-
-    // Initialize an array to hold the records we're going to build.
-    const objectTerritory2AssociationRecords:ObjectTerritory2AssociationRecord[] = [];
-
-    // Iterate over the AccountShare Records from the TM1 Context to build new ObjectTerritory2Association records.
-    for (const accountShareRecord of this._tm1Context.accountShareRecords) {
-      const territoryDevName = 'NOT_IMPLEMENTED';
-      objectTerritory2AssociationRecords.push({
-        AssociationCause: 'Territory2Manual',
-        ObjectId:         accountShareRecord.AccountId,
-        SobjectType:      'Account',
-        Territory2Id:     `T2ID_PENDING_${territoryDevName}`
-      });
-    }
-    SfdxFalconDebug.obj(`${dbgNs}writeOT2AIntermediateCsv:objectTerritory2AssociationRecords:`, objectTerritory2AssociationRecords);
-
-    // Stream the Territory DevName Mappings JSON to disk.
-    await csv.streamJsonToCsvFile(
-      objectTerritory2AssociationRecords,
-      this._filePaths.objectTerritory2AssociationIntermediateCsv,
-      {
-        fields: [
-          'AssociationCause',
-          'ObjectId',
-          'SobjectType',
-          'Territory2Id'
-        ]
-      }
-    );
-  }
-
-  //───────────────────────────────────────────────────────────────────────────┐
-  /**
-   * @method      writeTm1ToTm2DevNameMapCsv
-   * @return      {void}
-   * @description ???
-   * @private @async
-   */
-  //───────────────────────────────────────────────────────────────────────────┘
-  private async writeTm1ToTm2DevNameMapCsv():Promise<void> {
-
-    // Initialize an array to hold the Developer Name Mappings.
-    const territoryDevNameMappings:TerritoryDevNameMapping[] = [];
-
-    // Iterate over the Territory Records from the TM1 Context to build a mapping for each.
-    for (const territoryRecord of this._tm1Context.territoryRecords) {
-      const parentTerritoryDevName = territoryRecord.ParentTerritoryId ? this._tm1Context.territoryRecordsById.get(territoryRecord.ParentTerritoryId).DeveloperName : undefined;
-      territoryDevNameMappings.push({
-        territoryDevName:           territoryRecord.DeveloperName,
-        territoryId:                territoryRecord.Id,
-        territory2ModelDevName:     territory2ModelDevName,
-        territory2DevName:          territoryRecord.DeveloperName,
-        territory2Id:               'T2ID_PENDING',
-        territory2ParentDevName:    parentTerritoryDevName,
-        territory2ParentId:         parentTerritoryDevName ? 'T2ID_PENDING' : undefined
-      });
-    }
-    SfdxFalconDebug.obj(`${dbgNs}writeTm1ToTm2DevNameMapCsv:territoryDevNameMappings:`, territoryDevNameMappings);
-
-    // Stream the Territory DevName Mappings JSON to disk.
-    await csv.streamJsonToCsvFile(
-      territoryDevNameMappings,
-      this._filePaths.tm1ToTm2DevnameMapCsv,
-      {
-        fields: [
-          'territoryDevName',
-          'territoryId',
-          'territory2ModelDevName',
-          'territory2DevName',
-          'territory2Id',
-          'territory2ParentDevName',
-          'territory2ParentId'
-        ]
-      }
-    );
-  }
-
-  //───────────────────────────────────────────────────────────────────────────┐
-  /**
-   * @method      writeUserTerritory2AssociationIntermediateCsv
-   * @return      {void}
-   * @description ???
-   * @private @async
-   */
-  //───────────────────────────────────────────────────────────────────────────┘
-  private async writeUserTerritory2AssociationIntermediateCsv():Promise<void> {
-
-    // Initialize an array to hold the records we're going to build.
-    const userTerritory2AssociationRecords:UserTerritory2AssociationRecord[] = [];
-
-    // Iterate over the UserTerritory Records from the TM1 Context to build new UserTerritory2Association records.
-    for (const userTerritoryRecord of this._tm1Context.userTerritoryRecords) {
-      const territoryDevName = this._tm1Context.territoryRecordsById.get(userTerritoryRecord.TerritoryId).DeveloperName;
-      userTerritory2AssociationRecords.push({
-        IsActive:               userTerritoryRecord.IsActive,
-        RoleInTerritory2:       undefined,
-        Territory2Id:           `T2ID_PENDING_${territoryDevName}`,
-        UserId:                 userTerritoryRecord.UserId
-      });
-    }
-    SfdxFalconDebug.obj(`${dbgNs}writeUserTerritory2AssociationIntermediateCsv:userTerritory2AssociationRecords:`, userTerritory2AssociationRecords);
-
-    // Stream the UserTerritory2Association Records JSON to disk.
-    await csv.streamJsonToCsvFile(
-      userTerritory2AssociationRecords,
-      this._filePaths.userTerritory2AssociationIntermediateCsv,
-      {
-        fields: [
-          'IsActive',
-          'RoleInTerritory2',
-          'Territory2Id',
-          'UserId'
-        ]
-      }
-    );
+    return tm2DataLoadReport;
   }
 
   //───────────────────────────────────────────────────────────────────────────┐
@@ -898,7 +341,7 @@ export class TmToolsLoad {
   //───────────────────────────────────────────────────────────────────────────┘
   private isPrepared():boolean {
     if (this._prepared !== true) {
-      throw new SfdxFalconError ( `Operations against TmToolsTransform objects are not available until the instance is prepared`
+      throw new SfdxFalconError ( `Operations against TmToolsLoad objects are not available until the instance is prepared`
                                 , `ObjectNotPrepared`
                                 , `${dbgNs}isPrepared`);
     }
