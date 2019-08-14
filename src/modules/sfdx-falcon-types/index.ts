@@ -13,7 +13,6 @@
 import {Connection}           from  '@salesforce/core';         // Why?
 import {AnyJson}              from  '@salesforce/ts-types';     // Why?
 import {JsonMap}              from  '@salesforce/ts-types';     // Why?
-import * as inquirer          from  'inquirer';                 // Why?
 import {QueryResult}          from  'jsforce';                  // Why?
 import {RequestInfo}          from  'jsforce';                  // Why?
 import {Observable}           from  'rxjs';                     // Why?
@@ -265,19 +264,11 @@ export type Subscriber = Subscriber<unknown>;
 //
 //
 
-/*
-export type InquirerChoice<U=unknown>   = inquirer.objects.Choice<U>;
-export type InquirerChoices<U=unknown>  = inquirer.objects.Choices<U>;
-export type InquirerQuestion            = inquirer.Question;
-export type InquirerQuestions           = inquirer.Questions;
-export type InquirerAnswers             = inquirer.Answers;
-//*/
 export type InquirerChoice<U=unknown>   = import('inquirer/lib/objects/choice')<U>;
 export type InquirerSeparator           = import('inquirer/lib/objects/separator');
 export type InquirerChoices             = Array<InquirerChoice|InquirerSeparator>;
 export type InquirerQuestion            = import('inquirer').Question;
-export type InquirerQuestions           = inquirer.Questions;
-//export type InquirerQuestions           = import('inquirer').QuestionCollection;
+export type InquirerQuestions           = import('inquirer').QuestionCollection;
 export type InquirerAnswers             = import('inquirer').Answers;
 
 /**
