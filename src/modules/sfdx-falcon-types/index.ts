@@ -13,8 +13,6 @@
 import {Connection}           from  '@salesforce/core';         // Why?
 import {AnyJson}              from  '@salesforce/ts-types';     // Why?
 import {JsonMap}              from  '@salesforce/ts-types';     // Why?
-import {QueryResult}          from  'jsforce';                  // Why?
-import {RequestInfo}          from  'jsforce';                  // Why?
 import {Observable}           from  'rxjs';                     // Why?
 import {Observer}             from  'rxjs';                     // Why?
 import {Subscriber}           from  'rxjs';                     // Why?
@@ -52,6 +50,19 @@ export interface StyledMessage extends JsonMap {
   message:  string;
   /** Required. Chalk styles to be applied to the message. Uses the "tagged template literal" format. */
   styling:  string;
+}
+
+/**
+ * Enum. Represents a generic set of commonly used Status values.
+ */
+export enum Status {
+  NOT_STARTED = 'NOT_STARTED',
+  WAITING     = 'WAITING',
+  WORKING     = 'WORKING',
+  COMPLETE    = 'COMPLETE',
+  PENDING     = 'PENDING',
+  SKIPPED     = 'SKIPPED',
+  FAILED      = 'FAILED'
 }
 
 /**
@@ -434,8 +445,119 @@ export interface ResolvedConnection {
  */
 export interface RestApiRequestDefinition {
   aliasOrConnection:  string|Connection;
-  request:            RequestInfo;
+  request:            import ('jsforce').RequestInfo;
   options?:           {any};
+}
+
+/**
+ * Interface. Represents the request body required to create a Bulk API 2.0 job.
+ */
+export interface Bulk2JobCreateRequest extends JsonMap {
+  /** The column delimiter used for CSV job data. */
+  columnDelimiter?:     'BACKQUOTE'|'CARET'|'COMMA'|'PIPE'|'SEMICOLON'|'TAB';
+  /** The format of the data being processed. Only CSV is supported */
+  contentType?:          'CSV';
+  /** The external ID field in the object being updated. Only needed for upsert operations. Field values must also exist in CSV job data. */
+  externalIdFieldName?: string;
+  /** The line ending used for CSV job data. */
+  lineEnding?:          'LF'|'CRLF';
+  /** The object type for the data being processed. */
+  object:               string;
+  /** The processing operation for the job. Values include "insert", "delete", "update", and "upsert". */
+  operation:            'insert'|'delete'|'update'|'upsert';
+}
+
+/**
+ * Interface. Represents the response body returned by Salesforce after attempting to create a Bulk API 2.0 job.
+ */
+export interface Bulk2JobCreateResponse extends Bulk2JobCreateRequest {
+  /** The API version that the job was created in. */
+  apiVersion?:          string;
+  /** How the request was processed. */
+  concurrencyMode?:     string;
+  /** The URL to use for Upload Job Data requests for this job. Only valid if the job is in Open state. */
+  contentUrl?:          string;
+  /** The ID of the user who created the job. */
+  createdById?:         string;
+  /** The date and time in the UTC time zone when the job was created. */
+  createdDate?:         string;
+  /** Unique ID for this job. */
+  id?:                  string;
+  /** The job’s type. Values include "BigObjectIngest" (BigObjects), "Classic" (Bulk API 1.0), or "V2Ingest" (Bulk API 2.0 job) */
+  jobType?:             'BigObjectIngest'|'Classic'|'V2Ingest';
+  /** The current state of processing for the job. */
+  state?:               'Open'|'UploadComplete'|'Aborted'|'JobComplete'|'Failed';
+  /** Date and time in the UTC time zone when the job finished. */
+  systemModstamp?:      string;
+}
+
+/**
+ * Interface. Represents the response body returned by Salesforce when requesting info about a specific Bulk API 2.0 job.
+ */
+export interface Bulk2JobInfoResponse extends Bulk2JobCreateResponse {
+  /** The number of milliseconds taken to process triggers and other processes related to the job data. This doesn't include the time used for processing asynchronous and batch Apex operations. If there are no triggers, the value is 0. */
+  apexProcessingTime?:      number;
+  /** The number of milliseconds taken to actively process the job and includes apexProcessingTime, but doesn't include the time the job waited in the queue to be processed or the time required for serialization and deserialization. */
+  apiActiveProcessingTime?: number;
+  /** The number of records that were not processed successfully in this job. */
+  numberRecordsFailed?:     number;
+  /** The number of records already processed. */
+  numberRecordsProcessed?:  number;
+  /** The number of times that Salesforce attempted to save the results of an operation. The repeated attempts are due to a problem, such as a lock contention. */
+  retries?:                 number;
+  /** The number of milliseconds taken to process the job. */
+  totalProcessingTime?:     number;
+}
+
+/**
+ * Interface. Represents a record that encountered an error while being processed by a Bulk API 2.0 job.
+ * Contains all field data that was provided in the original job data upload request.
+ */
+export interface Bulk2FailureRecord extends JsonMap {
+  /** Error code and message, if applicable. */
+  sf__Error:    string;
+  /** ID of the record that had an error during processing, if applicable. */
+  sf__Id:       string;
+  /** Field data for the row that was provided in the original job data upload request. */
+  [key:string]: string;
+}
+
+/**
+ * Type. Represents the collection of "Successful Results" data from a Bulk API 2.0 job.
+ */
+export type Bulk2FailureResults = Bulk2FailureRecord[];
+
+/**
+ * Interface. Represents a record that has been successfully processed by a Bulk API 2.0 job.
+ * Contains all field data that was provided in the original job data upload request.
+ */
+export interface Bulk2SuccesRecord extends JsonMap {
+  /** Indicates if the record was created. */
+  sf__Created:  string;
+  /** ID of the record that was successfully processed. */
+  sf__Id:       string;
+  /** Field data for the row that was provided in the original job data upload request. */
+  [key:string]: string;
+}
+
+/**
+ * Type. Represents the collection of "Successful Results" data from a Bulk API 2.0 job.
+ */
+export type Bulk2SuccesfulResults = Bulk2SuccesRecord[];
+
+/**
+ * Interface. Represents the overall status of a Bulk API 2.0 operation.
+ */
+export interface Bulk2OperationStatus extends JsonMap {
+  currentJobStatus?:        Bulk2JobInfoResponse;
+  dataSourcePath?:          string;
+  dataSourceSize?:          number;
+  dataSourceUploadStatus?:  Status;
+  failureResults?:          Bulk2FailureResults;
+  failureResultsPath?:      string;
+  initialJobStatus?:        Bulk2JobCreateResponse;
+  successfulResults?:       Bulk2SuccesfulResults;
+  successfulResultsPath?:   string;
 }
 
 /**
@@ -446,7 +568,7 @@ export type PackageVersionMap = Map<string, MetadataPackageVersion[]>;
 /**
  * Type. Alias to the JSForce definition of QueryResult.
  */
-export type QueryResult<T> = QueryResult<T>;
+export type QueryResult<T> = import('jsforce').QueryResult<T>;
 
 /**
  * Interface. Represents the "nonScratchOrgs" (aka "standard orgs") data returned by the sfdx force:org:list command.
