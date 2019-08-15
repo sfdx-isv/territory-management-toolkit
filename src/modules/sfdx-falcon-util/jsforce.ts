@@ -1,7 +1,7 @@
 //─────────────────────────────────────────────────────────────────────────────────────────────────┐
 /**
  * @file          modules/sfdx-falcon-util/jsforce.ts
- * @copyright     Vivek M. Chawla - 2018
+ * @copyright     Vivek M. Chawla / Salesforce - 2019
  * @author        Vivek M. Chawla <@VivekMChawla>
  * @summary       Utility Module - JSForce
  * @description   Utility functions related to JSForce. Allows developer to work directly against
@@ -10,19 +10,20 @@
  * @license       MIT
  */
 //─────────────────────────────────────────────────────────────────────────────────────────────────┘
-// Import External Modules
-import {Connection}               from  '@salesforce/core';     // Why?
-import {AnyJson}                  from  '@salesforce/ts-types'; // Why?
-import {JsonMap}                  from  '@salesforce/ts-types'; // Why?
-import * as jsf                   from  'jsforce';              // Why?
+// Import External Libraries, Modules, and Types
+import {Connection}               from  '@salesforce/core';     // Handles connections and requests to Salesforce Orgs.
+import {JsonCollection}           from  '@salesforce/ts-types'; // Any valid JSON collection value.
+import {JsonMap}                  from  '@salesforce/ts-types'; // Any JSON-compatible object.
+import * as jsf                   from  'jsforce';              // Provides low-level services for interacting with Salesforce orgs.
 
-// Import Internal Modules
+// Import Internal Libraries
+import * as typeValidator         from  '../sfdx-falcon-validators/type-validator'; // Library of SFDX Helper functions specific to SFDX-Falcon.
+
+// Import Internal Classes & Functions
 import {SfdxFalconDebug}          from  '../sfdx-falcon-debug'; // Class. Provides custom "debugging" services (ie. debug-style info to console.log()).
-
-// Import Utility Functions
 import {resolveConnection}        from  './sfdx';               // Function. Takes either an alias or a connection and gives back a connection.
 
-// Import Falcon Types
+// Import Internal Types
 import {AliasOrConnection}        from  '../sfdx-falcon-types'; // Type. Represents either an Org Alias or a JSForce Connection.
 import {MetadataPackage}          from  '../sfdx-falcon-types'; // Interface. Represents a Metadata Package (033). Can be managed or unmanaged.
 import {ObjectDescribe}           from  '../sfdx-falcon-types'; // Interface. Represents the REST response provided for an Object Describe.
@@ -34,7 +35,7 @@ import {User}                     from  '../sfdx-falcon-types'; // Interface. Re
 
 // Set the File Local Debug Namespace
 const dbgNs     = 'UTILITY:jsforce:';
-
+SfdxFalconDebug.msg(`${dbgNs}`, `Debugging initialized for ${dbgNs}`);
 
 
 // ────────────────────────────────────────────────────────────────────────────────────────────────┐
@@ -308,27 +309,28 @@ export async function getUserId(aliasOrConnection:AliasOrConnection, username:st
 /**
  * @function    restApiRequest
  * @param       {RestApiRequestDefinition}  restRequestDef  Required. ???
- * @returns     {Promise<any>}  Result of a REST API request to Salesforce.
+ * @returns     {Promise<JsonCollection>}  Result of a REST API request to Salesforce.
  * @description Given a REST API Request Definition, makes a REST call using JSForce.
  * @version     1.0.0
  * @public @async
  */
 // ────────────────────────────────────────────────────────────────────────────────────────────────┘
-export async function restApiRequest(restRequestDef:RestApiRequestDefinition):Promise<AnyJson> {
+export async function restApiRequest(restRequestDef:RestApiRequestDefinition):Promise<JsonCollection> {
+  
+  // Debug incoming arguments.
+  SfdxFalconDebug.obj(`${dbgNs}restApiRequest:arguments:`, arguments);
+
+  // Validate incoming arguments.
+  typeValidator.throwOnEmptyNullInvalidObject(restRequestDef,  `${dbgNs}restApiRequest`, `restRequestDef`);
 
   // Resolve our connection situation based on the incoming "alias or connection" param.
   const rc = await resolveConnection(restRequestDef.aliasOrConnection);
   
-  // Execute the command. Note that this is a synchronous request.
+  // Execute the REST request.
   const restResult = await rc.connection.request(restRequestDef.request);
+  SfdxFalconDebug.obj(`${dbgNs}restApiRequest:restResult:`, restResult);
 
-  // Debug
-  SfdxFalconDebug.obj(`${dbgNs}restApiRequest:restResult:`, restResult, `restResult: `);
-
-  // Process the results in a standard way
-  // TODO: Not sure if there is anything to actually do here...
-
-  // Resolve to caller
+  // Return the results.
   return restResult;
 }
 
@@ -347,7 +349,7 @@ export async function restApiRequest(restRequestDef:RestApiRequestDefinition):Pr
 export async function toolingApiQuery<T>(aliasOrConnection:AliasOrConnection, query:string):Promise<QueryResult<T>> {
 
   // Debug incoming arguments
-  SfdxFalconDebug.obj(`${dbgNs}toolingApiQuery:arguments:`, arguments, `arguments: `);
+  SfdxFalconDebug.obj(`${dbgNs}toolingApiQuery:arguments:`, arguments);
 
   // Resolve our connection situation based on the incoming "alias or connection" param.
   const rc = await resolveConnection(aliasOrConnection);

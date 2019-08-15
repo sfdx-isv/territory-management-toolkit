@@ -1,7 +1,7 @@
 //─────────────────────────────────────────────────────────────────────────────────────────────────┐
 /**
  * @file          modules/sfdx-falcon-util/sfdx.ts
- * @copyright     Vivek M. Chawla - 2018
+ * @copyright     Vivek M. Chawla / Salesforce - 2019
  * @author        Vivek M. Chawla <@VivekMChawla>
  * @summary       Utility Module - SFDX
  * @description   Utility functions related to Salesforce DX and the Salesforce CLI
@@ -14,6 +14,7 @@ import {Aliases}                from  '@salesforce/core';       // Why?
 import {AuthInfo}               from  '@salesforce/core';       // Why?
 import {Connection}             from  '@salesforce/core';       // Why?
 import {AnyJson}                from  '@salesforce/ts-types';   // Why?
+import {JsonMap}                from  '@salesforce/ts-types';   // Why?
 import * as path                from  'path';                   // Why?
 
 // Import Internal Libraries
@@ -1151,6 +1152,43 @@ export function getRecordCountFromResult(result:SfdxFalconResult):number {
 
   // If we get here, we can safely return a "totalSize" result.
   return Number(result.detail['stdOutParsed']['result']['totalSize']);
+}
+
+// ────────────────────────────────────────────────────────────────────────────────────────────────┐
+/**
+ * @function    getRecordsFromResult
+ * @param       {SfdxFalconResult}  result  Required. An SfdxFalconResult object that should have
+ *              a valid block of Salesforce Response JSON in its detail member.
+ * @returns     {JsonMap[]} Returns the records contained in the result as an array of JsonMaps.
+ * @description Given an SfdxFalconResult, opens up the result's "detail" member and looks for a
+ *              "stdOutParsed" key, then inspects the JSON result, ultimately returning the
+ *              "records" array. If this process discovers anything other than a "records" array,
+ *              it will throw an Error.
+ * @public
+ */
+// ────────────────────────────────────────────────────────────────────────────────────────────────┘
+export function getRecordsFromResult(result:SfdxFalconResult):JsonMap[] {
+
+  // Define the function-local debug namespace.
+  const dbgNsLocal = `${dbgNs}getRecordsFromResult`;
+
+  // Debug incoming arguments
+  SfdxFalconDebug.obj(`${dbgNsLocal}:arguments:`, arguments);
+
+  // Make sure that the caller passed us an SfdxFalconResult.
+  typeValidator.throwOnNullInvalidInstance(result, SfdxFalconResult, `${dbgNsLocal}`, `result`);
+
+  // Make sure that the result detail contains a "stdOutParsed" key.
+  typeValidator.throwOnEmptyNullInvalidObject(result.detail['stdOutParsed'], `${dbgNsLocal}`, `result.detail.stdOutParsed`);
+
+  // Make sure that the "stdOutParsed" detail contains a "result" key.
+  typeValidator.throwOnEmptyNullInvalidObject(result.detail['stdOutParsed']['result'], `${dbgNsLocal}`, `result.detail.stdOutParsed.result`);
+
+  // Make sure that the "stdOutParsed" detail contains a "result" key with a "records" array.
+  typeValidator.throwOnNullInvalidArray(result.detail['stdOutParsed']['result']['records'], `${dbgNsLocal}`, `result.detail.stdOutParsed.result.records`);
+
+  // If we get here, we can safely return the "records" array.
+  return result.detail['stdOutParsed']['result']['records'];
 }
 
 // ────────────────────────────────────────────────────────────────────────────────────────────────┐
