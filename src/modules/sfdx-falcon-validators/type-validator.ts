@@ -11,6 +11,7 @@
  */
 //─────────────────────────────────────────────────────────────────────────────────────────────────┘
 // Import External Libraries & Modules
+import * as fs              from  'fs-extra';               // Extended set of File System utils.
 import  {isEmpty}           from  'lodash';                 // Useful function for detecting empty objects.
 
 // Import Internal Classes & Functions
@@ -190,6 +191,25 @@ export function errMsgInvalidString(arg:unknown, argName:string):string {
     argName = 'the argument';
   }
   return `Expected ${argName} to be a string but got type '${typeof arg}' instead.`;
+}
+
+// ────────────────────────────────────────────────────────────────────────────────────────────────┐
+/**
+ * @function    errMsgNonReadablePath
+ * @param       {string}  path  Required. The path involved in the Error.
+ * @param       {string}  argName Required. The variable name of the argument involved in the error.
+ * @returns     {string}  A standardized error message reporting a non-readable path was provided.
+ * @description Given a path and the name of an argument associated with that path, returns a
+ *              standardized error message reporting a non-existant or inaccessible path.
+ * @public
+ */
+// ────────────────────────────────────────────────────────────────────────────────────────────────┘
+export function errMsgNonReadablePath(path:string, argName:string):string {
+  if (isEmptyNullInvalidString(argName)) {
+    argName = '';
+  }
+  return  ( argName ? `Expected ${argName} to reference a readable path, but ` : `` )
+          + `'${path}' does not exist or is not accessible by the currently running user.`;
 }
 
 // ────────────────────────────────────────────────────────────────────────────────────────────────┐
@@ -478,6 +498,25 @@ export function isNullInvalidString(variable:unknown):boolean {
 
 // ────────────────────────────────────────────────────────────────────────────────────────────────┐
 /**
+ * @function    isReadablePath
+ * @param       {string}  path  Required. Path that will be checked for readability.
+ * @returns     {boolean}
+ * @description Checks if the given path exists AND is readable by the currently running user.
+ * @public
+ */
+// ────────────────────────────────────────────────────────────────────────────────────────────────┘
+export function isReadablePath(path:string):boolean {
+  try {
+    fs.accessSync(path, fs.constants.R_OK);
+  }
+  catch (accessError) {
+    return false;
+  }
+  return true;
+}
+
+// ────────────────────────────────────────────────────────────────────────────────────────────────┐
+/**
  * @function    isNotEmptyNullInvalidArray
  * @param       {unknown} variable  Required. The variable whose type will be validated.
  * @returns     {boolean}
@@ -647,6 +686,19 @@ export function isNotNullInvalidObject(variable:unknown):boolean {
 // ────────────────────────────────────────────────────────────────────────────────────────────────┘
 export function isNotNullInvalidString(variable:unknown):boolean {
   return !isNullInvalidString(variable);
+}
+
+// ────────────────────────────────────────────────────────────────────────────────────────────────┐
+/**
+ * @function    isNotReadablePath
+ * @param       {string}  path  Required. Path that will be checked for readability.
+ * @returns     {boolean}
+ * @description Checks for the inverse of isReadablePath().
+ * @public
+ */
+// ────────────────────────────────────────────────────────────────────────────────────────────────┘
+export function isNotReadablePath(path:string):boolean {
+  return !isReadablePath(path);
 }
 
 // ────────────────────────────────────────────────────────────────────────────────────────────────┐
@@ -923,6 +975,27 @@ export function throwOnNullInvalidString(arg:unknown, dbgNsExt:string, argName?:
   if (isNullInvalidString(arg)) {
     throw new SfdxFalconError( errMsgNullInvalidString(arg, argName)
                              , `TypeError`
+                             , `${dbgNsExt}`);
+  }
+}
+
+// ────────────────────────────────────────────────────────────────────────────────────────────────┐
+/**
+ * @function    throwOnNonReadablePath
+ * @param       {string}  path  Required. Path that will be checked for readability.
+ * @param       {string}  dbgNsExt  Required. The debug namespace of the external caller.
+ * @param       {string}  [argName] Optional. The variable name of the argument being validated.
+ * @returns     {void}
+ * @description Given a string containing a filesystem path, attempts to validate that the path is
+ *              readable by the running user. Uses the debug namespace of the external caller as the
+ *              base of the "source" string used by the thrown SfdxFalconError.
+ * @public
+ */
+// ────────────────────────────────────────────────────────────────────────────────────────────────┘
+export function throwOnNonReadablePath(path:string, dbgNsExt:string, argName?:string):void {
+  if (isNotReadablePath(path))  {
+    throw new SfdxFalconError( errMsgNonReadablePath(path, argName)
+                             , `PathError`
                              , `${dbgNsExt}`);
   }
 }
