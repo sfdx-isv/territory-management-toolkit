@@ -180,6 +180,7 @@ export abstract class SfdxFalconYeomanGenerator<T extends object> extends Genera
     // Initialize Shared Data.
     this.sharedData['cliCommandName']               = this.cliCommandName;
     this.sharedData['generatorRequirements']        = this.generatorRequirements;
+    this.sharedData['generatorStatus']              = this.generatorStatus;
     this.sharedData['standardOrgAliasChoices']      = this.standardOrgAliasChoices;
     this.sharedData['scratchOrgAliasChoices']       = this.scratchOrgAliasChoices;
     this.sharedData['devHubAliasChoices']           = this.devHubAliasChoices;
@@ -260,6 +261,12 @@ export abstract class SfdxFalconYeomanGenerator<T extends object> extends Genera
   //───────────────────────────────────────────────────────────────────────────┘
   protected async _default_initializing():Promise<void> {
 
+    // Do nothing if the Generator has been aborted.
+    if (this.generatorStatus.aborted) {
+      SfdxFalconDebug.msg(`${dbgNs}_default_initializing:`, `Generator has been aborted.`);
+      return;
+    }
+
     // Show the Yeoman to announce that the generator is running.
     this.log(yosay(this.openingMessage));
 
@@ -307,9 +314,9 @@ export abstract class SfdxFalconYeomanGenerator<T extends object> extends Genera
   //───────────────────────────────────────────────────────────────────────────┘
   protected async _default_prompting(preInterviewMessage?:StyledMessage, postInterviewMessage?:StyledMessage):Promise<void> {
 
-    // Check if we need to abort the Yeoman interview/installation process.
+    // Do nothing if the Generator has been aborted.
     if (this.generatorStatus.aborted) {
-      SfdxFalconDebug.msg(`${dbgNs}prompting:`, `generatorStatus.aborted found as TRUE inside prompting()`);
+      SfdxFalconDebug.msg(`${dbgNs}_default_prompting:`, `Generator has been aborted.`);
       return;
     }
 
@@ -355,9 +362,9 @@ export abstract class SfdxFalconYeomanGenerator<T extends object> extends Genera
   //───────────────────────────────────────────────────────────────────────────┘
   protected _default_configuring():void {
 
-    // Check if we need to abort the Yeoman interview/installation process.
+    // Do nothing if the Generator has been aborted.
     if (this.generatorStatus.aborted) {
-      SfdxFalconDebug.msg(`${dbgNs}configuring:`, `generatorStatus.aborted found as TRUE inside configuring()`);
+      SfdxFalconDebug.msg(`${dbgNs}_default_configuring:`, `Generator has been aborted.`);
       return;
     }
   }
@@ -376,9 +383,9 @@ export abstract class SfdxFalconYeomanGenerator<T extends object> extends Genera
   //───────────────────────────────────────────────────────────────────────────┘
   protected _default_writing():void {
 
-    // Check if we need to abort the Yeoman interview/installation process.
+    // Do nothing if the Generator has been aborted.
     if (this.generatorStatus.aborted) {
-      SfdxFalconDebug.msg(`${dbgNs}writing:`, `generatorStatus.aborted found as TRUE inside writing()`);
+      SfdxFalconDebug.msg(`${dbgNs}_default_writing:`, `Generator has been aborted.`);
       return;
     }
   }
@@ -399,9 +406,9 @@ export abstract class SfdxFalconYeomanGenerator<T extends object> extends Genera
   //───────────────────────────────────────────────────────────────────────────┘
   protected _default_install():void {
 
-    // Check if we need to abort the Yeoman interview/installation process.
+    // Do nothing if the Generator has been aborted.
     if (this.generatorStatus.aborted) {
-      SfdxFalconDebug.msg(`${dbgNs}install:`, `generatorStatus.aborted found as TRUE inside install()`);
+      SfdxFalconDebug.msg(`${dbgNs}_default_install:`, `Generator has been aborted.`);
       return;
     }
   }
@@ -715,15 +722,20 @@ export abstract class SfdxFalconYeomanGenerator<T extends object> extends Genera
   protected async _runListrTaskBundle(taskBundle:ListrTaskBundle):Promise<unknown> {
     
     // Debug incoming arguments.
-    SfdxFalconDebug.obj(`${dbgNs}_runListrTasks:arguments`, arguments);
+    SfdxFalconDebug.obj(`${dbgNs}_runListrTaskBundle:arguments:`, arguments);
     
     // Validate incoming arguments.
-    typeValidator.throwOnEmptyNullInvalidObject (taskBundle,                         `${dbgNs}_runListrTasks`, `taskBundle`);
-    typeValidator.throwOnEmptyNullInvalidObject (taskBundle.listrObject,             `${dbgNs}_runListrTasks`, `taskBundle.listrObject`);
-    typeValidator.throwOnEmptyNullInvalidString (taskBundle.dbgNsLocal,              `${dbgNs}_runListrTasks`, `taskBundle.dbgNsLocal`);
-    typeValidator.throwOnEmptyNullInvalidObject (taskBundle.generatorStatusSuccess,  `${dbgNs}_runListrTasks`, `taskBundle.generatorStatusSuccess`);
-    typeValidator.throwOnEmptyNullInvalidObject (taskBundle.generatorStatusFailure,  `${dbgNs}_runListrTasks`, `taskBundle.generatorStatusFailure`);
-    typeValidator.throwOnNullInvalidBoolean     (taskBundle.throwOnFailure,          `${dbgNs}_runListrTasks`, `taskBundle.throwOnFailure`);
+    typeValidator.throwOnEmptyNullInvalidObject (taskBundle,                         `${dbgNs}_runListrTaskBundle`, `taskBundle`);
+    typeValidator.throwOnEmptyNullInvalidObject (taskBundle.listrObject,             `${dbgNs}_runListrTaskBundle`, `taskBundle.listrObject`);
+    typeValidator.throwOnEmptyNullInvalidString (taskBundle.dbgNsLocal,              `${dbgNs}_runListrTaskBundle`, `taskBundle.dbgNsLocal`);
+    typeValidator.throwOnEmptyNullInvalidObject (taskBundle.generatorStatusSuccess,  `${dbgNs}_runListrTaskBundle`, `taskBundle.generatorStatusSuccess`);
+    typeValidator.throwOnEmptyNullInvalidObject (taskBundle.generatorStatusFailure,  `${dbgNs}_runListrTaskBundle`, `taskBundle.generatorStatusFailure`);
+    typeValidator.throwOnNullInvalidBoolean     (taskBundle.throwOnFailure,          `${dbgNs}_runListrTaskBundle`, `taskBundle.throwOnFailure`);
+
+    // Make sure that the Local Debug Namespace from the Task Bundle does not end with :
+    const dbgNsLocal  = taskBundle.dbgNsLocal.endsWith(':')
+                      ? taskBundle.dbgNsLocal.substring(0, taskBundle.dbgNsLocal.lastIndexOf(':'))
+                      : taskBundle.dbgNsLocal;
 
     // Show the pre-task message.
     printStyledMessage(taskBundle.preTaskMessage);
@@ -732,13 +744,13 @@ export abstract class SfdxFalconYeomanGenerator<T extends object> extends Genera
     const listrResult = await taskBundle.listrObject.run()
     // Handle Success.
     .then(listrSuccess => {
-      SfdxFalconDebug.obj(`${taskBundle.dbgNsLocal}listrSuccess:`, listrSuccess);
+      SfdxFalconDebug.obj(`${dbgNsLocal}:listrSuccess:`, listrSuccess);
       this.generatorStatus.addMessage(taskBundle.generatorStatusSuccess);
       return listrSuccess;
     })
     // Handle Failure.
     .catch(listrError => {
-      SfdxFalconDebug.obj(`${taskBundle.dbgNsLocal}listrError:`, listrError);
+      SfdxFalconDebug.obj(`${dbgNsLocal}:listrError:`, listrError);
 
       // If the FAILURE status message is of type ERROR or FATAL, mark Generator Status as ABORTED.
       // This gives the caller some indirect control of how failures are handled.
@@ -762,32 +774,34 @@ export abstract class SfdxFalconYeomanGenerator<T extends object> extends Genera
             cause:    (error.cause) ? {name: error.cause.name, message: error.cause.message, stack: error.cause.stack} : 'NOT_SPECIFIED'
           });
         }
-        SfdxFalconDebug.obj(`${taskBundle.dbgNsLocal}suppressedErrors:`, suppressedErrors);
-        finalError = new SfdxFalconError( `One or more tasks threw an error. See error.detail for more information.`
+        SfdxFalconDebug.obj(`${dbgNsLocal}:suppressedErrors:`, suppressedErrors);
+        finalError = new SfdxFalconError( `${taskBundle.generatorStatusFailure.type === StatusMessageType.ERROR ? `${taskBundle.generatorStatusFailure.message}. ` : ``}`
+                                        + `One or more tasks threw an error. See error.detail for more information.`
                                         , `MultiTaskError`
-                                        , `${taskBundle.dbgNsLocal}`
+                                        , `${dbgNsLocal}`
                                         , listrError);
         finalError.setDetail(suppressedErrors);
       }
 
       // If listrError is an SfdxFalconResult, extract its Error Object. Otherwise, just wrap whatever we got.
       if (listrError instanceof SfdxFalconResult) {
-        finalError = new SfdxFalconError( `A task threw an SfdxFalconResult as an error. See error.detail for more information.`
+        finalError = new SfdxFalconError( `${taskBundle.generatorStatusFailure.type === StatusMessageType.ERROR ? `${taskBundle.generatorStatusFailure.message}. ` : ``}`
+                                        + `A task threw an SfdxFalconResult as an error. See error.detail for more information.`
                                         , `TaskError`
-                                        , `${taskBundle.dbgNsLocal}`
+                                        , `${dbgNsLocal}`
                                         , listrError.errObj);
         finalError.setDetail(listrError);
       }
       else {
-        finalError = SfdxFalconError.wrap(listrError, `${taskBundle.dbgNsLocal}`);
+        finalError = SfdxFalconError.wrap(listrError, `${dbgNsLocal}`);
       }
 
       // Throw the Final Error if the caller wants us to, otherwise just return whatever we got back from Listr.
       if (taskBundle.throwOnFailure === true) {
         if (finalError === null) {
-          finalError = new SfdxFalconError( `An unhandled exception has occured.`
+          finalError = new SfdxFalconError( `An unhandled exception has occured. See error.detail for more information.`
                                           , `UnhandledException`
-                                          , `${taskBundle.dbgNsLocal}`);
+                                          , `${dbgNsLocal}`);
           finalError.setDetail(listrError);
         }
         throw finalError;
