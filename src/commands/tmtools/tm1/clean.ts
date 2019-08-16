@@ -1,10 +1,10 @@
 //─────────────────────────────────────────────────────────────────────────────────────────────────┐
 /**
- * @file          commands/tmtools/tm2/clean.ts
+ * @file          commands/tmtools/tm1/clean.ts
  * @copyright     Vivek M. Chawla - 2019
  * @author        Vivek M. Chawla <@VivekMChawla>
- * @summary       Implements the CLI command "tmtools:tm2:deploy"
- * @description   Salesforce CLI Plugin command (tmtools:tm2:clean) that allows a Salesforce Admin
+ * @summary       Implements the CLI command "tmtools:tm1:deploy"
+ * @description   Salesforce CLI Plugin command (tmtools:tm1:clean) that allows a Salesforce Admin
  *                to....
  * @version       1.0.0
  * @license       MIT
@@ -25,20 +25,20 @@ import {SfdxFalconYeomanCommand}      from  '../../../modules/sfdx-falcon-yeoman
 import {SfdxFalconCommandType}        from  '../../../modules/sfdx-falcon-command'; // Enum. Represents the types of SFDX-Falcon Commands.
 
 // Set the File Local Debug Namespace
-const dbgNs = 'COMMAND:tmtools-tm2-clean:';
+const dbgNs = 'COMMAND:tmtools-tm1-clean:';
 SfdxFalconDebug.msg(`${dbgNs}`, `Debugging initialized for ${dbgNs}`);
 
 // Use SfdxCore's Messages framework to get the message bundles for this command.
 Messages.importMessagesDirectory(__dirname);
-const commandMessages = Messages.loadMessages('territory-management-tools', 'tmtools-tm2-clean');
+const commandMessages = Messages.loadMessages('territory-management-tools', 'tmtools-tm1-clean');
 
 
 //─────────────────────────────────────────────────────────────────────────────────────────────────┐
 /**
  * @class       TmtoolsTm2Clean
  * @extends     SfdxFalconYeomanCommand
- * @summary     Implements the CLI Command "tmtools:tm2:clean"
- * @description The command "tmtools:tm2:clean"...TODO: Add description
+ * @summary     Implements the CLI Command "tmtools:tm1:clean"
+ * @description The command "tmtools:tm1:clean"...TODO: Add description
  * @public
  */
 //─────────────────────────────────────────────────────────────────────────────────────────────────┘
@@ -48,8 +48,8 @@ export default class TmtoolsTm2Clean extends SfdxFalconYeomanCommand {
   public static description = commandMessages.getMessage('commandDescription');
   public static hidden      = false;
   public static examples    = [
-    `$ sfdx tmtools:tm2:clean`,
-    `$ sfdx tmtools:tm2:clean -s ~/tm1-transformation-directory`
+    `$ sfdx tmtools:tm1:clean`,
+    `$ sfdx tmtools:tm1:clean -s ~/tm1-transformation-directory`
   ];
 
   //───────────────────────────────────────────────────────────────────────────┐
@@ -82,18 +82,18 @@ export default class TmtoolsTm2Clean extends SfdxFalconYeomanCommand {
    * @function    run
    * @returns     {Promise<AnyJson>}  Resolves with a JSON object that the CLI
    *              will pass to the user as stdout if the --json flag was set.
-   * @description Entrypoint function for "sfdx tmtools:tm2:import".
+   * @description Entrypoint function for "sfdx tmtools:tm1:clean".
    * @public @async
    */
   //───────────────────────────────────────────────────────────────────────────┘
   public async run():Promise<AnyJson> {
 
     // Initialize the SfdxFalconCommand (required by ALL classes that extend SfdxFalconCommand).
-    this.sfdxFalconCommandInit('tmtools:tm2:clean', SfdxFalconCommandType.UNKNOWN);
+    this.sfdxFalconCommandInit('tmtools:tm1:clean', SfdxFalconCommandType.UNKNOWN);
 
     // Run a Yeoman Generator to interact with and run tasks for the user.
     await super.runYeomanGenerator({
-      generatorType:  'tmtools-tm2-clean',
+      generatorType:  'tmtools-tm1-clean',
       sourceDir:      this.sourceDirectory,
       options: []
     })
