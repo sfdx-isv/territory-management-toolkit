@@ -1,7 +1,7 @@
 //─────────────────────────────────────────────────────────────────────────────────────────────────┐
 /**
- * @file          modules/sfdx-falcon-types/index.d.ts
- * @copyright     Vivek M. Chawla - 2018
+ * @file          modules/sfdx-falcon-types/index.ts
+ * @copyright     Vivek M. Chawla / Salesforce - 2019
  * @author        Vivek M. Chawla <@VivekMChawla>
  * @summary       Collection of interfaces and types used across SFDX-Falcon modules.
  * @description   Collection of interfaces and types used across SFDX-Falcon modules.
@@ -450,6 +450,24 @@ export interface RestApiRequestDefinition {
 }
 
 /**
+ * Interface. Represents the unparsed response to a "raw" REST API request via a JSForce connection.
+ */
+export interface RawRestResponse extends JsonMap {
+  statusCode:     number;
+  statusMessage:  string;
+  headers:        JsonMap;
+  body:           string;
+}
+
+/**
+ * Interface. Represents the request body required to close or abort a Bulk API 2.0 job.
+ */
+export interface Bulk2JobCloseAbortRequest extends JsonMap {
+  /** The state to update the job to. Use "UploadComplete" to close a job, or "Aborted" to abort a job. */
+  state:  'UploadComplete'|'Aborted';
+}
+
+/**
  * Interface. Represents the request body required to create a Bulk API 2.0 job.
  */
 export interface Bulk2JobCreateRequest extends JsonMap {
@@ -492,9 +510,14 @@ export interface Bulk2JobCreateResponse extends Bulk2JobCreateRequest {
 }
 
 /**
+ * Interface. Represents the response body returned by Salesforce when closing or aborting a specific Bulk API 2.0 job.
+ */
+export interface Bulk2JobCloseAbortResponse extends Bulk2JobCreateResponse {} // tslint:disable-line: no-empty-interface
+
+/**
  * Interface. Represents the response body returned by Salesforce when requesting info about a specific Bulk API 2.0 job.
  */
-export interface Bulk2JobInfoResponse extends Bulk2JobCreateResponse {
+export interface Bulk2JobInfoResponse extends Bulk2JobCloseAbortResponse {
   /** The number of milliseconds taken to process triggers and other processes related to the job data. This doesn't include the time used for processing asynchronous and batch Apex operations. If there are no triggers, the value is 0. */
   apexProcessingTime?:      number;
   /** The number of milliseconds taken to actively process the job and includes apexProcessingTime, but doesn't include the time the job waited in the queue to be processed or the time required for serialization and deserialization. */
