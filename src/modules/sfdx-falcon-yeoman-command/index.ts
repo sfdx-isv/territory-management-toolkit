@@ -131,7 +131,7 @@ export abstract class SfdxFalconYeomanCommand extends SfdxFalconCommand {
     const generatorResult =
       new SfdxFalconResult(generatorOptions.generatorType, SfdxFalconResultType.GENERATOR,
                           { startNow:       true,
-                            bubbleError:    false,     // Bubble errors to the COMMAND result
+                            bubbleError:    false,    // Bubble errors to the COMMAND result
                             bubbleFailure:  false});  // Do not bubble failures (eg. Git commit not working)
 
     // Combine incoming generatorOptions with the default options.
