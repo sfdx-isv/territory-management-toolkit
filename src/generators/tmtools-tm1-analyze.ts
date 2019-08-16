@@ -1,7 +1,7 @@
 //─────────────────────────────────────────────────────────────────────────────────────────────────┐
 /**
  * @file          generators/tmtools-tm1-analyze.ts
- * @copyright     Vivek M. Chawla - 2019
+ * @copyright     Vivek M. Chawla / Salesforce - 2019
  * @author        Vivek M. Chawla <@VivekMChawla>
  * @summary       Yeoman Generator for analyzing TM1 config (metadata and data) from an org.
  * @description   Salesforce CLI Plugin command (tmtools:tm1:analyze) that allows a Salesforce
@@ -23,18 +23,17 @@ import * as listrTasks                  from  '../modules/sfdx-falcon-util/listr
 
 // Import Internal Classes & Functions
 import {SfdxFalconDebug}                from  '../modules/sfdx-falcon-debug';                     // Class. Provides custom "debugging" services (ie. debug-style info to console.log()).
-import {SfdxFalconError}                from  '../modules/sfdx-falcon-error';                     // Class. Extends SfdxError to provide specialized error structures for SFDX-Falcon modules.
 import {SfdxFalconInterview}            from  '../modules/sfdx-falcon-interview';                 // Class. Provides a standard way of building a multi-group Interview to collect user input.
-import {SfdxFalconResult}               from  '../modules/sfdx-falcon-result';                    // Class. Framework for creating results-driven, informational objects with a concept of heredity (child results).
 import {SfdxFalconKeyValueTableDataRow} from  '../modules/sfdx-falcon-util/ux';                   // Interface. Represents a row of data in an SFDX-Falcon data table.
 import {SfdxFalconTableData}            from  '../modules/sfdx-falcon-util/ux';                   // Interface. Represents and array of SfdxFalconKeyValueTableDataRow objects.
 import {GeneratorOptions}               from  '../modules/sfdx-falcon-yeoman-command';            // Interface. Represents options used by SFDX-Falcon Yeoman generators.
 import {SfdxFalconYeomanGenerator}      from  '../modules/sfdx-falcon-yeoman-generator';          // Class. Abstract base class class for building Yeoman Generators for SFDX-Falcon commands.
 
 // Import Falcon Types
-import {YeomanChoice}                   from  '../modules/sfdx-falcon-types';                     // Interface. Represents a Yeoman/Inquirer choice object.
-import {SfdxOrgInfoMap}                 from  '../modules/sfdx-falcon-types';                     // Type. Alias for a Map with string keys holding SfdxOrgInfo values.
+import {ListrTaskBundle}                from  '../modules/sfdx-falcon-types';                     // Interface. Represents the suite of information required to run a Listr Task Bundle.
+import {StandardOrgInfoMap}             from  '../modules/sfdx-falcon-types';                     // Type. Alias for a Map with string keys holding SfdxOrgInfo values.
 import {ScratchOrgInfoMap}              from  '../modules/sfdx-falcon-types';                     // Type. Alias for a Map with string keys holding ScratchOrgInfo values.
+import {StatusMessageType}              from  '../modules/sfdx-falcon-types';                     // Enum. Represents the various types/states of a Status Message.
 
 // Set the File Local Debug Namespace
 const dbgNs = 'GENERATOR:tmtools-tm1-analyze:';
@@ -48,17 +47,9 @@ SfdxFalconDebug.msg(`${dbgNs}`, `Debugging initialized for ${dbgNs}`);
  */
 //─────────────────────────────────────────────────────────────────────────────────────────────────┘
 interface InterviewAnswers {
-
-  // Project Settings
   targetDirectory:    string;
-
-  // Target Org Type
   isScratchOrg:       boolean;
-
-  // SFDX Org Aliases
   targetOrgAlias:     string;
-
-  // SFDX Org Usernames
   targetOrgUsername:  string;
 }
 
@@ -75,10 +66,6 @@ interface InterviewAnswers {
 //─────────────────────────────────────────────────────────────────────────────────────────────────┘
 export default class Tm1Analyze extends SfdxFalconYeomanGenerator<InterviewAnswers> {
 
-  // Define class members specific to this Generator.
-  protected targetOrgAliasChoices:  YeomanChoice[];     // Array of target org aliases/usernames in the form of Yeoman choices.
-  protected scratchOrgAliasChoices: YeomanChoice[];     // Array of scratch org aliases/usernames in the form of Yeoman choices.
-
   //───────────────────────────────────────────────────────────────────────────┐
   /**
    * @constructs  Tm1Analyze
@@ -90,33 +77,22 @@ export default class Tm1Analyze extends SfdxFalconYeomanGenerator<InterviewAnswe
   //───────────────────────────────────────────────────────────────────────────┘
   constructor(args:string|string[], opts:GeneratorOptions) {
 
-    // Call the parent constructor to initialize the Yeoman Generator.
+    // Call the parent constructor.
     super(args, opts);
 
-    // Initialize the "Confirmation Question".
+    // Set the requirements for this Generator.
+    this.generatorRequirements.standardOrgs = true;
+    this.generatorRequirements.scratchOrgs  = true;
+
+    // Initialize the "Opening Message" and "Confirmation Question".
+    this.openingMessage       = `TM-Tools Plugin\n${this.cliCommandName}\nv${this.pluginVersion}`;
     this.confirmationQuestion = `Analyze your org's TM1 configuration using the above settings?`;
 
-    // Initialize Target/Scratch Org "Alias Choices".
-    this.targetOrgAliasChoices  = new Array<YeomanChoice>();
-    this.scratchOrgAliasChoices = new Array<YeomanChoice>();
-
     // Initialize DEFAULT Interview Answers.
-    // Project Settings
     this.defaultAnswers.targetDirectory   = path.resolve(opts.outputDir as string);
-
-    // Target Org Type
     this.defaultAnswers.isScratchOrg      = null;
-
-    // SFDX Org Aliases
     this.defaultAnswers.targetOrgAlias    = 'NOT_SPECIFIED';
-
-    // SFDX Org Usernames
     this.defaultAnswers.targetOrgUsername = 'NOT_SPECIFIED';
-
-    // Initialize Shared Data.
-    this.sharedData['targetOrgAliasChoices']  = this.targetOrgAliasChoices;
-    this.sharedData['scratchOrgAliasChoices'] = this.scratchOrgAliasChoices;
-    this.sharedData['cliCommandName']         = this.cliCommandName;
   }
 
   //───────────────────────────────────────────────────────────────────────────┐
@@ -190,16 +166,16 @@ export default class Tm1Analyze extends SfdxFalconYeomanGenerator<InterviewAnswe
     // Declare an array of Falcon Table Data Rows
     const tableData = new Array<SfdxFalconKeyValueTableDataRow>();
 
-    // Grab the SFDX Org Info Map out of Shared Data.
-    const sfdxOrgInfoMap    = this.sharedData['sfdxOrgInfoMap']     as SfdxOrgInfoMap;
-    const scratchOrgInfoMap = this.sharedData['scratchOrgInfoMap']  as ScratchOrgInfoMap;
+    // Grab the Standard/Scratch Org Info Maps out of Shared Data.
+    const standardOrgInfoMap  = this.sharedData['standardOrgInfoMap'] as StandardOrgInfoMap;
+    const scratchOrgInfoMap   = this.sharedData['scratchOrgInfoMap']  as ScratchOrgInfoMap;
 
     // Project related answers
     tableData.push({option:'Target Directory:', value:`${interviewAnswers.targetDirectory}`});
 
     // Org alias related answers
     if (interviewAnswers.isScratchOrg === false) {
-      const targetOrgAlias = sfdxOrgInfoMap.get(interviewAnswers.targetOrgUsername) ? sfdxOrgInfoMap.get(interviewAnswers.targetOrgUsername).alias : 'NOT_SPECIFIED';
+      const targetOrgAlias = standardOrgInfoMap.get(interviewAnswers.targetOrgUsername) ? standardOrgInfoMap.get(interviewAnswers.targetOrgUsername).alias : 'NOT_SPECIFIED';
       tableData.push({option:'Target Org Alias:', value:`${targetOrgAlias}`});
     }
     else {
@@ -223,60 +199,36 @@ export default class Tm1Analyze extends SfdxFalconYeomanGenerator<InterviewAnswe
   //───────────────────────────────────────────────────────────────────────────┘
   protected async _analyzeTm1Config():Promise<void> {
 
-    // Define tasks for fetching the packaged metadata.
-    const analyzeTm1Config =
-      listrTasks.analyzeTm1Config.call(this,
-                                       this.finalAnswers.targetOrgAlias,
-                                       this.destinationRoot());
-
-    // Show a message to the User letting them know we're going to start these tasks.
-    console.log(chalk`{yellow Analyzing TM1 Configuration in the Target Org...}`);
-    
-    // Run the "Fetch and Convert Package" tasks. Make sure to use await since Listr will run asynchronously.
-    const tm1AnalysisResults = await analyzeTm1Config.run()
-    .then(listrResult => {
-      SfdxFalconDebug.obj(`${dbgNs}_analyzeTm1Config:listrResult:`, listrResult);
-
-      // Add a success message
-      this.generatorStatus.addMessage({
-        type:     'success',
+    // Define a Task Bundle
+    const taskBundle:ListrTaskBundle = {
+      dbgNsLocal:     `${dbgNs}_analyzeTm1Config`,    // Local Debug Namespace for this function. DO NOT add trailing : char.
+      throwOnFailure: true,                           // Define whether to throw an Error on task failure or not.
+      preTaskMessage: {                               // Message displayed to the user BEFORE tasks are run.
+        message: `Analyzing TM1 Configuration in the Target Org...`,
+        styling: `yellow`
+      },
+      postTaskMessage: {                              // Message displayed to the user AFTER tasks are run.
+        message: ``,
+        styling: ``
+      },
+      generatorStatusSuccess: {                       // Generator Status message used on SUCCESS.
+        type:     StatusMessageType.SUCCESS,
         title:    `Analyze TM1 Config`,
-        message:  `Success - TM1 configuration successfully analzyed`
-      });
-      return listrResult;
-    })
-    .catch(utilityResult => {
-      SfdxFalconDebug.obj(`${dbgNs}_analyzeTm1Config:utilityResult:`, utilityResult);
-
-      // TM1 config analysis failed. Mark the request as ABORTED.
-      this.generatorStatus.abort({
-        type:     'error',
+        message:  `TM1 configuration successfully analzyed`
+      },
+      generatorStatusFailure: {                       // Generator Status message used on FAILURE.
+        type:     StatusMessageType.ERROR,
         title:    `Analyze TM1 Config`,
-        message:  `Error - Could not analyze the TM1 config from ${this.finalAnswers.targetOrgAlias}`
-      });
+        message:  `Could not analyze the TM1 config from ${this.finalAnswers.targetOrgAlias}`
+      },
+      listrObject:                                    // The Listr Tasks that will be run.
+        listrTasks.analyzeTm1Config.call( this,
+                                          this.finalAnswers.targetOrgAlias,
+                                          this.destinationRoot())
+    };
 
-      // If we get an Error, just throw it.
-      if (utilityResult instanceof Error) {
-        throw utilityResult;
-      }
-
-      // If we get an SfdxFalconResult, link its Error Object to a new SfdxFalconError and throw it.
-      if (utilityResult instanceof SfdxFalconResult) {
-        throw new SfdxFalconError( `Analysis of TM1 configuration from ${this.finalAnswers.targetOrgAlias} failed.`
-                                  , `Tm1AnalysisError`
-                                  , `${dbgNs}:_analyzeTm1Config`
-                                  , utilityResult.errObj);
-      }
-
-      // If we get here, who knows what we got. Wrap it as an SfdxFalconError and throw it.
-      throw SfdxFalconError.wrap(utilityResult);
-    });
-
-    // DEBUG
-    SfdxFalconDebug.obj(`${dbgNs}_analyzeTm1Config:tm1AnalysisResults:`, tm1AnalysisResults);
-
-    // Add a line break to separate the output of this section from others
-    console.log('');
+    // Run the Task Bundle.
+    await this._runListrTaskBundle(taskBundle);
   }
 
   //───────────────────────────────────────────────────────────────────────────┐
@@ -305,11 +257,19 @@ export default class Tm1Analyze extends SfdxFalconYeomanGenerator<InterviewAnswe
   //───────────────────────────────────────────────────────────────────────────┘
   protected async prompting():Promise<void> {
 
-    // Let the User know that the Interview is starting.
-    console.log(chalk`{yellow Starting TM1 config analysis interview...}`);
-
     // Call the default prompting() function. Replace with custom behavior if desired.
-    return this._default_prompting();
+    return this._default_prompting(
+      // Pre-Interview Styled Message
+      {
+        message:  `Starting TM1 config analysis interview...`,
+        styling:  `yellow`
+      },
+      // Post-Interview Styled Message
+      {
+        message:  ``,
+        styling:  ``
+      }
+    );
   }
 
   //───────────────────────────────────────────────────────────────────────────┐
@@ -323,8 +283,26 @@ export default class Tm1Analyze extends SfdxFalconYeomanGenerator<InterviewAnswe
   //───────────────────────────────────────────────────────────────────────────┘
   protected async configuring():Promise<void> {
 
-    // Call the default configuring() function. Replace with custom behavior if desired.
-    return this._default_configuring();
+    // Do nothing if the Generator has been aborted.
+    if (this.generatorStatus.aborted) {
+      SfdxFalconDebug.msg(`${dbgNs}configuring:`, `Generator has been aborted.`);
+      return;
+    }
+
+    // Extract the Standard/Scratch Org Info Maps from Shared Data.
+    const standardOrgInfoMap  = this.sharedData['standardOrgInfoMap'] as StandardOrgInfoMap;
+    const scratchOrgInfoMap   = this.sharedData['scratchOrgInfoMap']  as ScratchOrgInfoMap;
+
+    // Determine the FINAL Org Alias (either a standard org or a scratch org).
+    if (this.finalAnswers.isScratchOrg === false) {
+      this.finalAnswers.targetOrgAlias = standardOrgInfoMap.get(this.finalAnswers.targetOrgUsername) ? standardOrgInfoMap.get(this.finalAnswers.targetOrgUsername).alias : 'NOT_SPECIFIED';
+    }
+    else {
+      this.finalAnswers.targetOrgAlias = scratchOrgInfoMap.get(this.finalAnswers.targetOrgUsername) ? scratchOrgInfoMap.get(this.finalAnswers.targetOrgUsername).alias : 'NOT_SPECIFIED';
+    }
+
+    // Set Yeoman's DESTINATION ROOT. This determines where we save the tm1-analyze-result.json file to.
+    this.destinationRoot(path.resolve(this.finalAnswers.targetDirectory));
   }
 
   //───────────────────────────────────────────────────────────────────────────┐
@@ -338,32 +316,14 @@ export default class Tm1Analyze extends SfdxFalconYeomanGenerator<InterviewAnswe
   //───────────────────────────────────────────────────────────────────────────┘
   protected async writing():Promise<void> {
 
-    // Check if we need to abort the Yeoman interview/installation process.
+    // Do nothing if the Generator has been aborted.
     if (this.generatorStatus.aborted) {
-      SfdxFalconDebug.msg(`${dbgNs}writing:`, `generatorStatus.aborted found as TRUE inside writing()`);
+      SfdxFalconDebug.msg(`${dbgNs}writing:`, `Generator has been aborted.`);
       return;
     }
 
-    // Extract the SFDX/Scratch Org Info Maps from Shared Data.
-    const sfdxOrgInfoMap    = this.sharedData['sfdxOrgInfoMap']     as SfdxOrgInfoMap;
-    const scratchOrgInfoMap = this.sharedData['scratchOrgInfoMap']  as ScratchOrgInfoMap;
-
-    // Determine the FINAL Org Alias (either a standard org or a scratch org).
-    if (this.finalAnswers.isScratchOrg === false) {
-      this.finalAnswers.targetOrgAlias = sfdxOrgInfoMap.get(this.finalAnswers.targetOrgUsername) ? sfdxOrgInfoMap.get(this.finalAnswers.targetOrgUsername).alias : 'NOT_SPECIFIED';
-    }
-    else {
-      this.finalAnswers.targetOrgAlias = scratchOrgInfoMap.get(this.finalAnswers.targetOrgUsername) ? scratchOrgInfoMap.get(this.finalAnswers.targetOrgUsername).alias : 'NOT_SPECIFIED';
-    }
-
-    // Set Yeoman's DESTINATION ROOT. This determines where we save the tm1-analyze-result.json file to.
-    this.destinationRoot(path.resolve(this.finalAnswers.targetDirectory));
-
     // Analyze the TM1 config in the Target Org.
     await this._analyzeTm1Config();
-
-    // Done with writing()
-    return;
   }
 
   //───────────────────────────────────────────────────────────────────────────┐
