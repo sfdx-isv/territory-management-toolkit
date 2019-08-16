@@ -143,7 +143,6 @@ export class TmToolsDeploy {
   public async deployMainMetadata():Promise<DeploymentResult> {
 
     // Do the deployment.
-    //const deploymentResults =
     await sfdxHelper.deployMetadata(this._tm1TransformationReport.orgInfo.username, this._filePaths.tm2MainDeploymentDir)
     .then(successResult => {
       SfdxFalconDebug.obj(`${dbgNs}deployMainMetadata:successResult:`, successResult);
@@ -153,8 +152,6 @@ export class TmToolsDeploy {
       SfdxFalconDebug.obj(`${dbgNs}deployMainMetadata:errorResult:`, errorResult);
       throw errorResult;
     });
-
-    // Do something with the results.
 
     // Send the results back to the caller.
     SfdxFalconDebug.obj(`${dbgNs}deployMainMetadata:_mainDeploymentResult:`, this._mainDeploymentResult);
