@@ -19,7 +19,7 @@ import * as path  from  'path';             // Library. Helps resolve local path
 
 // Import Internal Libraries
 import * as iq                          from  '../modules/sfdx-falcon-util/interview-questions';  // Library. Helper functions that create Interview Questions.
-//import * as listrTasks                  from  '../modules/sfdx-falcon-util/listr-tasks';          // Library. Helper functions that make using Listr with SFDX-Falcon easier.
+import * as listrTasks                  from  '../modules/sfdx-falcon-util/listr-tasks';          // Library. Helper functions that make using Listr with SFDX-Falcon easier.
 
 // Import Internal Classes & Functions
 import {SfdxFalconDebug}                from  '../modules/sfdx-falcon-debug';                     // Class. Provides custom "debugging" services (ie. debug-style info to console.log()).
@@ -33,8 +33,7 @@ import {TmToolsLoad}                    from  '../modules/tm-tools-load';       
 import TmFilePaths                      from  '../modules/tm-tools-objects/tm-file-paths';        // Class. Utility class for generatig File Paths required by various TM-Tools commands.
 
 // Import Falcon Types
-//import {ListrObject}                    from  '../modules/sfdx-falcon-types';                     // Interface. Represents a "runnable" Listr object (ie. an object that has the run() method attached).
-//import {ListrTaskBundle}                from  '../modules/sfdx-falcon-types';                     // Interface. Represents the suite of information required to run a Listr Task Bundle.
+import {ListrTaskBundle}                from  '../modules/sfdx-falcon-types';                     // Interface. Represents the suite of information required to run a Listr Task Bundle.
 import {StatusMessageType}              from  '../modules/sfdx-falcon-types';                     // Enum. Represents the various types/states of a Status Message.
 
 // Import TM-Tools Types
@@ -204,7 +203,7 @@ export default class Tm2Load extends SfdxFalconYeomanGenerator<InterviewAnswers>
 
   //───────────────────────────────────────────────────────────────────────────┐
   /**
-   * @method      _loadTm2Config
+   * @method      _deployFinalTm2Config
    * @returns     {Promise<void>}
    * @description Uses information from the User's "Final Answers" to deploy and
    *              load the final set of TM2 config using the pre and post-deploy
@@ -213,56 +212,155 @@ export default class Tm2Load extends SfdxFalconYeomanGenerator<InterviewAnswers>
    * @protected @async
    */
   //───────────────────────────────────────────────────────────────────────────┘
-  protected async _loadTm2Config():Promise<void> {
-
-//    throw new Error('stop touching me');
-
-
-    const tmToolsLoad = await TmToolsLoad.prepare(this.tm1AnalysisReport,
-                                            this.tm1ExtractionReport,
-                                            this.tm1TransformationReport,
-                                            this.tm2DeploymentReport,
-                                            this.tm2DataLoadFilePaths);
-
-    const bulk2OperationStatus = await tmToolsLoad.loadObjectTerritory2Associations();
-
-    SfdxFalconDebug.debugObject(`xxxxxxxxxx`, bulk2OperationStatus);
-
-
-
+  protected async _deployFinalTm2Config():Promise<void> {
+    
     // Make sure that the TM2 Activation Validation was successful by testing for a TM Tools Load context.
     if (this.tmToolsLoad === null || (this.tmToolsLoad instanceof TmToolsLoad) !== true)  {
 
       // Add a warning message
       this.generatorStatus.addMessage({
-        type:     StatusMessageType.WARNING,
+        type:     StatusMessageType.ERROR,
         title:    `TM2 Model Activation`,
-        message:  `WARNING - The migrated Territory2 model was not activated in the target org`
+        message:  `The migrated Territory2 model was not activated in the target org`
       });
 
       // Exit without doing anything.
       return;
     }
 
+    // Define a Task Bundle
+    const taskBundle:ListrTaskBundle = {
+      dbgNsLocal:     `${dbgNs}_deployFinalTm2Config`,  // Local Debug Namespace for this function. DO NOT add trailing : char.
+      throwOnFailure: false,                            // Define whether to throw an Error on task failure or not.
+      preTaskMessage: {                                 // Message displayed to the user BEFORE tasks are run.
+        message: `Deploying final set of TM2 Metadata...`,
+        styling: `yellow`
+      },
+      postTaskMessage: {                              // Message displayed to the user AFTER tasks are run.
+        message: ``,
+        styling: ``
+      },
+      generatorStatusSuccess: {                       // Generator Status message used on SUCCESS.
+        type:     StatusMessageType.SUCCESS,
+        title:    `TM2 Sharing Rules`,
+        message:  `Deployment of TM2 Sharing Rules has been completed successfully`
+      },
+      generatorStatusFailure: {                       // Generator Status message used on FAILURE.
+        type:     StatusMessageType.WARNING,
+        title:    `TM2 Sharing Rules`,
+        message:  `WARNING - TM2 Sharing Rules did not deploy successfully`
+      },
+      listrObject:                                    // The Listr Tasks that will be run.
+      listrTasks.deployFinalTm2Metadata.call( this,
+                                              this.tmToolsLoad)
+    };
 
-    // Show a message to the User letting them know we're going to start these tasks.
-    console.log(chalk`{yellow Loading final set of TM2 Data/Metadata...}`);
+    // Run the Task Bundle.
+    await this._runListrTaskBundle(taskBundle);
+  }
 
-    // Define Listr Tasks for executing the transformation.
-    /*
-    const loadTm2Config =
-      listrTasks.loadTm2Config.call(this,
-                                    this.tm1AnalysisReport,
-                                    this.tm1ExtractionReport,
-                                    this.tm1TransformationReport,
-                                    this.tm2DeploymentReport,
-                                    this.tm2LoadFilePaths);
-    //*/
-
+  //───────────────────────────────────────────────────────────────────────────┐
+  /**
+   * @method      _loadFinalTm2Config
+   * @returns     {Promise<void>}
+   * @description Uses information from the User's "Final Answers" to deploy and
+   *              load the final set of TM2 config using the pre and post-deploy
+   *              transformed data and metadata.  These tasks will only work
+   *              against an org with an active Territory2 Model.
+   * @protected @async
+   */
+  //───────────────────────────────────────────────────────────────────────────┘
+  protected async _loadFinalTm2Config():Promise<void> {
     
+    // Check if the Generator was aborted by _deployFinalTm2Config().
+    if (this.generatorStatus.aborted) {
+      this.generatorStatus.addMessage({
+        type:     StatusMessageType.WARNING,
+        title:    `TM2 Data Load`,
+        message:  `WARNING - Final TM2 data load skipped because the sharing rules deployment failed`
+      });
+      return;
+    }
 
-    // Add a line break to separate the output of this section from others
-    console.log('');
+    // Define a Task Bundle
+    const taskBundle:ListrTaskBundle = {
+      dbgNsLocal:     `${dbgNs}_loadTm2Config`,       // Local Debug Namespace for this function. DO NOT add trailing : char.
+      throwOnFailure: false,                          // Define whether to throw an Error on task failure or not.
+      preTaskMessage: {                               // Message displayed to the user BEFORE tasks are run.
+        message: `Loading final set of TM2 Data...`,
+        styling: `yellow`
+      },
+      postTaskMessage: {                              // Message displayed to the user AFTER tasks are run.
+        message: ``,
+        styling: ``
+      },
+      generatorStatusSuccess: {                       // Generator Status message used on SUCCESS.
+        type:     StatusMessageType.SUCCESS,
+        title:    `TM2 Data Load`,
+        message:  `Final TM2 data load has been completed successfully`
+      },
+      generatorStatusFailure: {                       // Generator Status message used on FAILURE.
+        type:     StatusMessageType.WARNING,
+        title:    `TM2 Data Load`,
+        message:  `WARNING - Final TM2 data load had some errors (see above)`
+      },
+      listrObject:                                    // The Listr Tasks that will be run.
+      listrTasks.loadFinalTm2Config.call( this,
+                                          this.tmToolsLoad)
+    };
+
+    // Run the Task Bundle.
+    await this._runListrTaskBundle(taskBundle);
+  }
+
+  //───────────────────────────────────────────────────────────────────────────┐
+  /**
+   * @method      _validateActiveT2Model
+   * @returns     {Promise<void>}
+   * @description Inspects the TM2 org specified in the Org Info section of the
+   *              TM2 Deployment Report and validates that the appropriate
+   *              model is ACTIVE.
+   * @protected @async
+   */
+  //───────────────────────────────────────────────────────────────────────────┘
+  protected async _validateActiveT2Model():Promise<void> {
+
+    // Define a Task Bundle
+    const taskBundle:ListrTaskBundle = {
+      dbgNsLocal:     `${dbgNs}_validateActiveT2Model`, // Local Debug Namespace for this function. DO NOT add trailing : char.
+      throwOnFailure: false,                            // Define whether to throw an Error on task failure or not.
+      preTaskMessage: {                                 // Message displayed to the user BEFORE tasks are run.
+        message: `Checking for Active Territory2 Model...`,
+        styling: `yellow`
+      },
+      postTaskMessage: {                              // Message displayed to the user AFTER tasks are run.
+        message: ``,
+        styling: ``
+      },
+      generatorStatusSuccess: {                       // Generator Status message used on SUCCESS.
+        type:     StatusMessageType.SUCCESS,
+        title:    `TM2 Model Activation`,
+        message:  `The migrated Territory2 is activated in the target org`
+      },
+      generatorStatusFailure: {                       // Generator Status message used on FAILURE.
+        type:     StatusMessageType.ERROR,
+        title:    `TM2 Model Activation`,
+        message:  `The migrated Territory2 model was not activated in the target org`
+      },
+      listrObject:                                    // The Listr Tasks that will be run.
+        listrTasks.validateTm2Activation.call(this,
+                                              this.tm1AnalysisReport,
+                                              this.tm1ExtractionReport,
+                                              this.tm1TransformationReport,
+                                              this.tm2DeploymentReport,
+                                              this.tm2DataLoadFilePaths)
+    };
+
+    // Run the Task Bundle.
+    await this._runListrTaskBundle(taskBundle);
+
+    // Pull the TmToolsLoad object out of Shared Data.
+    this.tmToolsLoad = this.sharedData['tmToolsLoad'];
   }
 
   //───────────────────────────────────────────────────────────────────────────┐
@@ -361,6 +459,9 @@ export default class Tm2Load extends SfdxFalconYeomanGenerator<InterviewAnswers>
                                , `${dbgNs}writing`
                                , readJsonMapError);
     }) as TM2DeploymentReport;
+
+    // Make sure the TM2 Org is ready for the final deployment and data load.
+    await this._validateActiveT2Model();
   }
 
   //───────────────────────────────────────────────────────────────────────────┐
@@ -380,8 +481,11 @@ export default class Tm2Load extends SfdxFalconYeomanGenerator<InterviewAnswers>
       return;
     }
 
-    // Transform the user's TM1 config.
-    await this._loadTm2Config();
+    // Perform the final Metadata Deployment.
+    await this._deployFinalTm2Config();
+
+    // Perform the final Data Load.
+    await this._loadFinalTm2Config();
   }
 
   //───────────────────────────────────────────────────────────────────────────┐
