@@ -78,7 +78,7 @@ EXAMPLES
   $ sfdx tmtools:tm1:analyze -d ~/custom-target-directory
 ```
 
-_See code: [src/commands/tmtools/tm1/analyze.ts](https://github.com/sfdx-isv/territory-management-tools/blob/v0.0.0/src/commands/tmtools/tm1/analyze.ts)_
+_See code: [src/commands/tmtools/tm1/analyze.ts](https://github.com/sfdx-isv/territory-management-tools/blob/v1.0.0/src/commands/tmtools/tm1/analyze.ts)_
 
 ## `sfdx tmtools:tm1:clean -s <directory> [--falcondebug <array>] [--falcondebugerror] [--falcondebugsuccess] [--falcondebugdepth <number>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`
 
@@ -117,7 +117,7 @@ EXAMPLES
   $ sfdx tmtools:tm1:clean -s ~/tm1-transformation-directory
 ```
 
-_See code: [src/commands/tmtools/tm1/clean.ts](https://github.com/sfdx-isv/territory-management-tools/blob/v0.0.0/src/commands/tmtools/tm1/clean.ts)_
+_See code: [src/commands/tmtools/tm1/clean.ts](https://github.com/sfdx-isv/territory-management-tools/blob/v1.0.0/src/commands/tmtools/tm1/clean.ts)_
 
 ## `sfdx tmtools:tm1:extract [-s <directory>] [--falcondebug <array>] [--falcondebugerror] [--falcondebugsuccess] [--falcondebugdepth <number>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`
 
@@ -158,7 +158,7 @@ EXAMPLES
   $ sfdx tmtools:tm1:extract -s ~/tm1-analysis-directory
 ```
 
-_See code: [src/commands/tmtools/tm1/extract.ts](https://github.com/sfdx-isv/territory-management-tools/blob/v0.0.0/src/commands/tmtools/tm1/extract.ts)_
+_See code: [src/commands/tmtools/tm1/extract.ts](https://github.com/sfdx-isv/territory-management-tools/blob/v1.0.0/src/commands/tmtools/tm1/extract.ts)_
 
 ## `sfdx tmtools:tm1:transform -s <directory> [--falcondebug <array>] [--falcondebugerror] [--falcondebugsuccess] [--falcondebugdepth <number>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`
 
@@ -199,7 +199,7 @@ EXAMPLES
   $ sfdx tmtools:tm1:transform -s ~/tm1-extraction-directory
 ```
 
-_See code: [src/commands/tmtools/tm1/transform.ts](https://github.com/sfdx-isv/territory-management-tools/blob/v0.0.0/src/commands/tmtools/tm1/transform.ts)_
+_See code: [src/commands/tmtools/tm1/transform.ts](https://github.com/sfdx-isv/territory-management-tools/blob/v1.0.0/src/commands/tmtools/tm1/transform.ts)_
 
 ## `sfdx tmtools:tm2:deploy -s <directory> [--falcondebug <array>] [--falcondebugerror] [--falcondebugsuccess] [--falcondebugdepth <number>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`
 
@@ -238,7 +238,7 @@ EXAMPLES
   $ sfdx tmtools:tm2:deploy -s ~/tm1-transformation-directory
 ```
 
-_See code: [src/commands/tmtools/tm2/deploy.ts](https://github.com/sfdx-isv/territory-management-tools/blob/v0.0.0/src/commands/tmtools/tm2/deploy.ts)_
+_See code: [src/commands/tmtools/tm2/deploy.ts](https://github.com/sfdx-isv/territory-management-tools/blob/v1.0.0/src/commands/tmtools/tm2/deploy.ts)_
 
 ## `sfdx tmtools:tm2:load -s <directory> [--falcondebug <array>] [--falcondebugerror] [--falcondebugsuccess] [--falcondebugdepth <number>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`
 
@@ -277,7 +277,7 @@ EXAMPLES
   $ sfdx tmtools:tm2:load -s ~/tm1-transformation-directory
 ```
 
-_See code: [src/commands/tmtools/tm2/load.ts](https://github.com/sfdx-isv/territory-management-tools/blob/v0.0.0/src/commands/tmtools/tm2/load.ts)_
+_See code: [src/commands/tmtools/tm2/load.ts](https://github.com/sfdx-isv/territory-management-tools/blob/v1.0.0/src/commands/tmtools/tm2/load.ts)_
 <!-- commandsstop -->
 
 
