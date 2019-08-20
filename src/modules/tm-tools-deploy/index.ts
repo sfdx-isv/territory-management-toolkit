@@ -336,7 +336,6 @@ export class TmToolsDeploy {
         fields: [
           'UserId',
           'RoleInTerritory2',
-          'IsActive',
           'Territory2Id'
         ]
       }

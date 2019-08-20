@@ -919,7 +919,6 @@ export class TmToolsTransform {
         fields: [
           'UserId',
           'RoleInTerritory2',
-          'IsActive',
           'Territory2Id'
         ]
       }
