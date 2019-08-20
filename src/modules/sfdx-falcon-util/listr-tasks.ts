@@ -2135,29 +2135,6 @@ export function loadFinalTm2Config(tmToolsLoad:TmToolsLoad):ListrObject {
             });
           });
         }
-      },
-      // ── DATA LOAD TASK 3: Generate TM2 Data Load Report ────────────────────────────────────────
-      {
-        title:  'Generate TM2 Data Load Report',
-        task:   (listrContext:object, thisTask:ListrTask) => {
-          return new Observable(observer => {
-    
-            // Initialize an OTR (Observable Task Result).
-            const otr = initObservableTaskResult(`${dbgNsLocal}:DLT3`, listrContext, thisTask, observer, this.sharedData, this.generatorResult,
-                        `Saving TM2 Data Load Report to ${tmToolsLoad.filePaths.tm2DataLoadReportPath}`);
-    
-            // Execute the Task Logic.
-            tmToolsLoad.saveReport()
-            .then((tm2DataLoadReport:TM2DataLoadReport) => {
-              SfdxFalconDebug.obj(`${dbgNsLocal}:DLT3:tm2DataLoadReport:`, tm2DataLoadReport);
-              finalizeObservableTaskResult(otr);
-            })
-            .catch((error:Error) => {
-              SfdxFalconDebug.obj(`${dbgNsLocal}:DLT3:error:`, error);
-              finalizeObservableTaskResult(otr, error);
-            });
-          });
-        }
       }
     ],
     // TASK GROUP OPTIONS: TM2 Data Load Tasks
