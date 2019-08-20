@@ -821,7 +821,6 @@ export class TmToolsTransform {
       objectTerritory2AssociationRecords.push({
         AssociationCause: 'Territory2Manual',
         ObjectId:         accountShareRecord.AccountId,
-        SobjectType:      'Account',
         Territory2Id:     `T2ID_PENDING_${territoryDevName}`
       });
     }
@@ -834,7 +833,6 @@ export class TmToolsTransform {
       {
         fields: [
           'ObjectId',
-          'SobjectType',
           'AssociationCause',
           'Territory2Id'
         ]

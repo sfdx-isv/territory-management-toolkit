@@ -261,6 +261,48 @@ export default class Tm2Load extends SfdxFalconYeomanGenerator<InterviewAnswers>
 
   //───────────────────────────────────────────────────────────────────────────┐
   /**
+   * @method      _generateReport
+   * @returns     {Promise<void>}
+   * @description Generates the TM2 Dataload Report (tm2-dataload.json) and
+   *              saves it to the user's local system.
+   * @protected @async
+   */
+  //───────────────────────────────────────────────────────────────────────────┘
+  protected async _generateReport():Promise<void> {
+    
+    // Define a Task Bundle
+    const taskBundle:ListrTaskBundle = {
+      dbgNsLocal:     `${dbgNs}_generateReport`,      // Local Debug Namespace for this function. DO NOT add trailing : char.
+      throwOnFailure: false,                          // Define whether to throw an Error on task failure or not.
+      preTaskMessage: {                               // Message displayed to the user BEFORE tasks are run.
+        message: `Generating Final TM2 Data Load Report...`,
+        styling: `yellow`
+      },
+      postTaskMessage: {                              // Message displayed to the user AFTER tasks are run.
+        message: ``,
+        styling: ``
+      },
+      generatorStatusSuccess: {                       // Generator Status message used on SUCCESS.
+        type:     StatusMessageType.SUCCESS,
+        title:    `TM2 Data Load Report`,
+        message:  `TM2 data load report saved to ${this.tm2DataLoadFilePaths.tm2DataLoadReportPath}`
+      },
+      generatorStatusFailure: {                       // Generator Status message used on FAILURE.
+        type:     StatusMessageType.WARNING,
+        title:    `TM2 Data Load Report`,
+        message:  `WARNING - TM2 data load report could not be created`
+      },
+      listrObject:                                    // The Listr Tasks that will be run.
+      listrTasks.generateTm2DataLoadReport.call(this,
+                                                this.tmToolsLoad)
+    };
+
+    // Run the Task Bundle.
+    await this._runListrTaskBundle(taskBundle);
+  }
+
+  //───────────────────────────────────────────────────────────────────────────┐
+  /**
    * @method      _loadFinalTm2Config
    * @returns     {Promise<void>}
    * @description Uses information from the User's "Final Answers" to deploy and
@@ -486,6 +528,9 @@ export default class Tm2Load extends SfdxFalconYeomanGenerator<InterviewAnswers>
 
     // Perform the final Data Load.
     await this._loadFinalTm2Config();
+
+    // Generate the final report.
+    await this._generateReport();
   }
 
   //───────────────────────────────────────────────────────────────────────────┐
