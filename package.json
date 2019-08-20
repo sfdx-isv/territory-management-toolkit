@@ -1,12 +1,12 @@
 {
   "name": "territory-management-tools",
   "description": "Tools for territory management",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "author": "Vivek M. Chawla @VivekMChawla",
   "bugs": "https://github.com/sfdx-isv/territory-management-tools/issues",
   "dependencies": {
     "@oclif/command": "1.5.18",
-    "@oclif/config": "1.13.2",
+    "@oclif/config": "1.13.3",
     "@oclif/errors": "1.2.2",
     "@salesforce/command": "2.1.0",
     "@salesforce/core": "2.1.1",
@@ -15,7 +15,7 @@
     "debug": "4.1.1",
     "falcon-listr-update-renderer": "0.4.2",
     "fs-extra": "8.1.0",
-    "inquirer": "6.5.0",
+    "inquirer": "6.5.1",
     "json2csv": "4.5.2",
     "listr": "0.14.3",
     "lodash": "4.17.15",
@@ -26,7 +26,7 @@
     "shelljs": "0.8.3",
     "tslib": "1.10.0",
     "unzipper": "0.10.3",
-    "uuid": "3.3.2",
+    "uuid": "3.3.3",
     "xmlbuilder": "13.0.2",
     "xml-js": "1.6.11",
     "yeoman-environment": "2.4.0",
@@ -35,7 +35,7 @@
   },
   "devDependencies": {
     "@oclif/dev-cli": "1.22.2",
-    "@oclif/plugin-help": "2.2.0",
+    "@oclif/plugin-help": "2.2.1",
     "@oclif/test": "1.2.5",
     "@salesforce/dev-config": "1.5.0",
     "@types/chai": "^4.2.0",
@@ -43,9 +43,9 @@
     "@types/inquirer": "^6.5.0",
     "@types/jsforce": "^1.9.9",
     "@types/json2csv": "^4.5.0",
-    "@types/lodash": "^4.14.136",
+    "@types/lodash": "^4.14.137",
     "@types/mocha": "^5.2.7",
-    "@types/node": "^12.7.1",
+    "@types/node": "^12.7.2",
     "@types/shelljs": "^0.8.5",
     "@types/yeoman-environment": "^2.3.2",
     "@types/yeoman-generator": "^3.1.4",
@@ -83,8 +83,14 @@
     "commands": "./lib/commands",
     "bin": "sfdx",
     "topics": {
-      "hello": {
-        "description": "Commands to say hello."
+      "tmtools": {
+        "description": "Territory Management Tools"
+      },
+      "tmtools:tm1": {
+        "description": "Tools related to TM1 configuration and operations"
+      },
+      "tmtools:tm2": {
+        "description": "Tools related to TM2 configuration and operations"
       }
     },
     "devPlugins": [
@@ -96,7 +102,6 @@
     "postpack": "rm -f oclif.manifest.json",
     "posttest": "tslint -p test -t stylish",
     "prepack": "rm -rf lib && tsc -b && oclif-dev manifest && oclif-dev readme",
-    "singleTest": "nyc --extension .ts mocha --forbid-only \"test/**/adk/create.test.ts\"",
     "test": "nyc --extension .ts mocha --forbid-only \"test/**/*.test.ts\"",
     "version": "oclif-dev readme && git add README.md"
   }
