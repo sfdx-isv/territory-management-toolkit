@@ -36,50 +36,6 @@ export type AccessLevel = 'None'|'Read'|'Edit';
 export type DeveloperName = string;
 
 /**
- * Interface. Represents the JSON returned by a call to force:mdapi:deploy
- */
-export interface DeploymentResult extends JsonMap {
-  checkOnly?:       boolean;
-  completedDate?:   string;
-  createdBy?:       SObjectRecordId;
-  createdByName?:   string;
-  createdDate?:     string;
-  details?:  {
-    componentSuccesses?: Array<{
-      changed?:         string;
-      componentType?:   string;
-      created?:         string;
-      createdDate?:     string;
-      deleted?:         string;
-      fileName?:        string;
-      fullName?:        string;
-      id?:              SObjectRecordId;
-      success?:         string;
-    }>;
-  };
-  runTestResult?: {
-    numFailures?:       string;
-    numTestsRun?:       string;
-    totalTime?:         string;
-  };
-  done?:                      boolean;
-  id?:                        SObjectRecordId;
-  ignoreWarnings?:            boolean;
-  lastModifiedDate?:          string;
-  numberComponentErrors?:     number;
-  numberComponentsDeployed?:  number;
-  numberComponentsTotal?:     number;
-  numberTestErrors?:          number;
-  numberTestsCompleted?:      number;
-  numberTestsTotal?:          number;
-  rollbackOnError?:           boolean;
-  runTestsEnabled?:           string;
-  startDate?:                 string;
-  status?:                    string;
-  success?:                   boolean;
-}
-
-/**
  * Type. Represents an SObject Record ID.
  */
 export type SObjectRecordId = string;
@@ -695,9 +651,7 @@ export interface TM1TransformationStatus extends JsonMap {
  * Interface. Represents the set of status information that is tracked by the tm2:cleanup command.
  */
 export interface TM1CleanupStatus extends JsonMap {
-  metadataDeploymentStatus: {
-    cleanupDeployment:        Status;
-  };
+  sharingRulesDestruction: import('../sfdx-falcon-types').DeployResult;
 }
 
 /**
@@ -718,9 +672,9 @@ export interface TM2DeploymentStatus extends JsonMap {
  * Interface. Represents the set of status information that is tracked by the tm1:transform and tm2:deploy commands.
  */
 export interface TM2DataLoadStatus extends JsonMap {
-  userTerritory2Association:    import('../sfdx-falcon-types').Bulk2OperationStatus;
-  objectTerritory2Association:  import('../sfdx-falcon-types').Bulk2OperationStatus;
-  sharingRules:                 DeploymentResult;
+  objectT2AssociationBulkLoad:  import('../sfdx-falcon-types').Bulk2OperationStatus;
+  sharingRulesDeployment:       import('../sfdx-falcon-types').DeployResult;
+  userT2AssociationBulkLoad:    import('../sfdx-falcon-types').Bulk2OperationStatus;
 }
 
 /**
@@ -774,8 +728,8 @@ export interface TM2DeploymentReport extends JsonMap {
   tm2RecordCounts:    TM2RecordCounts;
   tm2MetadataCounts:  TM2MetadataCounts;
   deploymentResults:  {
-    mainDeployment:         DeploymentResult;
-    sharingRulesDeployment: DeploymentResult;
+    mainDeployment:         import('../sfdx-falcon-types').DeployResult;
+    sharingRulesDeployment: import('../sfdx-falcon-types').DeployResult;
     
   };
 }
