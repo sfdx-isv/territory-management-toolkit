@@ -17,15 +17,16 @@ import {SfdxFalconDebug}              from  '../sfdx-falcon-debug';   // Class. 
 import {SfdxFalconError}              from  '../sfdx-falcon-error';   // Class. Extends SfdxError to provide specialized error structures for SFDX-Falcon modules.
 
 // Import TM-Tools Types
-import {TMFileNames}                  from  '../tm-tools-types';   // ???
-import {TM1AnalyzeFilePaths}          from  '../tm-tools-types';   // ???
-import {TM1ContextFilePaths}          from  '../tm-tools-types';   // ???
-import {TM1ExtractFilePaths}          from  '../tm-tools-types';   // ???
-import {TM1TransformFilePaths}        from  '../tm-tools-types';   // ???
-import {TM1CleanupFilePaths}          from  '../tm-tools-types';   // ???
-import {TM2DeployFilePaths}           from  '../tm-tools-types';   // ???
-import {TM2DataLoadFilePaths}         from  '../tm-tools-types';   // ???
-import {TMToolsAllFilePaths}          from  '../tm-tools-types';   // ???
+import {TMFileNames}                  from  '../tm-tools-types';   // Interface. Represents the complete suite of file names required by the various TM commands.
+import {TM1AnalyzeFilePaths}          from  '../tm-tools-types';   // Interface. Represents the complete suite of file paths required by the tmtools:tm1:analyze command.
+import {TM1ContextFilePaths}          from  '../tm-tools-types';   // Interface. Represents the complete suite of CSV and Metadata file paths required to create a TM1 Context.
+import {TM1ExtractFilePaths}          from  '../tm-tools-types';   // Interface. Represents the complete suite of file paths required by the tmtools:tm1:extract command.
+import {TM1TransformFilePaths}        from  '../tm-tools-types';   // Interface. Represents the complete suite of file paths required by the tmtools:tm1:transform command.
+import {TM1CleanFilePaths}            from  '../tm-tools-types';   // Interface. Represents the complete suite of file paths required by the tmtools:tm1:clean command.
+import {TM2DeployFilePaths}           from  '../tm-tools-types';   // Interface. Represents the complete suite of file paths required by the tmtools:tm2:deploy command.
+import {TM2LoadFilePaths}             from  '../tm-tools-types';   // Interface. Represents the complete suite of file paths required by the tmtools:tm2:load command.
+import {TM2DeploySharingFilePaths}    from  '../tm-tools-types';   // Interface. Represents the complete suite of file paths required by the tmtools:tm2:deploysharing command.
+import {TMToolsAllFilePaths}          from  '../tm-tools-types';   // Type. Represents the complete suite of file paths required by ALL TM-Tools commands.
 
 // File-Global Variables.
 const tm1AnalysisReportFileName                   = 'tm1-analysis.json';
@@ -34,6 +35,7 @@ const tm1TransformationReportFileName             = 'tm1-transformation.json';
 const tm1CleanupReportFileName                    = 'tm1-cleanup.json';
 const tm2DeploymentReportFileName                 = 'tm2-deployment.json';
 const tm2DataLoadReportFileName                   = 'tm2-dataload.json';
+const tm2SharingDeploymentReportFileName          = 'tm2-sharingdeployment.json';
 
 const accountShareCsv                             = 'AccountShare.csv';
 const ataRuleCsv                                  = 'AccountTerritoryAssignmentRule.csv';
@@ -86,14 +88,19 @@ export default class TmFilePaths {
   //───────────────────────────────────────────────────────────────────────────┘
   public static getTmFileNames():TMFileNames {
 
+    // Define function-local debug namespace and validate incoming arguments.
+    const dbgNsLocal = `${dbgNs}getTmFileNames`;
+    TmFilePaths.validateBaseDirectoryArgument.apply(null, arguments);
+
     // Build the File Names.
-    const tmFileNames:TMFileNames = {
+    const fileNames:TMFileNames = {
       tm1AnalysisReportFileName:                    tm1AnalysisReportFileName,
       tm1ExtractionReportFileName:                  tm1ExtractionReportFileName,
       tm1TransformationReportFileName:              tm1TransformationReportFileName,
       tm1CleanupReportFileName:                     tm1CleanupReportFileName,
       tm2DeploymentReportFileName:                  tm2DeploymentReportFileName,
       tm2DataLoadReportFileName:                    tm2DataLoadReportFileName,
+      tm2SharingDeploymentReportFileName:           tm2SharingDeploymentReportFileName,
       accountShareCsv:                              accountShareCsv,
       ataRuleCsv:                                   ataRuleCsv,
       ataRuleItemCsv:                               ataRuleItemCsv,
@@ -109,8 +116,8 @@ export default class TmFilePaths {
     };
 
     // DEBUG and send back to caller.
-    SfdxFalconDebug.obj(`${dbgNs}getFileNames:tmFileNames:`, tmFileNames);
-    return tmFileNames;
+    SfdxFalconDebug.obj(`${dbgNsLocal}:fileNames:`, fileNames);
+    return fileNames;
   }
 
   //───────────────────────────────────────────────────────────────────────────┐
@@ -124,11 +131,13 @@ export default class TmFilePaths {
   //───────────────────────────────────────────────────────────────────────────┘
   public static getTm1ContextFilePaths(baseDirectory:string):TM1ContextFilePaths {
 
-    // Validate incoming arguments.
+    // Define function-local debug namespace and debug/validate incoming arguments.
+    const dbgNsLocal = `${dbgNs}getTm1ContextFilePaths`;
+    SfdxFalconDebug.obj(`${dbgNsLocal}:arguments:`, arguments);
     TmFilePaths.validateBaseDirectoryArgument.apply(null, arguments);
 
     // Build the File Paths.
-    const tm1ContextFilePaths:TM1ContextFilePaths = {
+    const filePaths:TM1ContextFilePaths = {
       baseDirectory:    baseDirectory,
       accountShareCsv:  path.join(baseDirectory, tm1ExtractionDir, extractedDataDir, accountShareCsv),
       ataRuleCsv:       path.join(baseDirectory, tm1ExtractionDir, extractedDataDir, ataRuleCsv),
@@ -140,8 +149,8 @@ export default class TmFilePaths {
     };
 
     // DEBUG and send back to caller.
-    SfdxFalconDebug.obj(`${dbgNs}getTm1ContextFilePaths:tm1ContextFilePaths:`, tm1ContextFilePaths);
-    return tm1ContextFilePaths;
+    SfdxFalconDebug.obj(`${dbgNsLocal}:filePaths:`, filePaths);
+    return filePaths;
   }
 
   //───────────────────────────────────────────────────────────────────────────┐
@@ -155,11 +164,13 @@ export default class TmFilePaths {
   //───────────────────────────────────────────────────────────────────────────┘
   public static getTm1AnalyzeFilePaths(baseDirectory:string):TM1AnalyzeFilePaths {
 
-    // Validate incoming arguments.
+    // Define function-local debug namespace and debug/validate incoming arguments.
+    const dbgNsLocal = `${dbgNs}getTm1AnalyzeFilePaths`;
+    SfdxFalconDebug.obj(`${dbgNsLocal}:arguments:`, arguments);
     TmFilePaths.validateBaseDirectoryArgument.apply(null, arguments);
 
     // Build the File Paths.
-    const tm1AnalyzeFilePaths:TM1AnalyzeFilePaths = {
+    const filePaths:TM1AnalyzeFilePaths = {
       baseDirectory:          path.resolve(baseDirectory),
       tm1AnalysisReportPath:  path.join(baseDirectory, tm1AnalysisReportFileName),
       fileNames: {
@@ -168,8 +179,8 @@ export default class TmFilePaths {
     };
 
     // DEBUG and send back to caller.
-    SfdxFalconDebug.obj(`${dbgNs}getTm1AnalyzeFilePaths:tm1AnalyzeFilePaths:`, tm1AnalyzeFilePaths);
-    return tm1AnalyzeFilePaths;
+    SfdxFalconDebug.obj(`${dbgNsLocal}:filePaths:`, filePaths);
+    return filePaths;
   }
 
   //───────────────────────────────────────────────────────────────────────────┐
@@ -183,11 +194,13 @@ export default class TmFilePaths {
   //───────────────────────────────────────────────────────────────────────────┘
   public static getTm1ExtractFilePaths(baseDirectory:string):TM1ExtractFilePaths {
 
-    // Validate incoming arguments.
+    // Define function-local debug namespace and debug/validate incoming arguments.
+    const dbgNsLocal = `${dbgNs}getTm1ExtractFilePaths`;
+    SfdxFalconDebug.obj(`${dbgNsLocal}:arguments:`, arguments);
     TmFilePaths.validateBaseDirectoryArgument.apply(null, arguments);
 
     // Build the File Paths.
-    const tm1ExtractFilePaths:TM1ExtractFilePaths = {
+    const filePaths:TM1ExtractFilePaths = {
       ...TmFilePaths.getTm1AnalyzeFilePaths(baseDirectory),
       tm1ExtractionReportPath:          path.join(baseDirectory, tm1ExtractionReportFileName),
       tm1ExtractionDir:                 path.join(baseDirectory, tm1ExtractionDir),
@@ -203,8 +216,8 @@ export default class TmFilePaths {
     };
 
     // DEBUG and send back to caller.
-    SfdxFalconDebug.obj(`${dbgNs}getTm1ExtractFilePaths:tm1ExtractFilePaths:`, tm1ExtractFilePaths);
-    return tm1ExtractFilePaths;
+    SfdxFalconDebug.obj(`${dbgNsLocal}:filePaths:`, filePaths);
+    return filePaths;
   }
 
   //───────────────────────────────────────────────────────────────────────────┐
@@ -218,11 +231,13 @@ export default class TmFilePaths {
   //───────────────────────────────────────────────────────────────────────────┘
   public static getTm1TransformFilePaths(baseDirectory:string):TM1TransformFilePaths {
 
-    // Validate incoming arguments.
+    // Define function-local debug namespace and debug/validate incoming arguments.
+    const dbgNsLocal = `${dbgNs}getTm1TransformFilePaths`;
+    SfdxFalconDebug.obj(`${dbgNsLocal}:arguments:`, arguments);
     TmFilePaths.validateBaseDirectoryArgument.apply(null, arguments);
 
     // Build the File Paths.
-    const tm1TransformFilePaths:TM1TransformFilePaths = {
+    const filePaths:TM1TransformFilePaths = {
       ...TmFilePaths.getTm1ExtractFilePaths(baseDirectory),
       tm1TransformationReportPath:                    path.join(baseDirectory, tm1TransformationReportFileName),
       transformedDataDir:                             path.join(baseDirectory, transformedDataDir),
@@ -240,33 +255,35 @@ export default class TmFilePaths {
       };
 
     // DEBUG and send back to caller.
-    SfdxFalconDebug.obj(`${dbgNs}getTm1TransformFilePaths:tm1TransformFilePaths:`, tm1TransformFilePaths);
-    return tm1TransformFilePaths;
+    SfdxFalconDebug.obj(`${dbgNsLocal}:filePaths:`, filePaths);
+    return filePaths;
   }
 
   //───────────────────────────────────────────────────────────────────────────┐
   /**
    * @method      getTm1CleanupFilePaths
    * @param       {string}  baseDirectory Required.
-   * @returns     {TM1CleanupFilePaths} Paths required by TM1 Cleanup.
+   * @returns     {TM1CleanFilePaths} Paths required by TM1 Cleanup.
    * @description ???
    * @public @static
    */
   //───────────────────────────────────────────────────────────────────────────┘
-  public static getTm1CleanupFilePaths(baseDirectory:string):TM1CleanupFilePaths {
+  public static getTm1CleanupFilePaths(baseDirectory:string):TM1CleanFilePaths {
 
-    // Validate incoming arguments.
+    // Define function-local debug namespace and debug/validate incoming arguments.
+    const dbgNsLocal = `${dbgNs}getTm1CleanupFilePaths`;
+    SfdxFalconDebug.obj(`${dbgNsLocal}:arguments:`, arguments);
     TmFilePaths.validateBaseDirectoryArgument.apply(null, arguments);
 
     // Build the File Paths.
-    const tm1CleanupFilePaths:TM1CleanupFilePaths = {
+    const filePaths:TM1CleanFilePaths = {
       ...TmFilePaths.getTm1TransformFilePaths(baseDirectory),
       tm1CleanupReportPath:  path.join(baseDirectory, tm1CleanupReportFileName)
     };
 
     // DEBUG and send back to caller.
-    SfdxFalconDebug.obj(`${dbgNs}getTm1CleanupFilePaths:tm1CleanupFilePaths:`, tm1CleanupFilePaths);
-    return tm1CleanupFilePaths;
+    SfdxFalconDebug.obj(`${dbgNsLocal}:filePaths:`, filePaths);
+    return filePaths;
   }
 
   //───────────────────────────────────────────────────────────────────────────┐
@@ -280,43 +297,74 @@ export default class TmFilePaths {
   //───────────────────────────────────────────────────────────────────────────┘
   public static getTm2DeployFilePaths(baseDirectory:string):TM2DeployFilePaths {
 
-    // Validate incoming arguments.
+    // Define function-local debug namespace and debug/validate incoming arguments.
+    const dbgNsLocal = `${dbgNs}getTm2DeployFilePaths`;
+    SfdxFalconDebug.obj(`${dbgNsLocal}:arguments:`, arguments);
     TmFilePaths.validateBaseDirectoryArgument.apply(null, arguments);
 
     // Build the File Paths.
-    const tm2DeployFilePaths:TM2DeployFilePaths = {
+    const filePaths:TM2DeployFilePaths = {
       ...TmFilePaths.getTm1CleanupFilePaths(baseDirectory),
       tm2DeploymentReportPath:  path.join(baseDirectory, tm2DeploymentReportFileName)
     };
 
     // DEBUG and send back to caller.
-    SfdxFalconDebug.obj(`${dbgNs}getTm2DeployFilePaths:tm2DeployFilePaths:`, tm2DeployFilePaths);
-    return tm2DeployFilePaths;
+    SfdxFalconDebug.obj(`${dbgNsLocal}:filePaths:`, filePaths);
+    return filePaths;
   }
 
   //───────────────────────────────────────────────────────────────────────────┐
   /**
    * @method      getTm2DataLoadFilePaths
    * @param       {string}  baseDirectory Required.
-   * @returns     {TM2DataLoadFilePaths} Paths required by TM2 DataLoad.
+   * @returns     {TM2LoadFilePaths} Paths required by TM2 DataLoad.
    * @description ???
    * @public @static
    */
   //───────────────────────────────────────────────────────────────────────────┘
-  public static getTm2DataLoadFilePaths(baseDirectory:string):TM2DataLoadFilePaths {
+  public static getTm2DataLoadFilePaths(baseDirectory:string):TM2LoadFilePaths {
 
-    // Validate incoming arguments.
+    // Define function-local debug namespace and debug/validate incoming arguments.
+    const dbgNsLocal = `${dbgNs}getTm2DataLoadFilePaths`;
+    SfdxFalconDebug.obj(`${dbgNsLocal}:arguments:`, arguments);
     TmFilePaths.validateBaseDirectoryArgument.apply(null, arguments);
 
     // Build the File Paths.
-    const tm2DataLoadFilePaths:TM2DataLoadFilePaths = {
+    const filePaths:TM2LoadFilePaths = {
       ...TmFilePaths.getTm2DeployFilePaths(baseDirectory),
       tm2DataLoadReportPath:  path.join(baseDirectory, tm2DataLoadReportFileName)
     };
 
     // DEBUG and send back to caller.
-    SfdxFalconDebug.obj(`${dbgNs}getTm2DataLoadFilePaths:tm2DataLoadFilePaths:`, tm2DataLoadFilePaths);
-    return tm2DataLoadFilePaths;
+    SfdxFalconDebug.obj(`${dbgNsLocal}:filePaths:`, filePaths);
+    return filePaths;
+  }
+
+  //───────────────────────────────────────────────────────────────────────────┐
+  /**
+   * @method      getTm2DeploySharingFilePaths
+   * @param       {string}  baseDirectory Required.
+   * @returns     {TM2DeploySharingFilePaths} Paths required by TM2 DeploySharing
+   * @description ???
+   * @public @static
+   */
+  //───────────────────────────────────────────────────────────────────────────┘
+  public static getTm2DeploySharingFilePaths(baseDirectory:string):TM2DeploySharingFilePaths {
+
+    // Define function-local debug namespace and debug/validate incoming arguments.
+    const dbgNsLocal = `${dbgNs}getTm2DeploySharingFilePaths`;
+    SfdxFalconDebug.obj(`${dbgNsLocal}:arguments:`, arguments);
+    TmFilePaths.validateBaseDirectoryArgument.apply(null, arguments);
+
+    // Build the File Paths.
+    const filePaths:TM2DeploySharingFilePaths = {
+      ...TmFilePaths.getTm2DataLoadFilePaths(baseDirectory),
+      tm2SharingDeploymentReportPath:  path.join(baseDirectory, tm2SharingDeploymentReportFileName)
+    };
+
+    // DEBUG and send back to caller.
+    SfdxFalconDebug.obj(`${dbgNsLocal}:filePaths:`, filePaths);
+    return filePaths;
   }
 
   //───────────────────────────────────────────────────────────────────────────┐
@@ -330,17 +378,19 @@ export default class TmFilePaths {
   //───────────────────────────────────────────────────────────────────────────┘
   public static getAllTmToolsFilePaths(baseDirectory:string):TMToolsAllFilePaths {
 
-    // Validate incoming arguments.
+    // Define function-local debug namespace and debug/validate incoming arguments.
+    const dbgNsLocal = `${dbgNs}getAllTmToolsFilePaths`;
+    SfdxFalconDebug.obj(`${dbgNsLocal}:arguments:`, arguments);
     TmFilePaths.validateBaseDirectoryArgument.apply(null, arguments);
 
     // Build the File Paths.
-    const allTmToolsFilePaths:TMToolsAllFilePaths = {
-      ...TmFilePaths.getTm2DataLoadFilePaths(baseDirectory)
+    const filePaths:TMToolsAllFilePaths = {
+      ...TmFilePaths.getTm2DeploySharingFilePaths(baseDirectory)
     };
 
     // DEBUG and send back to caller.
-    SfdxFalconDebug.obj(`${dbgNs}getAllTmToolsFilePaths:allTmToolsFilePaths:`, allTmToolsFilePaths);
-    return allTmToolsFilePaths;
+    SfdxFalconDebug.obj(`${dbgNsLocal}:filePaths:`, filePaths);
+    return filePaths;
   }
 
   //───────────────────────────────────────────────────────────────────────────┐

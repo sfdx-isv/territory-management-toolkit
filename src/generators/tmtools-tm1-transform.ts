@@ -155,9 +155,10 @@ export default class Tm1Transform extends SfdxFalconYeomanGenerator<InterviewAns
     // Declare an array of Falcon Table Data Rows
     const tableData = new Array<SfdxFalconKeyValueTableDataRow>();
 
-    // Grab the TM1 Extraction Report from Shared Data, then extract the key Org Info and Record Count info from it.
+    // Grab the TM1 Extraction Report from Shared Data, then extract required fields from it.
     const tm1ExtractionReport           = this.sharedData['reportJson'] as TM1ExtractionReport;
     const orgId                         = tm1ExtractionReport.orgInfo.orgId;
+    const alias                         = tm1ExtractionReport.orgInfo.alias;
     const username                      = tm1ExtractionReport.orgInfo.username;
     const loginUrl                      = tm1ExtractionReport.orgInfo.loginUrl;
     const createdOrgInstance            = tm1ExtractionReport.orgInfo.createdOrgInstance;
@@ -174,6 +175,7 @@ export default class Tm1Transform extends SfdxFalconYeomanGenerator<InterviewAns
     tableData.push({option:'TM1 Extraction Directory:', value:`${interviewAnswers.baseDirectory}`});
 
     // Answers read from the specified tm1-extraction.json file.
+    tableData.push({option:'Alias:',                      value:`${alias}`});
     tableData.push({option:'Username:',                   value:`${username}`});
     tableData.push({option:'Org ID:',                     value:`${orgId}`});
     tableData.push({option:'Login Url:',                  value:`${loginUrl}`});

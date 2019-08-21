@@ -759,6 +759,7 @@ export interface TMFileNames extends JsonMap {
   tm1CleanupReportFileName:                     string;
   tm2DeploymentReportFileName:                  string;
   tm2DataLoadReportFileName:                    string;
+  tm2SharingDeploymentReportFileName:           string;
   accountShareCsv:                              string;
   ataRuleCsv:                                   string;
   ataRuleItemCsv:                               string;
@@ -774,7 +775,7 @@ export interface TMFileNames extends JsonMap {
 }
 
 /**
- * Interface. Represents the complete suite of file paths required by the TM1 Analyze command.
+ * Interface. Represents the complete suite of file paths required by the `tmtools:tm1:analyze` command.
  */
 export interface TM1AnalyzeFilePaths extends JsonMap {
   baseDirectory:          string;
@@ -783,7 +784,7 @@ export interface TM1AnalyzeFilePaths extends JsonMap {
 }
 
 /**
- * Interface. Represents the complete suite of file paths required by the TM1 Extract command.
+ * Interface. Represents the complete suite of file paths required by the `tmtools:tm1:extract` command.
  */
 export interface TM1ExtractFilePaths extends TM1AnalyzeFilePaths {
   tm1ExtractionReportPath:          string;
@@ -800,7 +801,7 @@ export interface TM1ExtractFilePaths extends TM1AnalyzeFilePaths {
 }
 
 /**
- * Interface. Represents the complete suite of file paths required by the TM1 Transform command.
+ * Interface. Represents the complete suite of file paths required by the `tmtools:tm1:transform` command.
  */
 export interface TM1TransformFilePaths extends TM1ExtractFilePaths {
   tm1TransformationReportPath:  string;
@@ -819,27 +820,34 @@ export interface TM1TransformFilePaths extends TM1ExtractFilePaths {
 }
 
 /**
- * Interface. Represents the complete suite of file paths required by the TM1 Cleanup command.
+ * Interface. Represents the complete suite of file paths required by the `tmtools:tm1:clean` command.
  */
-export interface TM1CleanupFilePaths extends TM1TransformFilePaths {
+export interface TM1CleanFilePaths extends TM1TransformFilePaths {
   tm1CleanupReportPath: string;
 }
 
 /**
- * Interface. Represents the complete suite of file paths required by the TM2 Deploy command.
+ * Interface. Represents the complete suite of file paths required by the `tmtools:tm2:deploy` command.
  */
-export interface TM2DeployFilePaths extends TM1CleanupFilePaths {
+export interface TM2DeployFilePaths extends TM1CleanFilePaths {
   tm2DeploymentReportPath:  string;
 }
 
 /**
- * Interface. Represents the complete suite of file paths required by the TM2 DataLoad command.
+ * Interface. Represents the complete suite of file paths required by the `tmtools:tm2:load` command.
  */
-export interface TM2DataLoadFilePaths extends TM2DeployFilePaths {
+export interface TM2LoadFilePaths extends TM2DeployFilePaths {
   tm2DataLoadReportPath:  string;
+}
+
+/**
+ * Interface. Represents the complete suite of file paths required by the `tmtools:tm2:deploysharing` command.
+ */
+export interface TM2DeploySharingFilePaths extends TM2LoadFilePaths {
+  tm2SharingDeploymentReportPath:  string;
 }
 
 /**
  * Type. Represents the complete suite of file paths required by ALL TM-Tools commands.
  */
-export type TMToolsAllFilePaths = TM2DataLoadFilePaths;
+export type TMToolsAllFilePaths = TM2DeploySharingFilePaths;

@@ -162,12 +162,13 @@ export default class Tm2Deploy extends SfdxFalconYeomanGenerator<InterviewAnswer
     // Declare an array of Falcon Table Data Rows
     const tableData = new Array<SfdxFalconKeyValueTableDataRow>();
 
-    // Grab the TM1 Extraction Report from Shared Data, then extract the key Org Info and Record Count info from it.
-    const tm1ExtractionReport           = this.sharedData['reportJson'] as TM1TransformationReport;
-    const orgId                         = tm1ExtractionReport.orgInfo.orgId;
-    const username                      = tm1ExtractionReport.orgInfo.username;
-    const loginUrl                      = tm1ExtractionReport.orgInfo.loginUrl;
-    const createdOrgInstance            = tm1ExtractionReport.orgInfo.createdOrgInstance;
+    // Grab the TM1 Transformation Report from Shared Data, then extract required fields from it.
+    const tm1TransformationReport       = this.sharedData['reportJson'] as TM1TransformationReport;
+    const orgId                         = tm1TransformationReport.orgInfo.orgId;
+    const alias                         = tm1TransformationReport.orgInfo.alias;
+    const username                      = tm1TransformationReport.orgInfo.username;
+    const loginUrl                      = tm1TransformationReport.orgInfo.loginUrl;
+    const createdOrgInstance            = tm1TransformationReport.orgInfo.createdOrgInstance;
     /*
     const territoryRecordCount          = tm1ExtractionReport.actualTm1RecordCounts.territoryRecordCount;
     const userTerritoryRecordCount      = tm1ExtractionReport.actualTm1RecordCounts.userTerritoryRecordCount;
@@ -183,6 +184,7 @@ export default class Tm2Deploy extends SfdxFalconYeomanGenerator<InterviewAnswer
     tableData.push({option:'TM1 Transformation Directory:', value:`${interviewAnswers.baseDirectory}`});
 
     // Answers read from the specified tm1-extraction.json file.
+    tableData.push({option:'Alias:',                      value:`${alias}`});
     tableData.push({option:'Username:',                   value:`${username}`});
     tableData.push({option:'Org ID:',                     value:`${orgId}`});
     tableData.push({option:'Login Url:',                  value:`${loginUrl}`});
