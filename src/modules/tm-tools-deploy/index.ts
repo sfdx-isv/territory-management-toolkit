@@ -10,7 +10,7 @@
  */
 //─────────────────────────────────────────────────────────────────────────────────────────────────┘
 // Import External Libraries & Modules
-import  {fs}                              from  '@salesforce/core';   // File System utility from the Core SFDX library.
+import  * as fse                          from  'fs-extra';                   // File System utility library with extended functionality.
 
 // Import Internal Libraries
 import  * as csv                          from  '../sfdx-falcon-util/csv';    // Library. Provides utilities and services for manipulating CSV files.
@@ -269,23 +269,24 @@ export class TmToolsDeploy {
     if (typeof targetFile !== 'string' || targetFile === '' || targetFile === null) {
       throw new SfdxFalconError ( `Expected targetFile to be a non-empty, non-null string${typeof targetFile !== 'string' ? ` but got '${typeof targetFile}' instead.` : `.`}`
                                 , `TypeError`
-                                , `${dbgNs}save`);
+                                , `${dbgNs}saveReport`);
     }
     if (targetFile.endsWith('.json') !== true) {
       throw new SfdxFalconError ( `The targetFile must end with the '.json' extension. The path/file '${targetFile}' is invalid.`
                                 , `InvalidFileName`
-                                , `${dbgNs}save`);
+                                , `${dbgNs}saveReport`);
     }
 
     // Generate the report.
-    const tm2DeploymentReport = this.generateReport();
-    SfdxFalconDebug.obj(`${dbgNs}saveReport:tm2DeploymentReport:`, tm2DeploymentReport);
+    const report = this.generateReport();
+    SfdxFalconDebug.obj(`${dbgNs}saveReport:report:`, report);
 
-    // Write the TM2 Deployment Report to the local filesystem.
-    await fs.writeJson(targetFile, tm2DeploymentReport);
+    // Write the report to the local filesystem.
+    await fse.ensureFile(targetFile);
+    await fse.writeJson(targetFile, report, {spaces: '\t'});
 
     // Send the report back to the caller.
-    return tm2DeploymentReport;
+    return report;
   }
 
   //───────────────────────────────────────────────────────────────────────────┐

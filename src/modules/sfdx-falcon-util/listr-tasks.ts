@@ -13,8 +13,8 @@
  */
 //─────────────────────────────────────────────────────────────────────────────────────────────────┘
 // Import External Libraries & Modules
-import {fs}                     from  '@salesforce/core';           // File System utility from the Core SFDX library.
 import chalk                    from  'chalk';                      // Helps write colored text to the console.
+import * as fse                 from  'fs-extra';                   // File System utility library with extended functionality.
 import {isEmpty}                from  'lodash';                     // Useful function for detecting empty objects.
 import * as path                from  'path';                       // Helps resolve local paths at runtime.
 import {Observable}             from  'rxjs';                       // Class. Used to communicate status with Listr.
@@ -3531,7 +3531,8 @@ export function validateTm1Extraction(tm1AnalysisReport:TM1AnalysisReport, tm1Ex
               SfdxFalconDebug.obj(`${dbgNs}validateTm1Extraction:VT8:tm1ExtractionReport:`, tm1ExtractionReport);
 
               // Write the TM1 Extraction Report to the local filesystem.
-              await fs.writeJson(tm1ExtractFilePaths.tm1ExtractionReportPath, tm1ExtractionReport);
+              await fse.ensureFile(tm1ExtractFilePaths.tm1ExtractionReportPath);
+              await fse.writeJson(tm1ExtractFilePaths.tm1ExtractionReportPath, tm1ExtractionReport, {spaces: '\t'});
               return tm1ExtractionReport;
             };
 

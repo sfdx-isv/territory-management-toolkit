@@ -10,7 +10,7 @@
  */
 //─────────────────────────────────────────────────────────────────────────────────────────────────┘
 // Import External Libraries & Modules
-import  {fs}                              from  '@salesforce/core'; // File System utility from the Core SFDX library.
+import  * as fse                          from  'fs-extra';                   // File System utility library with extended functionality.
 
 // Import Internal Libraries
 import  * as sfdxHelper                   from  '../sfdx-falcon-util/sfdx';   // Library. Collection of helper functions that make calling the Salesforce CLI from code easier.
@@ -187,7 +187,8 @@ export class TmToolsClean {
     SfdxFalconDebug.obj(`${dbgNsLocal}:report:`, report);
 
     // Write the report to the local filesystem.
-    await fs.writeJson(targetFile, report);
+    await fse.ensureFile(targetFile);
+    await fse.writeJson(targetFile, report, {spaces: '\t'});
 
     // Send the report back to the caller.
     return report;

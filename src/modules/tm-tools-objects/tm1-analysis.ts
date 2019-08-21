@@ -15,7 +15,7 @@
 // Import External Libraries & Modules
 import {Aliases}          from  '@salesforce/core';     // Aliases specify alternate names for groups of properties used by the Salesforce CLI, such as orgs.
 import {AuthInfo}         from  '@salesforce/core';     // Handles persistence and fetching of user authentication information using JWT, OAuth, or refresh tokens.
-import * as fse           from  'fs-extra';             // File System utility from the Core SFDX library.
+import * as fse           from  'fs-extra';             // File System utility library with extended functionality.
 
 // Import Internal Libraries
 import * as sfdxHelper            from  '../sfdx-falcon-util/sfdx';   // Library of SFDX Helper functions specific to SFDX-Falcon.
@@ -757,15 +757,15 @@ export class Tm1Analysis {
     }
 
     // Generate the report.
-    const tm1AnalysisReport = this.generateReport();
-    SfdxFalconDebug.obj(`${dbgNs}saveReport:tm1AnalysisReport:`, tm1AnalysisReport);
+    const report = this.generateReport();
+    SfdxFalconDebug.obj(`${dbgNs}saveReport:report:`, report);
 
     // Write the report to the local filesystem.
     await fse.ensureFile(targetFile);
-    await fse.writeJson(targetFile, tm1AnalysisReport, {spaces: '\t'});
+    await fse.writeJson(targetFile, report, {spaces: '\t'});
 
     // Send the report back to the caller.
-    return tm1AnalysisReport;
+    return report;
   }
 
   //───────────────────────────────────────────────────────────────────────────┐
