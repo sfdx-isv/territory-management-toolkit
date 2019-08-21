@@ -85,7 +85,7 @@ export function chooseTm1Org(promptText:string[]=[], standardOrgChoices:Inquirer
       type:     'confirm',
       name:     'isScratchOrg',
       message:  promptText[0] || 'Is the target a Scratch Org?',
-      default:  true,
+      default:  ((this.defaultAnswers && typeValidator.isNotNullInvalidBoolean(this.defaultAnswers.isScratchOrg)) ? this.defaultAnswers.isScratchOrg : false),
       when:     true
     },
     {
