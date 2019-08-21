@@ -761,29 +761,10 @@ export abstract class SfdxFalconYeomanGenerator<T extends object> extends Genera
         this.generatorStatus.addMessage(taskBundle.generatorStatusFailure);
       }
 
-      // Declare an SfdxFalconError object to be thrown (if requested by the caller).
-      let finalError:SfdxFalconError = null;
+      // Start figuring out the Final Error by just wrapping whatever is in the Listr Error.
+      let finalError:SfdxFalconError = SfdxFalconError.wrap(listrError, `${dbgNsLocal}`);
 
-      // If the listrError has an "errors" array, extract the suppressed errors it holds and send to DEBUG.
-      if (typeof listrError === 'object' && listrError !== null && Array.isArray(listrError.errors)) {
-        const suppressedErrors = [];
-        for (const error of listrError.errors) {
-          suppressedErrors.push({
-            name:     error.name,
-            message:  error.message,
-            cause:    (error.cause) ? {name: error.cause.name, message: error.cause.message, stack: error.cause.stack} : 'NOT_SPECIFIED'
-          });
-        }
-        SfdxFalconDebug.obj(`${dbgNsLocal}:suppressedErrors:`, suppressedErrors);
-        finalError = new SfdxFalconError( `${taskBundle.generatorStatusFailure.type === StatusMessageType.ERROR ? `${taskBundle.generatorStatusFailure.message}. ` : ``}`
-                                        + `One or more tasks threw an error. See error.detail for more information.`
-                                        , `MultiTaskError`
-                                        , `${dbgNsLocal}`
-                                        , listrError);
-        finalError.setDetail(suppressedErrors);
-      }
-
-      // If listrError is an SfdxFalconResult, extract its Error Object. Otherwise, just wrap whatever we got.
+      // If the Listr Error is an SfdxFalconResult, use its Error Object as the Final Error instead.
       if (listrError instanceof SfdxFalconResult) {
         finalError = new SfdxFalconError( `${taskBundle.generatorStatusFailure.type === StatusMessageType.ERROR ? `${taskBundle.generatorStatusFailure.message}. ` : ``}`
                                         + `A task threw an SfdxFalconResult as an error. See error.detail for more information.`
@@ -791,9 +772,32 @@ export abstract class SfdxFalconYeomanGenerator<T extends object> extends Genera
                                         , `${dbgNsLocal}`
                                         , listrError.errObj);
         finalError.setDetail(listrError);
+        SfdxFalconDebug.obj(`${dbgNsLocal}:workingError:`, finalError, `SFDX-Falcon Result Error`);
+        SfdxFalconDebug.obj(`${dbgNs}_runListrTaskBundle:workingError:`, finalError, `SFDX-Falcon Result Error`);
       }
-      else {
-        finalError = SfdxFalconError.wrap(listrError, `${dbgNsLocal}`);
+
+      // If listrError is an Error, try to unwrap any suppressed errors and include them as Error Detail.
+      if (listrError instanceof Error) {
+        if (typeValidator.isNotEmptyNullInvalidObject(listrError) && typeValidator.isNotNullInvalidArray(listrError['errors'])) {
+          const suppressedErrors = [];
+          for (const error of listrError['errors']) {
+            suppressedErrors.push({
+              name:     error.name,
+              message:  error.message,
+              cause:    ((error.cause) ? {name: error.cause.name, message: error.cause.message, stack: error.cause.stack} : 'NOT_SPECIFIED')
+            });
+          }
+          SfdxFalconDebug.obj(`${dbgNsLocal}:suppressedErrors:`, suppressedErrors);
+          SfdxFalconDebug.obj(`${dbgNs}_runListrTaskBundle:suppressedErrors:`, suppressedErrors);
+          finalError = new SfdxFalconError( `${taskBundle.generatorStatusFailure.type === StatusMessageType.ERROR ? `${taskBundle.generatorStatusFailure.message}. ` : ``}`
+                                          + `One or more tasks threw an error. See error.detail for more information.`
+                                          , `MultiTaskError`
+                                          , `${dbgNsLocal}`
+                                          , listrError);
+          finalError.setDetail(suppressedErrors);
+          SfdxFalconDebug.obj(`${dbgNsLocal}:workingError:`, finalError, `Listr Suppressed Error`);
+          SfdxFalconDebug.obj(`${dbgNs}_runListrTaskBundle:workingError:`, finalError, `Listr Suppressed Error`);
+        }
       }
 
       // Throw the Final Error if the caller wants us to, otherwise just return whatever we got back from Listr.
@@ -803,7 +807,11 @@ export abstract class SfdxFalconYeomanGenerator<T extends object> extends Genera
                                           , `UnhandledException`
                                           , `${dbgNsLocal}`);
           finalError.setDetail(listrError);
+          SfdxFalconDebug.obj(`${dbgNsLocal}:workingError:`, finalError, `Unhandled Error`);
+          SfdxFalconDebug.obj(`${dbgNs}_runListrTaskBundle:workingError:`, finalError, `Unhandled Error`);
         }
+        SfdxFalconDebug.obj(`${dbgNsLocal}:finalError:`, finalError);
+        SfdxFalconDebug.obj(`${dbgNs}_runListrTaskBundle:finalError:`, finalError);
         throw finalError;
       }
       else {
