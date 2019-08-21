@@ -568,6 +568,7 @@ export interface TM1SoftDependencies extends JsonMap {
  * Interface. Represents basic org information for a TM1 org
  */
 export interface TM1OrgInfo extends JsonMap {
+  alias?:               string;
   username?:            string;
   orgId?:               string;
   loginUrl?:            string;

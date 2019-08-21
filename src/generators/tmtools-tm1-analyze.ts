@@ -28,12 +28,17 @@ import {SfdxFalconKeyValueTableDataRow} from  '../modules/sfdx-falcon-util/ux'; 
 import {SfdxFalconTableData}            from  '../modules/sfdx-falcon-util/ux';                   // Interface. Represents and array of SfdxFalconKeyValueTableDataRow objects.
 import {GeneratorOptions}               from  '../modules/sfdx-falcon-yeoman-command';            // Interface. Represents options used by SFDX-Falcon Yeoman generators.
 import {SfdxFalconYeomanGenerator}      from  '../modules/sfdx-falcon-yeoman-generator';          // Class. Abstract base class class for building Yeoman Generators for SFDX-Falcon commands.
+import TmFilePaths                      from  '../modules/tm-tools-objects/tm-file-paths';        // Class. Utility class for generatig File Paths required by various TM-Tools commands.
+import {Tm1Analysis}                    from  '../modules/tm-tools-objects/tm1-analysis';         // Class. Models the analysis of a TM1 org.
 
 // Import Falcon Types
 import {ListrTaskBundle}                from  '../modules/sfdx-falcon-types';                     // Interface. Represents the suite of information required to run a Listr Task Bundle.
 import {StandardOrgInfoMap}             from  '../modules/sfdx-falcon-types';                     // Type. Alias for a Map with string keys holding SfdxOrgInfo values.
 import {ScratchOrgInfoMap}              from  '../modules/sfdx-falcon-types';                     // Type. Alias for a Map with string keys holding ScratchOrgInfo values.
 import {StatusMessageType}              from  '../modules/sfdx-falcon-types';                     // Enum. Represents the various types/states of a Status Message.
+
+// Import TM-Tools Types
+import {TM1AnalyzeFilePaths}            from  '../modules/tm-tools-types';                        // Interface. Represents the complete suite of file paths required by the TM1 Analyze command.
 
 // Set the File Local Debug Namespace
 const dbgNs = 'GENERATOR:tmtools-tm1-analyze:';
@@ -66,6 +71,10 @@ interface InterviewAnswers {
 //─────────────────────────────────────────────────────────────────────────────────────────────────┘
 export default class Tm1Analyze extends SfdxFalconYeomanGenerator<InterviewAnswers> {
 
+  // Define class members specific to this Generator.
+  protected tm1AnalyzeFilePaths:      TM1AnalyzeFilePaths;  // Report data that will be created as part of the TM1 Analyze process.
+  protected tm1Analysis:              Tm1Analysis;          // Holds the TM1 Analysis Context used by the TM Tools commands.
+
   //───────────────────────────────────────────────────────────────────────────┐
   /**
    * @constructs  Tm1Analyze
@@ -90,9 +99,13 @@ export default class Tm1Analyze extends SfdxFalconYeomanGenerator<InterviewAnswe
 
     // Initialize DEFAULT Interview Answers.
     this.defaultAnswers.targetDirectory   = path.resolve(opts.outputDir as string);
-    this.defaultAnswers.isScratchOrg      = null;
+    this.defaultAnswers.isScratchOrg      = false;
     this.defaultAnswers.targetOrgAlias    = 'NOT_SPECIFIED';
     this.defaultAnswers.targetOrgUsername = 'NOT_SPECIFIED';
+
+    // Initialize Shared Data.
+    this.sharedData['reportJson']   = {};
+    this.sharedData['tm1Analysis']  = null;
   }
 
   //───────────────────────────────────────────────────────────────────────────┐
@@ -224,7 +237,52 @@ export default class Tm1Analyze extends SfdxFalconYeomanGenerator<InterviewAnswe
       listrObject:                                    // The Listr Tasks that will be run.
         listrTasks.analyzeTm1Config.call( this,
                                           this.finalAnswers.targetOrgAlias,
-                                          this.destinationRoot())
+                                          this.tm1AnalyzeFilePaths)
+    };
+
+    // Run the Task Bundle.
+    await this._runListrTaskBundle(taskBundle);
+
+    // Pull the Tm1Analysis object out of Shared Data.
+    this.tm1Analysis = this.sharedData['tm1Analysis'];
+  }
+
+  //───────────────────────────────────────────────────────────────────────────┐
+  /**
+   * @method      _generateReport
+   * @returns     {Promise<void>}
+   * @description Generates the TM1 Analysis Report (tm1-analysis.json) and
+   *              saves it to the user's local system.
+   * @protected @async
+   */
+  //───────────────────────────────────────────────────────────────────────────┘
+  protected async _generateReport():Promise<void> {
+    
+    // Define a Task Bundle
+    const taskBundle:ListrTaskBundle = {
+      dbgNsLocal:     `${dbgNs}_generateReport`,      // Local Debug Namespace for this function. DO NOT add trailing : char.
+      throwOnFailure: true,                          // Define whether to throw an Error on task failure or not.
+      preTaskMessage: {                               // Message displayed to the user BEFORE tasks are run.
+        message: `Generating Final TM1 Analysis Report...`,
+        styling: `yellow`
+      },
+      postTaskMessage: {                              // Message displayed to the user AFTER tasks are run.
+        message: ``,
+        styling: ``
+      },
+      generatorStatusSuccess: {                       // Generator Status message used on SUCCESS.
+        type:     StatusMessageType.SUCCESS,
+        title:    `TM1 Analysis Report`,
+        message:  `TM1 analysis report saved to ${this.tm1AnalyzeFilePaths.tm1AnalysisReportPath}`
+      },
+      generatorStatusFailure: {                       // Generator Status message used on FAILURE.
+        type:     StatusMessageType.WARNING,
+        title:    `TM1 Analysis Report`,
+        message:  `WARNING - TM1 analysis report could not be created`
+      },
+      listrObject:                                    // The Listr Tasks that will be run.
+      listrTasks.generateTm1AnalysisReport.call(this,
+                                                this.tm1Analysis)
     };
 
     // Run the Task Bundle.
@@ -301,8 +359,8 @@ export default class Tm1Analyze extends SfdxFalconYeomanGenerator<InterviewAnswe
       this.finalAnswers.targetOrgAlias = scratchOrgInfoMap.get(this.finalAnswers.targetOrgUsername) ? scratchOrgInfoMap.get(this.finalAnswers.targetOrgUsername).alias : 'NOT_SPECIFIED';
     }
 
-    // Set Yeoman's DESTINATION ROOT. This determines where we save the tm1-analyze-result.json file to.
-    this.destinationRoot(path.resolve(this.finalAnswers.targetDirectory));
+    // Get the file paths required by the TM1 Analyze command.
+    this.tm1AnalyzeFilePaths = TmFilePaths.getTm1AnalyzeFilePaths(this.finalAnswers.targetDirectory);
   }
 
   //───────────────────────────────────────────────────────────────────────────┐
@@ -324,6 +382,9 @@ export default class Tm1Analyze extends SfdxFalconYeomanGenerator<InterviewAnswe
 
     // Analyze the TM1 config in the Target Org.
     await this._analyzeTm1Config();
+
+    // Generate the final report.
+    await this._generateReport();
   }
 
   //───────────────────────────────────────────────────────────────────────────┐
