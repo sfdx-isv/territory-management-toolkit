@@ -399,12 +399,12 @@ export class TmToolsLoad {
     if (typeof targetFile !== 'string' || targetFile === '' || targetFile === null) {
       throw new SfdxFalconError ( `Expected targetFile to be a non-empty, non-null string${typeof targetFile !== 'string' ? ` but got '${typeof targetFile}' instead.` : `.`}`
                                 , `TypeError`
-                                , `${dbgNs}save`);
+                                , `${dbgNs}saveReport`);
     }
     if (targetFile.endsWith('.json') !== true) {
       throw new SfdxFalconError ( `The targetFile must end with the '.json' extension. The path/file '${targetFile}' is invalid.`
                                 , `InvalidFileName`
-                                , `${dbgNs}save`);
+                                , `${dbgNs}saveReport`);
     }
 
     // Generate the report.
