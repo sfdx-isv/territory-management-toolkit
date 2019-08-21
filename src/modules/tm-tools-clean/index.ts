@@ -142,9 +142,7 @@ export class TmToolsClean {
   public generateReport():TM1CleanupReport {
     const report:TM1CleanupReport = {
       orgInfo: this._tm1TransformationReport.orgInfo,
-      status:   {
-        sharingRulesDestruction: this._sharingRulesDestruction
-      }
+      deploymentResult: this._sharingRulesDestruction
     };
     SfdxFalconDebug.obj(`${dbgNs}generateReport:report:`, report);
     return report;
