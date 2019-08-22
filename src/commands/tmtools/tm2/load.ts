@@ -49,7 +49,7 @@ export default class TmtoolsTm2Load extends SfdxFalconYeomanCommand {
   public static hidden      = false;
   public static examples    = [
     `$ sfdx tmtools:tm2:load`,
-    `$ sfdx tmtools:tm2:load -s ~/tm1-transformation-directory`
+    `$ sfdx tmtools:tm2:load -s ~/tm2-deployment-report-directory`
   ];
 
   //───────────────────────────────────────────────────────────────────────────┐

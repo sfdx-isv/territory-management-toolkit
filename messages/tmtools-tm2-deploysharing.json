@@ -1,4 +1,4 @@
 {
-  "commandDescription"          : "TODO: Write Description",
-  "sourcedir_FlagDescription"   : "TODO: Write Description"
+  "commandDescription"          : "Given the location of a TM2 Deployment report (tm2-deployment.json), deploys TM2 sharing rules into the target org. Requires the migrated Territor Model to be in the 'Active' state.",
+  "sourcedir_FlagDescription"   : "Directory that contains a tm1-deployment.json file. Defaults to . (current directory) if not specified."
 }

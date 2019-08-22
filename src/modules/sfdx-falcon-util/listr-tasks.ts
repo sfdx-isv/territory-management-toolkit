@@ -1640,6 +1640,7 @@ export function generateTm1AnalysisReport(tm1Analysis:Tm1Analysis):ListrObject {
             .then(async (tm1AnalysisReport:TM1AnalysisReport) => {
               SfdxFalconDebug.obj(`${dbgNsLocal}:RGT1:tm1AnalysisReport:`, tm1AnalysisReport);
               await waitASecond(3);
+              thisTask.title += chalk.blue(` (${tm1Analysis.filePaths.tm1AnalysisReportPath})`);
               finalizeObservableTaskResult(otr);
             })
             .catch(async (error:Error) => {
@@ -1789,6 +1790,7 @@ export function generateTm2DataLoadReport(tmToolsLoad:TmToolsLoad):ListrObject {
             .then(async (tm2DataLoadReport:TM2DataLoadReport) => {
               SfdxFalconDebug.obj(`${dbgNsLocal}:RGT1:tm2DataLoadReport:`, tm2DataLoadReport);
               await waitASecond(3);
+              thisTask.title += chalk.blue(` (${tmToolsLoad.filePaths.tm2DataLoadReportPath})`);
               finalizeObservableTaskResult(otr);
             })
             .catch(async (error:Error) => {
@@ -1853,6 +1855,7 @@ export function generateTm2SharingDeploymentReport(tmToolsDeploySharing:TmToolsD
             .then(async (tm2SharingDeploymentReport:TM2SharingDeploymentReport) => {
               SfdxFalconDebug.obj(`${dbgNsLocal}:RGT1:tm2SharingDeploymentReport:`, tm2SharingDeploymentReport);
               await waitASecond(3);
+              thisTask.title += chalk.blue(` (${tmToolsDeploySharing.filePaths.tm2SharingDeploymentReportPath})`);
               finalizeObservableTaskResult(otr);
             })
             .catch(async (error:Error) => {

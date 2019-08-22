@@ -83,7 +83,7 @@ _See code: [src/commands/tmtools/tm1/analyze.ts](https://github.com/sfdx-isv/ter
 
 ## `sfdx tmtools:tm1:clean -s <directory> [--falcondebug <array>] [--falcondebugerror] [--falcondebugsuccess] [--falcondebugdepth <number>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`
 
-TODO: Write Description
+Given the location of a TM1 Transformation report (tm1-transformation.json), removes stale TM1 config from the target org.
 
 ```
 USAGE
@@ -92,8 +92,11 @@ USAGE
   trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]
 
 OPTIONS
-  -s, --sourcedir=sourcedir                                                         (required) [default: .] TODO: Write
-                                                                                    Description
+  -s, --sourcedir=sourcedir                                                         (required) [default: .] Directory
+                                                                                    that contains a
+                                                                                    tm1-transformation.json file.
+                                                                                    Defaults to . (current directory) if
+                                                                                    not specified.
 
   --falcondebug=falcondebug                                                         [default: ] List of debug namespaces
                                                                                     which should render output
@@ -115,7 +118,7 @@ OPTIONS
 
 EXAMPLES
   $ sfdx tmtools:tm1:clean
-  $ sfdx tmtools:tm1:clean -s ~/tm1-transformation-directory
+  $ sfdx tmtools:tm1:clean -s ~/tm1-transformation-report-directory
 ```
 
 _See code: [src/commands/tmtools/tm1/clean.ts](https://github.com/sfdx-isv/territory-management-tools/blob/v1.0.0/src/commands/tmtools/tm1/clean.ts)_
@@ -156,7 +159,7 @@ OPTIONS
 
 EXAMPLES
   $ sfdx tmtools:tm1:extract
-  $ sfdx tmtools:tm1:extract -s ~/tm1-analysis-directory
+  $ sfdx tmtools:tm1:extract -s ~/tm1-analysis-report-directory
 ```
 
 _See code: [src/commands/tmtools/tm1/extract.ts](https://github.com/sfdx-isv/territory-management-tools/blob/v1.0.0/src/commands/tmtools/tm1/extract.ts)_
@@ -197,14 +200,14 @@ OPTIONS
 
 EXAMPLES
   $ sfdx tmtools:tm1:transform
-  $ sfdx tmtools:tm1:transform -s ~/tm1-extraction-directory
+  $ sfdx tmtools:tm1:transform -s ~/tm1-extraction-report-directory
 ```
 
 _See code: [src/commands/tmtools/tm1/transform.ts](https://github.com/sfdx-isv/territory-management-tools/blob/v1.0.0/src/commands/tmtools/tm1/transform.ts)_
 
 ## `sfdx tmtools:tm2:deploy -s <directory> [--falcondebug <array>] [--falcondebugerror] [--falcondebugsuccess] [--falcondebugdepth <number>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`
 
-TODO: Write Description
+Given the location of a TM1 Transformation report (tm1-transformation.json), deploys TM2 metadata to the target org.
 
 ```
 USAGE
@@ -213,8 +216,11 @@ USAGE
   trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]
 
 OPTIONS
-  -s, --sourcedir=sourcedir                                                         (required) [default: .] TODO: Write
-                                                                                    Description
+  -s, --sourcedir=sourcedir                                                         (required) [default: .] Directory
+                                                                                    that contains a
+                                                                                    tm1-transformation.json file.
+                                                                                    Defaults to . (current directory) if
+                                                                                    not specified.
 
   --falcondebug=falcondebug                                                         [default: ] List of debug namespaces
                                                                                     which should render output
@@ -236,14 +242,14 @@ OPTIONS
 
 EXAMPLES
   $ sfdx tmtools:tm2:deploy
-  $ sfdx tmtools:tm2:deploy -s ~/tm1-transformation-directory
+  $ sfdx tmtools:tm2:deploy -s ~/tm1-transformation-report-directory
 ```
 
 _See code: [src/commands/tmtools/tm2/deploy.ts](https://github.com/sfdx-isv/territory-management-tools/blob/v1.0.0/src/commands/tmtools/tm2/deploy.ts)_
 
 ## `sfdx tmtools:tm2:deploysharing -s <directory> [--falcondebug <array>] [--falcondebugerror] [--falcondebugsuccess] [--falcondebugdepth <number>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`
 
-TODO: Write Description
+Given the location of a TM2 Deployment report (tm2-deployment.json), deploys TM2 sharing rules into the target org. Requires the migrated Territor Model to be in the 'Active' state.
 
 ```
 USAGE
@@ -252,8 +258,10 @@ USAGE
   trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]
 
 OPTIONS
-  -s, --sourcedir=sourcedir                                                         (required) [default: .] TODO: Write
-                                                                                    Description
+  -s, --sourcedir=sourcedir                                                         (required) [default: .] Directory
+                                                                                    that contains a tm1-deployment.json
+                                                                                    file. Defaults to . (current
+                                                                                    directory) if not specified.
 
   --falcondebug=falcondebug                                                         [default: ] List of debug namespaces
                                                                                     which should render output
@@ -282,7 +290,7 @@ _See code: [src/commands/tmtools/tm2/deploysharing.ts](https://github.com/sfdx-i
 
 ## `sfdx tmtools:tm2:load -s <directory> [--falcondebug <array>] [--falcondebugerror] [--falcondebugsuccess] [--falcondebugdepth <number>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`
 
-TODO: Write Description
+Given the location of a TM2 Deployment report (tm2-deployment.json), loads TM2 data into the target org using the Bulk API.
 
 ```
 USAGE
@@ -291,8 +299,10 @@ USAGE
   trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]
 
 OPTIONS
-  -s, --sourcedir=sourcedir                                                         (required) [default: .] TODO: Write
-                                                                                    Description
+  -s, --sourcedir=sourcedir                                                         (required) [default: .] Directory
+                                                                                    that contains a tm1-deployment.json
+                                                                                    file. Defaults to . (current
+                                                                                    directory) if not specified.
 
   --falcondebug=falcondebug                                                         [default: ] List of debug namespaces
                                                                                     which should render output
@@ -314,7 +324,7 @@ OPTIONS
 
 EXAMPLES
   $ sfdx tmtools:tm2:load
-  $ sfdx tmtools:tm2:load -s ~/tm1-transformation-directory
+  $ sfdx tmtools:tm2:load -s ~/tm2-deployment-report-directory
 ```
 
 _See code: [src/commands/tmtools/tm2/load.ts](https://github.com/sfdx-isv/territory-management-tools/blob/v1.0.0/src/commands/tmtools/tm2/load.ts)_
