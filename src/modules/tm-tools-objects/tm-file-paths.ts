@@ -88,9 +88,8 @@ export default class TmFilePaths {
   //───────────────────────────────────────────────────────────────────────────┘
   public static getTmFileNames():TMFileNames {
 
-    // Define function-local debug namespace and validate incoming arguments.
+    // Define function-local debug namespace.
     const dbgNsLocal = `${dbgNs}getTmFileNames`;
-    TmFilePaths.validateBaseDirectoryArgument.apply(null, arguments);
 
     // Build the File Names.
     const fileNames:TMFileNames = {
