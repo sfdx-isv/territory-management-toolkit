@@ -44,7 +44,7 @@ $ sfdx plugins:install territory-management-tools
 
 ## `sfdx tmtools:tm1:analyze [-d <directory>] [--falcondebug <array>] [--falcondebugerror] [--falcondebugsuccess] [--falcondebugdepth <number>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`
 
-TODO: Write Description
+Analyze Territory Management (TM1) config in a connected org
 
 ```
 USAGE
@@ -53,8 +53,8 @@ USAGE
   trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]
 
 OPTIONS
-  -d, --outputdir=outputdir                                                         [default: .] TODO: Validate need for
-                                                                                    this flag then write description
+  -d, --outputdir=outputdir                                                         [default: .] Directory to store TM1
+                                                                                    analysis report
 
   --falcondebug=falcondebug                                                         [default: ] List of debug namespaces
                                                                                     which should render output
@@ -76,7 +76,7 @@ OPTIONS
 
 EXAMPLES
   $ sfdx tmtools:tm1:analyze
-  $ sfdx tmtools:tm1:analyze -d ~/custom-target-directory
+  $ sfdx tmtools:tm1:analyze -d ~/output-directory
 ```
 
 _See code: [src/commands/tmtools/tm1/analyze.ts](https://github.com/sfdx-isv/territory-management-tools/blob/v1.0.0/src/commands/tmtools/tm1/analyze.ts)_

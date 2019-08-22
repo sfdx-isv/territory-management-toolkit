@@ -54,12 +54,12 @@ export default class TmtoolsTm1Analyze extends SfdxFalconYeomanCommand {
   public static hidden      = false;
   public static examples    = [
     `$ sfdx tmtools:tm1:analyze`,
-    `$ sfdx tmtools:tm1:analyze -d ~/custom-target-directory`
+    `$ sfdx tmtools:tm1:analyze -d ~/output-directory`
   ];
 
   //───────────────────────────────────────────────────────────────────────────┐
   // Define the flags used by this command.
-  // -d --OUTPUTDIR   Directory where the TM1-analyze-result.json file will be
+  // -d --OUTPUTDIR   Directory where the tm1-analysis.json file will be
   //                  saved. Defaults to . (current directory) if not specified.
   //───────────────────────────────────────────────────────────────────────────┘
   protected static flagsConfig = {

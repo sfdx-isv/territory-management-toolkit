@@ -319,7 +319,7 @@ export default class Tm1Analyze extends SfdxFalconYeomanGenerator<InterviewAnswe
     return this._default_prompting(
       // Pre-Interview Styled Message
       {
-        message:  `Starting TM1 config analysis interview...`,
+        message:  `Starting TM1 Configuration Analysis Interview...`,
         styling:  `yellow`
       },
       // Post-Interview Styled Message
