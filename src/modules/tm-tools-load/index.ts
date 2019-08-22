@@ -21,15 +21,12 @@ import * as typeValidator       from  '../sfdx-falcon-validators/type-validator'
 // Import Internal Classes & Functions
 import  {SfdxFalconDebug}                 from  '../sfdx-falcon-debug';         // Specialized debug provider for SFDX-Falcon code.
 import  {SfdxFalconError}                 from  '../sfdx-falcon-error';         // Class. Extends SfdxError to provide specialized error structures for SFDX-Falcon modules.
-import  {SfdxCliError}                    from  '../sfdx-falcon-error';         // Class. Extends SfdxFalconError to provide specialized error handling of error results returned from CLI commands run via shell exec.
 import  {SfdxFalconResult}                from  '../sfdx-falcon-result';        // Class. Implements a framework for creating results-driven, informational objects with a concept of heredity (child results) and the ability to "bubble up" both Errors (thrown exceptions) and application-defined "failures".
 import  {bulk2Insert}                     from  '../sfdx-falcon-util/bulk-api'; // Function. Performs a Bulk2 Data Load (INSERT).
-import  {parseDeployResult}               from  '../sfdx-falcon-util/sfdx';     // Function. Given an object variable that should contain the "raw" JSON resulting from a call to force:mdapi:deploy, validates and parses the contents into as fleshed-out as possible an instance of a DeployResult JsonMap.
 
 // Import Falcon Types
 import  {Bulk2JobCreateRequest}           from  '../sfdx-falcon-types'; // Interface. Represents the request body required to create a Bulk API 2.0 job.
 import  {Bulk2OperationStatus}            from  '../sfdx-falcon-types'; // Interface. Represents the overall status of a Bulk API 2.0 operation.
-import  {DeployResult}                    from  '../sfdx-falcon-types'; // Interface. Interface. Modeled on the MDAPI Object DeployResult. Returned by a call to force:mdapi:deploy.
 import  {IntervalOptions}                 from  '../sfdx-falcon-types'; // Interface. Represents options that determine how a generic interval operates.
 
 // Import TM-Tools Types
@@ -76,6 +73,8 @@ export class TmToolsLoad {
    * @param       {TM1TransformationReport} tm1TransformationReport Required.
    * @param       {TM2DeploymentReport} tm2DeploymentReport Required.
    * @param       {TM2LoadFilePaths}  tm2LoadFilePaths  Required.
+   * @returns     {TmToolsLoad}  Instantiated and prepared TM-Tools Data Load
+   *              worker object.
    * @description Given reports for all TM-Tools commands that should have been
    *              executed before a DataLoad, and the set of TM2 Data Load file
    *              paths, prepares a TmToolsLoad object which can be used to
@@ -128,12 +127,12 @@ export class TmToolsLoad {
     });
     SfdxFalconDebug.obj(`${dbgNs}prepare:queryResults:`, queryResults);
 
-    // Inspect the Query Results to see if the State is "Active". Anything else is NOT acceptable.
+    // Inspect the Query Results to see if the State is "Active" or "Planning". Anything else is NOT acceptable.
     if (typeValidator.isEmptyNullInvalidArray(queryResults)
         || queryResults.length !== 1
-        || queryResults[0].State !== 'Active') {
+        || (['Active', 'Planning'].includes(queryResults[0].State) !== true)) {
 
-      throw new SfdxFalconError ( `Territory2 Model '${territory2ModelDevName}' in target org (${tm2DeploymentReport.orgInfo.username}) is not Active. `
+      throw new SfdxFalconError ( `Territory2 Model '${territory2ModelDevName}' in target org (${tm2DeploymentReport.orgInfo.username}) is not in an 'Active' or 'Planning' state. `
                                 + (queryResults[0].State ? `The model's current state is '${queryResults[0].State}'.` : ``)
                                 , `TM2ModelStateInvalid`
                                 , `${dbgNs}prepare`);
@@ -146,7 +145,7 @@ export class TmToolsLoad {
                                         tm2DeploymentReport,
                                         tm2LoadFilePaths);
 
-    // Mark the instantiated obeject as "prepared".
+    // Mark the instantiated object as "prepared".
     tmToolsLoad._prepared = true;
 
     // Return the instantiated TM Tools Transform object.
@@ -159,7 +158,6 @@ export class TmToolsLoad {
   private _tm1TransformationReport:       TM1TransformationReport;
   private _tm2DeploymentReport:           TM2DeploymentReport;
   private _tm2DataLoadReport:             TM2DataLoadReport;
-  private _sharingRulesDeploymentResult:  DeployResult;
   private _userT2ABulk2OperationStatus:   Bulk2OperationStatus;
   private _objectT2ABulk2OperationStatus: Bulk2OperationStatus;
   private _filePaths:                     TM2LoadFilePaths;
@@ -171,7 +169,6 @@ export class TmToolsLoad {
   public get tm1TransformationReport()        { return this.isPrepared()  ? this._tm1TransformationReport       : undefined; }
   public get tm2DeploymentReport()            { return this.isPrepared()  ? this._tm2DeploymentReport           : undefined; }
   public get tm2DataLoadReport()              { return this.isPrepared()  ? this._tm2DataLoadReport             : undefined; }
-  public get sharingRulesDeploymentResult()   { return this.isPrepared()  ? this._sharingRulesDeploymentResult  : undefined; }
   public get userT2ABulk2OperationStatus()    { return this.isPrepared()  ? this._userT2ABulk2OperationStatus   : undefined; }
   public get objectT2ABulk2OperationStatus()  { return this.isPrepared()  ? this._objectT2ABulk2OperationStatus : undefined; }
   public get filePaths()                      { return this._filePaths; }
@@ -206,53 +203,12 @@ export class TmToolsLoad {
     // Intialize the deployment and data load status members
     this._userT2ABulk2OperationStatus   = {error: 'Data Load Failed'};
     this._objectT2ABulk2OperationStatus = {error: 'Data Load Failed'};
-    this._sharingRulesDeploymentResult  = {error: 'Deployment Failed'};
 
     // Define the expected file paths.
     this._filePaths = tm2LoadFilePaths;
 
     // Mark this object instance as UNPREPARED.
     this._prepared = false;
-  }
-
-  //───────────────────────────────────────────────────────────────────────────┐
-  /**
-   * @method      deploySharingRules
-   * @return      {Promise<DeployResult>}
-   * @description Deploys all Sharing Rules metadata to the TM2 org.
-   * @public @async
-   */
-  //───────────────────────────────────────────────────────────────────────────┘
-  public async deploySharingRules():Promise<DeployResult> {
-    const dbgNsLocal = `${dbgNs}deploySharingRules`;
-    await sfdxHelper.deployMetadata(this._tm2DeploymentReport.orgInfo.username, this._filePaths.tm2SharingRulesDeploymentDir)
-    .then((successResult:SfdxFalconResult) => {
-      SfdxFalconDebug.obj(`${dbgNsLocal}:successResult:`, successResult);
-      this._sharingRulesDeploymentResult = successResult.detail['stdOutParsed']['result'] as DeployResult;
-    })
-    .catch((errorResult:SfdxFalconResult|Error) => {
-      SfdxFalconDebug.obj(`${dbgNsLocal}:errorResult:`, errorResult);
-      let deploymentError:Error = null;
-      if (errorResult instanceof Error) {
-        deploymentError = errorResult;
-      }
-      if (errorResult instanceof SfdxFalconResult) {
-        deploymentError = errorResult.errObj;
-        if (errorResult.errObj instanceof SfdxCliError && errorResult.errObj.cliError) {
-          if (typeof errorResult.errObj.cliError.result === 'object') {
-            this._sharingRulesDeploymentResult = parseDeployResult(errorResult.errObj.cliError.result);
-          }
-        }
-      }
-      throw new SfdxFalconError ( `Deployment of Sharing Rules failed. ${typeof deploymentError === 'object' ? deploymentError.message : ``}`
-                                , `DeploymentError`
-                                , `${dbgNsLocal}`
-                                , deploymentError);
-    });
-
-    // Send the results back to the caller.
-    SfdxFalconDebug.obj(`${dbgNsLocal}:_sharingRulesDeploymentResult:`, this._sharingRulesDeploymentResult);
-    return this._sharingRulesDeploymentResult;
   }
 
   //───────────────────────────────────────────────────────────────────────────┐
@@ -269,7 +225,6 @@ export class TmToolsLoad {
     const tm2DataLoadReport:TM2DataLoadReport = {
       orgInfo: this._tm2DeploymentReport.orgInfo,
       status:   {
-        sharingRulesDeployment:       this._sharingRulesDeploymentResult,
         userT2AssociationBulkLoad:    this._userT2ABulk2OperationStatus,
         objectT2AssociationBulkLoad:  this._objectT2ABulk2OperationStatus
       }
@@ -389,8 +344,9 @@ export class TmToolsLoad {
   //───────────────────────────────────────────────────────────────────────────┘
   public async saveReport(targetFile?:string):Promise<TM2DataLoadReport> {
 
-    // Debug incoming arguments.
-    SfdxFalconDebug.obj(`${dbgNs}saveReport:arguments:`, arguments);
+    // Define function-local debug namespace and debug incoming arguments.
+    const dbgNsLocal = `${dbgNs}saveReport`;
+    SfdxFalconDebug.obj(`${dbgNsLocal}:arguments:`, arguments);
 
     // Default target file to the one from the TM File Paths collection unless the caller overrides.
     targetFile = targetFile || this.filePaths.tm2DataLoadReportPath;
@@ -399,17 +355,17 @@ export class TmToolsLoad {
     if (typeof targetFile !== 'string' || targetFile === '' || targetFile === null) {
       throw new SfdxFalconError ( `Expected targetFile to be a non-empty, non-null string${typeof targetFile !== 'string' ? ` but got '${typeof targetFile}' instead.` : `.`}`
                                 , `TypeError`
-                                , `${dbgNs}saveReport`);
+                                , `${dbgNsLocal}`);
     }
     if (targetFile.endsWith('.json') !== true) {
       throw new SfdxFalconError ( `The targetFile must end with the '.json' extension. The path/file '${targetFile}' is invalid.`
                                 , `InvalidFileName`
-                                , `${dbgNs}saveReport`);
+                                , `${dbgNsLocal}`);
     }
 
     // Generate the report.
     const report = this.generateReport();
-    SfdxFalconDebug.obj(`${dbgNs}saveReport:report:`, report);
+    SfdxFalconDebug.obj(`${dbgNsLocal}:report:`, report);
 
     // Write the report to the local filesystem.
     await fse.ensureFile(targetFile);
