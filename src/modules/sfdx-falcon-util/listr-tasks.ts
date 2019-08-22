@@ -1663,6 +1663,93 @@ export function generateTm1AnalysisReport(tm1Analysis:Tm1Analysis):ListrObject {
 
 // ────────────────────────────────────────────────────────────────────────────────────────────────┐
 /**
+ * @function    generateTm1ExtractionReport
+ * @param       {TM1AnalysisReport} tm1AnalysisReport Required.
+ * @param       {TM1ContextValidation} tm1ContextValidation Required.
+ * @param       {TM1ExtractFilePaths} tm1ExtractFilePaths Required.
+ * @returns     {ListrObject}  A "runnable" Listr Object
+ * @description Returns a "runnable" Listr Object that uses a TM1 Analysis Report, Context Validation
+ *              and File Paths to generate the `tm2-extraction.json` report and save it to disk.
+ * @public
+ */
+// ────────────────────────────────────────────────────────────────────────────────────────────────┘
+export function generateTm1ExtractionReport(tm1AnalysisReport:TM1AnalysisReport, tm1ContextValidation:TM1ContextValidation, tm1ExtractFilePaths:TM1ExtractFilePaths):ListrObject {
+
+  // Define function-local debug namespace and validate incoming arguments.
+  const dbgNsLocal = `${dbgNs}generateTm1ExtractionReport`;
+  SfdxFalconDebug.obj(`${dbgNsLocal}:arguments:`, arguments);
+
+  // Validate incoming arguments.
+  typeValidator.throwOnEmptyNullInvalidObject(tm1AnalysisReport,     `${dbgNsLocal}`, 'tm1AnalysisReport');
+  typeValidator.throwOnEmptyNullInvalidObject(tm1ContextValidation,  `${dbgNsLocal}`, 'tm1ContextValidation');
+  typeValidator.throwOnEmptyNullInvalidObject(tm1ExtractFilePaths,   `${dbgNsLocal}`, 'tm1ExtractFilePaths');
+
+  // Make sure the calling scope has access to Shared Data.
+  validateSharedData.call(this);
+
+  // Build and return a Listr Task Object.
+  return new listr(
+    // TASK GROUP: Report Generation Tasks
+    [
+      // ── REPORT GENERATION TASK 1: Generate TM1 Extraction Report ───────────────────────────────
+      {
+        title:  'Writing TM1 Extraction Report',
+        task:   (listrContext:object, thisTask:ListrTask) => {
+          return new Observable(observer => {
+    
+            // Initialize an OTR (Observable Task Result).
+            const otr = initObservableTaskResult(`${dbgNsLocal}:RGT1`, listrContext, thisTask, observer, this.sharedData, this.generatorResult,
+                        `Writing report to ${tm1ExtractFilePaths.tm1ExtractionReportPath}`);
+    
+            // Define the Task Logic to be executed.
+            const asyncTask = async () => {
+
+              // Introduce a small delay for dramatic effect.
+              await waitASecond(3);
+
+              const tm1ExtractionReport:TM1ExtractionReport = {
+                orgInfo:                    tm1AnalysisReport.orgInfo,
+                expectedTm1RecordCounts:    tm1AnalysisReport.tm1RecordCounts,
+                actualTm1RecordCounts:      tm1ContextValidation.actualRecordCounts,
+                expectedTm1MetadataCounts:  tm1AnalysisReport.tm1MetadataCounts,
+                actualTm1MetadataCounts:    tm1ContextValidation.actualMetadataCounts
+              };
+              SfdxFalconDebug.obj(`${dbgNsLocal}:RGT1:tm1ExtractionReport:`, tm1ExtractionReport);
+
+              // Write the TM1 Extraction Report to the local filesystem.
+              await fse.ensureFile(tm1ExtractFilePaths.tm1ExtractionReportPath);
+              await fse.writeJson(tm1ExtractFilePaths.tm1ExtractionReportPath, tm1ExtractionReport, {spaces: '\t'});
+              return tm1ExtractionReport;
+            };
+
+            // Execute the Task Logic.
+            asyncTask()
+            .then(async (successResult:TM1ExtractionReport) => {
+              SfdxFalconDebug.obj(`${dbgNsLocal}:RGT1:successResult:`, successResult);
+              thisTask.title += chalk.blue(` (${tm1ExtractFilePaths.tm1ExtractionReportPath})`);
+              finalizeObservableTaskResult(otr);
+            })
+            .catch(async (failureResult:Error) => {
+              SfdxFalconDebug.obj(`${dbgNsLocal}:RGT1:failureResult:`, failureResult);
+              thisTask.title += chalk.red(` (Failed)`);
+              finalizeObservableTaskResult(otr, failureResult);
+            });
+          });
+        }
+      }
+    ],
+    // TASK GROUP OPTIONS: Report Generation Tasks
+    {
+      concurrent:   false,
+      collapse:     false,
+      exitOnError:  true,
+      renderer:     chooseListrRenderer()
+    }
+  );
+}
+
+// ────────────────────────────────────────────────────────────────────────────────────────────────┐
+/**
  * @function    generateTm2DataLoadReport
  * @param       {TmToolsLoad} tmToolsLoad Required. Fully-prepared instance of a TmToolsLoad object.
  * @returns     {ListrObject}  A "runnable" Listr Object
@@ -3393,12 +3480,19 @@ function validateSharedData():void {
 // ────────────────────────────────────────────────────────────────────────────────────────────────┘
 export function validateTm1Extraction(tm1AnalysisReport:TM1AnalysisReport, tm1ExtractFilePaths:TM1ExtractFilePaths):ListrObject {
 
+  // Define function-local debug namespace and debug incoming arguments.
+  const dbgNsLocal = `${dbgNs}validateTm1Extraction`;
+  SfdxFalconDebug.obj(`${dbgNsLocal}:arguments:`, arguments);
+
   // Validate incoming arguments.
-  typeValidator.throwOnNullInvalidObject(tm1AnalysisReport,   `${dbgNs}:validateTm1Extraction`, 'tm1AnalysisReport');
-  typeValidator.throwOnNullInvalidObject(tm1ExtractFilePaths, `${dbgNs}:validateTm1Extraction`, 'tm1ExtractFilePaths');
+  typeValidator.throwOnNullInvalidObject(tm1AnalysisReport,   `${dbgNsLocal}`, 'tm1AnalysisReport');
+  typeValidator.throwOnNullInvalidObject(tm1ExtractFilePaths, `${dbgNsLocal}`, 'tm1ExtractFilePaths');
 
   // Make sure the calling scope has a valid context variable.
   validateSharedData.call(this);
+
+  // Make sure that Shared Data has a valid Object key for tm1ContextValidation.
+  typeValidator.throwOnInvalidObject(this.sharedData['tm1ContextValidation'],  `${dbgNsLocal}`, 'this.sharedData.tm1ContextValidation');
 
   // Create a variable to hold the results from Tm1Context.validate().
   let tm1ContextValidation:TM1ContextValidation = null;
@@ -3414,19 +3508,20 @@ export function validateTm1Extraction(tm1AnalysisReport:TM1AnalysisReport, tm1Ex
           return new Observable(observer => {
     
             // Initialize an OTR (Observable Task Result).
-            const otr = initObservableTaskResult(`${dbgNs}validateTm1Extraction:VT1`, listrContext, thisTask, observer, this.sharedData, this.generatorResult,
+            const otr = initObservableTaskResult(`${dbgNsLocal}:VT1`, listrContext, thisTask, observer, this.sharedData, this.generatorResult,
                         `Creating TM1 Context for validation`);
     
             // Execute the Task Logic
             Tm1Context.validate(tm1AnalysisReport, tm1ExtractFilePaths.baseDirectory)
             .then(async (successResult:TM1ContextValidation) => {
               tm1ContextValidation = successResult;
-              SfdxFalconDebug.obj(`${dbgNs}validateTm1Extraction:VT1:tm1ContextValidation.status:`, tm1ContextValidation.status);
+              this.sharedData['tm1ContextValidation'] = tm1ContextValidation;
+              SfdxFalconDebug.obj(`${dbgNsLocal}:VT1:tm1ContextValidation.status:`, tm1ContextValidation.status);
               await waitASecond(3);
               finalizeObservableTaskResult(otr);
             })
             .catch(async (failureResult:Error) => {
-              SfdxFalconDebug.obj(`${dbgNs}validateTm1Extraction:VT1:failureResult:`, failureResult);
+              SfdxFalconDebug.obj(`${dbgNsLocal}:VT1:failureResult:`, failureResult);
               await waitASecond(3);
               finalizeObservableTaskResult(otr, failureResult);
             });
@@ -3440,7 +3535,7 @@ export function validateTm1Extraction(tm1AnalysisReport:TM1AnalysisReport, tm1Ex
           return new Observable(observer => {
     
             // Initialize an OTR (Observable Task Result).
-            const otr = initObservableTaskResult(`${dbgNs}validateTm1Extraction:VT2`, listrContext, thisTask, observer, this.sharedData, this.generatorResult,
+            const otr = initObservableTaskResult(`${dbgNsLocal}:VT2`, listrContext, thisTask, observer, this.sharedData, this.generatorResult,
                         `Comparing expected Territory record count to extracted records`);
 
             // Check the Validation Status for this data set.
@@ -3452,7 +3547,7 @@ export function validateTm1Extraction(tm1AnalysisReport:TM1AnalysisReport, tm1Ex
               thisTask.title += chalk.red(` (Expected ${tm1AnalysisReport.tm1RecordCounts.territoryRecordCount} | Found ${tm1ContextValidation.records.extractedTerritoryRecords.length})`);
               finalizeObservableTaskResult(otr, new SfdxFalconError( `Invalid Territory Extraction (Expected ${tm1AnalysisReport.tm1RecordCounts.territoryRecordCount} Records | Found ${tm1ContextValidation.records.extractedTerritoryRecords.length} Records)`
                                                                    , `ExtractionValidationError`
-                                                                   , `${dbgNs}validateTm1Extraction:VT2` ));
+                                                                   , `${dbgNsLocal}:VT2` ));
             }
           });
         }
@@ -3464,7 +3559,7 @@ export function validateTm1Extraction(tm1AnalysisReport:TM1AnalysisReport, tm1Ex
           return new Observable(observer => {
     
             // Initialize an OTR (Observable Task Result).
-            const otr = initObservableTaskResult(`${dbgNs}validateTm1Extraction:VT3`, listrContext, thisTask, observer, this.sharedData, this.generatorResult,
+            const otr = initObservableTaskResult(`${dbgNsLocal}:VT3`, listrContext, thisTask, observer, this.sharedData, this.generatorResult,
                         `Comparing expected AccountTerritoryAssignmentRule record count to extracted records`);
 
             // Check the Validation Status for this data set.
@@ -3476,7 +3571,7 @@ export function validateTm1Extraction(tm1AnalysisReport:TM1AnalysisReport, tm1Ex
               thisTask.title += chalk.red(` (Expected ${tm1AnalysisReport.tm1RecordCounts.ataRuleRecordCount} | Found ${tm1ContextValidation.records.extractedAtaRuleRecords.length})`);
               finalizeObservableTaskResult(otr, new SfdxFalconError( `Invalid Territory Assignment Rule Extraction (Expected ${tm1AnalysisReport.tm1RecordCounts.ataRuleRecordCount} Records | Found ${tm1ContextValidation.records.extractedAtaRuleRecords.length} Records)`
                                                                    , `ExtractionValidationError`
-                                                                   , `${dbgNs}validateTm1Extraction:VT3` ));
+                                                                   , `${dbgNsLocal}:VT3` ));
             }
           });
         }
@@ -3488,7 +3583,7 @@ export function validateTm1Extraction(tm1AnalysisReport:TM1AnalysisReport, tm1Ex
           return new Observable(observer => {
     
             // Initialize an OTR (Observable Task Result).
-            const otr = initObservableTaskResult(`${dbgNs}validateTm1Extraction:VT4`, listrContext, thisTask, observer, this.sharedData, this.generatorResult,
+            const otr = initObservableTaskResult(`${dbgNsLocal}:VT4`, listrContext, thisTask, observer, this.sharedData, this.generatorResult,
                         `Comparing expected AccountTerritoryAssignmentRuleItem record count to extracted records`);
 
             // Check the Validation Status for this data set.
@@ -3500,7 +3595,7 @@ export function validateTm1Extraction(tm1AnalysisReport:TM1AnalysisReport, tm1Ex
               thisTask.title += chalk.red(` (Expected ${tm1AnalysisReport.tm1RecordCounts.ataRuleItemRecordCount} | Found ${tm1ContextValidation.records.extractedAtaRuleItemRecords.length})`);
               finalizeObservableTaskResult(otr, new SfdxFalconError( `Invalid Territory Assignment Rule Item Extraction (Expected ${tm1AnalysisReport.tm1RecordCounts.ataRuleItemRecordCount} Records | Found ${tm1ContextValidation.records.extractedAtaRuleItemRecords.length} Records)`
                                                                    , `ExtractionValidationError`
-                                                                   , `${dbgNs}validateTm1Extraction:VT4` ));
+                                                                   , `${dbgNsLocal}:VT4` ));
             }
           });
         }
@@ -3512,7 +3607,7 @@ export function validateTm1Extraction(tm1AnalysisReport:TM1AnalysisReport, tm1Ex
           return new Observable(observer => {
     
             // Initialize an OTR (Observable Task Result).
-            const otr = initObservableTaskResult(`${dbgNs}validateTm1Extraction:VT5`, listrContext, thisTask, observer, this.sharedData, this.generatorResult,
+            const otr = initObservableTaskResult(`${dbgNsLocal}:VT5`, listrContext, thisTask, observer, this.sharedData, this.generatorResult,
                         `Comparing expected UserTerritory record count to extracted records`);
 
             // Check the Validation Status for this data set.
@@ -3524,7 +3619,7 @@ export function validateTm1Extraction(tm1AnalysisReport:TM1AnalysisReport, tm1Ex
               thisTask.title += chalk.red(` (Expected ${tm1AnalysisReport.tm1RecordCounts.userTerritoryRecordCount} | Found ${tm1ContextValidation.records.extractedUserTerritoryRecords.length})`);
               finalizeObservableTaskResult(otr, new SfdxFalconError( `Invalid Territory Assignment Rule Item Extraction (Expected ${tm1AnalysisReport.tm1RecordCounts.userTerritoryRecordCount} Records | Found ${tm1ContextValidation.records.extractedUserTerritoryRecords.length} Records)`
                                                                    , `ExtractionValidationError`
-                                                                   , `${dbgNs}validateTm1Extraction:VT5` ));
+                                                                   , `${dbgNsLocal}:VT5` ));
             }
           });
         }
@@ -3536,7 +3631,7 @@ export function validateTm1Extraction(tm1AnalysisReport:TM1AnalysisReport, tm1Ex
           return new Observable(observer => {
     
             // Initialize an OTR (Observable Task Result).
-            const otr = initObservableTaskResult(`${dbgNs}validateTm1Extraction:VT6`, listrContext, thisTask, observer, this.sharedData, this.generatorResult,
+            const otr = initObservableTaskResult(`${dbgNsLocal}:VT6`, listrContext, thisTask, observer, this.sharedData, this.generatorResult,
                         `Comparing expected AccountShare record count to extracted records`);
 
             // Check the Validation Status for this data set.
@@ -3548,7 +3643,7 @@ export function validateTm1Extraction(tm1AnalysisReport:TM1AnalysisReport, tm1Ex
               thisTask.title += chalk.red(` (Expected ${tm1AnalysisReport.tm1RecordCounts.accountShareRecordCount} | Found ${tm1ContextValidation.records.extractedAccountShareRecords.length})`);
               finalizeObservableTaskResult(otr, new SfdxFalconError( `Invalid Territory Assignment Rule Item Extraction (Expected ${tm1AnalysisReport.tm1RecordCounts.accountShareRecordCount} Records | Found ${tm1ContextValidation.records.extractedAccountShareRecords.length} Records)`
                                                                    , `ExtractionValidationError`
-                                                                   , `${dbgNs}validateTm1Extraction:VT6` ));
+                                                                   , `${dbgNsLocal}:VT6` ));
             }
           });
         }
@@ -3560,7 +3655,7 @@ export function validateTm1Extraction(tm1AnalysisReport:TM1AnalysisReport, tm1Ex
           return new Observable(observer => {
     
             // Initialize an OTR (Observable Task Result).
-            const otr = initObservableTaskResult(`${dbgNs}validateTm1Extraction:VT7`, listrContext, thisTask, observer, this.sharedData, this.generatorResult,
+            const otr = initObservableTaskResult(`${dbgNsLocal}:VT7`, listrContext, thisTask, observer, this.sharedData, this.generatorResult,
                         `Comparing expected Group record count to extracted records`);
 
             // Check the Validation Status for this data set.
@@ -3572,54 +3667,8 @@ export function validateTm1Extraction(tm1AnalysisReport:TM1AnalysisReport, tm1Ex
               thisTask.title += chalk.red(` (Expected ${tm1AnalysisReport.tm1RecordCounts.groupRecordCount} | Found ${tm1ContextValidation.records.extractedGroupRecords.length})`);
               finalizeObservableTaskResult(otr, new SfdxFalconError( `Invalid Group Extraction (Expected ${tm1AnalysisReport.tm1RecordCounts.groupRecordCount} Records | Found ${tm1ContextValidation.records.extractedGroupRecords.length} Records)`
                                                                    , `ExtractionValidationError`
-                                                                   , `${dbgNs}validateTm1Extraction:VT7` ));
+                                                                   , `${dbgNsLocal}:VT7` ));
             }
-          });
-        }
-      },
-      // ── Validation Task 8 ──────────────────────────────────────────────────────────────────────
-      {
-        title:  'Writing TM1 Extraction Report',
-        task:   (listrContext:object, thisTask:ListrTask) => {
-          return new Observable(observer => {
-    
-            // Initialize an OTR (Observable Task Result).
-            const otr = initObservableTaskResult(`${dbgNs}validateTm1Extraction:VT8`, listrContext, thisTask, observer, this.sharedData, this.generatorResult,
-                        `Writing report to ${tm1ExtractFilePaths.tm1ExtractionReportPath}`);
-    
-            // Define the Task Logic to be executed.
-            const asyncTask = async () => {
-
-              // Introduce a small delay for dramatic effect.
-              await waitASecond(3);
-
-              const tm1ExtractionReport:TM1ExtractionReport = {
-                orgInfo:                    tm1AnalysisReport.orgInfo,
-                expectedTm1RecordCounts:    tm1AnalysisReport.tm1RecordCounts,
-                actualTm1RecordCounts:      tm1ContextValidation.actualRecordCounts,
-                expectedTm1MetadataCounts:  tm1AnalysisReport.tm1MetadataCounts,
-                actualTm1MetadataCounts:    tm1ContextValidation.actualMetadataCounts
-              };
-              SfdxFalconDebug.obj(`${dbgNs}validateTm1Extraction:VT8:tm1ExtractionReport:`, tm1ExtractionReport);
-
-              // Write the TM1 Extraction Report to the local filesystem.
-              await fse.ensureFile(tm1ExtractFilePaths.tm1ExtractionReportPath);
-              await fse.writeJson(tm1ExtractFilePaths.tm1ExtractionReportPath, tm1ExtractionReport, {spaces: '\t'});
-              return tm1ExtractionReport;
-            };
-
-            // Execute the Task Logic.
-            asyncTask()
-            .then(async (successResult:TM1ExtractionReport) => {
-              SfdxFalconDebug.obj(`${dbgNs}validateTm1Extraction:VT8:successResult:`, successResult);
-              thisTask.title += chalk.blue(` (${tm1ExtractFilePaths.tm1ExtractionReportPath})`);
-              finalizeObservableTaskResult(otr);
-            })
-            .catch(async (failureResult:Error) => {
-              SfdxFalconDebug.obj(`${dbgNs}validateTm1Extraction:VT8:failureResult:`, failureResult);
-              thisTask.title += chalk.red(` (Failed)`);
-              finalizeObservableTaskResult(otr, failureResult);
-            });
           });
         }
       }
