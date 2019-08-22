@@ -263,7 +263,7 @@ export default class Tm1Analyze extends SfdxFalconYeomanGenerator<InterviewAnswe
       dbgNsLocal:     `${dbgNs}_generateReport`,      // Local Debug Namespace for this function. DO NOT add trailing : char.
       throwOnFailure: true,                          // Define whether to throw an Error on task failure or not.
       preTaskMessage: {                               // Message displayed to the user BEFORE tasks are run.
-        message: `Generating Final TM1 Analysis Report...`,
+        message: `Generating TM1 Analysis Report...`,
         styling: `yellow`
       },
       postTaskMessage: {                              // Message displayed to the user AFTER tasks are run.

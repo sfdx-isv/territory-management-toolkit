@@ -218,7 +218,7 @@ export default class Tm2Load extends SfdxFalconYeomanGenerator<InterviewAnswers>
       dbgNsLocal:     `${dbgNs}_generateReport`,      // Local Debug Namespace for this function. DO NOT add trailing : char.
       throwOnFailure: false,                          // Define whether to throw an Error on task failure or not.
       preTaskMessage: {                               // Message displayed to the user BEFORE tasks are run.
-        message: `Generating Final TM2 Data Load Report...`,
+        message: `Generating TM2 Data Load Report...`,
         styling: `yellow`
       },
       postTaskMessage: {                              // Message displayed to the user AFTER tasks are run.

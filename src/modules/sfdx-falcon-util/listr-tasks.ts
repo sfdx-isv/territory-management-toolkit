@@ -1693,13 +1693,13 @@ export function generateTm1ExtractionReport(tm1AnalysisReport:TM1AnalysisReport,
     [
       // ── REPORT GENERATION TASK 1: Generate TM1 Extraction Report ───────────────────────────────
       {
-        title:  'Writing TM1 Extraction Report',
+        title:  'Generate TM1 Extraction Report',
         task:   (listrContext:object, thisTask:ListrTask) => {
           return new Observable(observer => {
     
             // Initialize an OTR (Observable Task Result).
             const otr = initObservableTaskResult(`${dbgNsLocal}:RGT1`, listrContext, thisTask, observer, this.sharedData, this.generatorResult,
-                        `Writing report to ${tm1ExtractFilePaths.tm1ExtractionReportPath}`);
+                        `Saving TM1 Extraction Report to ${tm1ExtractFilePaths.tm1ExtractionReportPath}`);
     
             // Define the Task Logic to be executed.
             const asyncTask = async () => {
