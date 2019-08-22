@@ -39,7 +39,7 @@ import  {TM2DeploySharingFilePaths}       from  '../modules/tm-tools-types';    
 
 // Set file local globals.
 const territory2ModelDevName  = 'Imported_Territory';
-const {falcon}                = require('../../../package.json');       // The custom "falcon" key from package.json. This holds custom project-level values.
+const {falcon}                = require('../../package.json');       // The custom "falcon" key from package.json. This holds custom project-level values.
 
 // Set the File Local Debug Namespace
 const dbgNs = 'WORKER:tm-tools-deploysharing:';

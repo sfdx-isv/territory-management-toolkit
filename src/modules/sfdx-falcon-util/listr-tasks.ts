@@ -28,55 +28,58 @@ import * as gitHelper           from  './git';                                  
 import * as zipHelper           from  './zip';                                    // Library of Zip Helper functions.
 
 // Import Internal Classes & Functions
-import {SfdxFalconDebug}              from  '../sfdx-falcon-debug';             // Class. Specialized debug provider for SFDX-Falcon code.
-import {SfdxFalconError}              from  '../sfdx-falcon-error';             // Class. Extends SfdxError to provide specialized error structures for SFDX-Falcon modules.
-import {FalconProgressNotifications}  from  '../sfdx-falcon-notifications';     // Class. Manages progress notifications inside Falcon.
-import {SfdxFalconResult}             from  '../sfdx-falcon-result';            // Class. Implements a framework for creating results-driven, informational objects with a concept of heredity (child results) and the ability to "bubble up" both Errors (thrown exceptions) and application-defined "failures".
-import {SfdxFalconResultType}         from  '../sfdx-falcon-result';            // Enum. Represents the different types of sources where Results might come from.
-import {waitASecond}                  from  '../sfdx-falcon-util/async';        // Function. Simple helper that introduces a delay when called inside async functions using "await".
-import {chooseListrRenderer}          from  '../sfdx-falcon-util/listr';        // Function. Returns either a custom Listr Renderer or a string designating the default "verbose" renderer. depending on whether or not the user specified any Debug Namespaces when the currently running command was initiated.
-import {TmToolsClean}                 from  '../tm-tools-clean';                // Class. Provides TM1 configuration cleanup services given the location of transformed TM1 config.
-import {TmToolsDeploy}                from  '../tm-tools-deploy';               // Class. Provides TM2 metadata deployment services given the location of transformed TM1 config.
-import {TmToolsLoad}                  from  '../tm-tools-load';                 // Class. Provides FINAL TM2 metadata/data loading services given a successful TM2 Deploy.
-import {Tm1Analysis}                  from  '../tm-tools-objects/tm1-analysis'; // Class. Models the analysis of a TM1 org.
-import {Tm1Context}                   from  '../tm-tools-objects/tm1-context';  // Class. Models the entirety of an exported set of TM1 data, including helpful transforms.
-import {TmToolsTransform}             from  '../tm-tools-transform';            // Class. Provides TM1 to TM2 transformation services given the location of source config.
+import {TmToolsDeploySharing}         from  '../../workers/tm-tools-deploysharing'; // Class. Provides TM2 metadata deployment services given the location of transformed TM1 config.
+import {SfdxFalconDebug}              from  '../sfdx-falcon-debug';                 // Class. Specialized debug provider for SFDX-Falcon code.
+import {SfdxFalconError}              from  '../sfdx-falcon-error';                 // Class. Extends SfdxError to provide specialized error structures for SFDX-Falcon modules.
+import {FalconProgressNotifications}  from  '../sfdx-falcon-notifications';         // Class. Manages progress notifications inside Falcon.
+import {SfdxFalconResult}             from  '../sfdx-falcon-result';                // Class. Implements a framework for creating results-driven, informational objects with a concept of heredity (child results) and the ability to "bubble up" both Errors (thrown exceptions) and application-defined "failures".
+import {SfdxFalconResultType}         from  '../sfdx-falcon-result';                // Enum. Represents the different types of sources where Results might come from.
+import {waitASecond}                  from  '../sfdx-falcon-util/async';            // Function. Simple helper that introduces a delay when called inside async functions using "await".
+import {chooseListrRenderer}          from  '../sfdx-falcon-util/listr';            // Function. Returns either a custom Listr Renderer or a string designating the default "verbose" renderer. depending on whether or not the user specified any Debug Namespaces when the currently running command was initiated.
+import {TmToolsClean}                 from  '../tm-tools-clean';                    // Class. Provides TM1 configuration cleanup services given the location of transformed TM1 config.
+import {TmToolsDeploy}                from  '../tm-tools-deploy';                   // Class. Provides TM2 metadata deployment services given the location of transformed TM1 config.
+import {TmToolsLoad}                  from  '../tm-tools-load';                     // Class. Provides FINAL TM2 metadata/data loading services given a successful TM2 Deploy.
+import {Tm1Analysis}                  from  '../tm-tools-objects/tm1-analysis';     // Class. Models the analysis of a TM1 org.
+import {Tm1Context}                   from  '../tm-tools-objects/tm1-context';      // Class. Models the entirety of an exported set of TM1 data, including helpful transforms.
+import {TmToolsTransform}             from  '../tm-tools-transform';                // Class. Provides TM1 to TM2 transformation services given the location of source config.
 
 // Import Falcon Types
-import {Bulk2OperationStatus}     from  '../sfdx-falcon-types';   // Interface. Represents the overall status of a Bulk API 2.0 operation.
-import {DeployResult}             from  '../sfdx-falcon-types';   // Interface. Interface. Modeled on the MDAPI Object DeployResult. Returned by a call to force:mdapi:deploy.
-import {ErrorOrResult}            from  '../sfdx-falcon-types';   // Type. Alias to a combination of Error or SfdxFalconResult.
-import {GeneratorRequirements}    from  '../sfdx-falcon-types';   // Interface. Represents the initialization requirements for Yeoman Generators that implement SfdxFalconYeomanGenerator.
-import {ListrContextFinalizeGit}  from  '../sfdx-falcon-types';   // Interface. Represents the Listr Context variables used by the "finalizeGit" task collection.
-import {ListrContextPkgRetExCon}  from  '../sfdx-falcon-types';   // Interface. Represents the Listr Context variables used by the "Package Retrieve/Extract/Convert" task collection.
-import {ListrExecutionOptions}    from  '../sfdx-falcon-types';   // Interface. Represents the set of "execution options" related to the use of Listr.
-import {ListrObject}              from  '../sfdx-falcon-types';   // Interface. Represents a "runnable" Listr object (ie. an object that has the run() method attached).
-import {ListrSkipCommand}         from  '../sfdx-falcon-types';   // Type. A built-in function of the "this task" Listr Task object that gets passed into executable task code.
-import {ListrTask}                from  '../sfdx-falcon-types';   // Interface. Represents a Listr Task.
-import {RawStandardOrgInfo}       from  '../sfdx-falcon-types';   // Interface. Represents the data returned by the sfdx force:org:list command.
-import {RawScratchOrgInfo}        from  '../sfdx-falcon-types';   // Interface. Represents the "scratchOrgs" data returned by the sfdx force:org:list --all command.
-import {StandardOrgInfoMap}       from  '../sfdx-falcon-types';   // Type. Alias for a Map with string keys holding StandardOrgInfo values.
-import {ShellExecResult}          from  '../sfdx-falcon-types';   // Interface. Represents the result of a call to shell.execL().
-import {Subscriber}               from  '../sfdx-falcon-types';   // Type. Alias to an rxjs Subscriber<any> type.
+import {Bulk2OperationStatus}         from  '../sfdx-falcon-types';   // Interface. Represents the overall status of a Bulk API 2.0 operation.
+import {DeployResult}                 from  '../sfdx-falcon-types';   // Interface. Interface. Modeled on the MDAPI Object DeployResult. Returned by a call to force:mdapi:deploy.
+import {ErrorOrResult}                from  '../sfdx-falcon-types';   // Type. Alias to a combination of Error or SfdxFalconResult.
+import {GeneratorRequirements}        from  '../sfdx-falcon-types';   // Interface. Represents the initialization requirements for Yeoman Generators that implement SfdxFalconYeomanGenerator.
+import {ListrContextFinalizeGit}      from  '../sfdx-falcon-types';   // Interface. Represents the Listr Context variables used by the "finalizeGit" task collection.
+import {ListrContextPkgRetExCon}      from  '../sfdx-falcon-types';   // Interface. Represents the Listr Context variables used by the "Package Retrieve/Extract/Convert" task collection.
+import {ListrExecutionOptions}        from  '../sfdx-falcon-types';   // Interface. Represents the set of "execution options" related to the use of Listr.
+import {ListrObject}                  from  '../sfdx-falcon-types';   // Interface. Represents a "runnable" Listr object (ie. an object that has the run() method attached).
+import {ListrSkipCommand}             from  '../sfdx-falcon-types';   // Type. A built-in function of the "this task" Listr Task object that gets passed into executable task code.
+import {ListrTask}                    from  '../sfdx-falcon-types';   // Interface. Represents a Listr Task.
+import {RawStandardOrgInfo}           from  '../sfdx-falcon-types';   // Interface. Represents the data returned by the sfdx force:org:list command.
+import {RawScratchOrgInfo}            from  '../sfdx-falcon-types';   // Interface. Represents the "scratchOrgs" data returned by the sfdx force:org:list --all command.
+import {StandardOrgInfoMap}           from  '../sfdx-falcon-types';   // Type. Alias for a Map with string keys holding StandardOrgInfo values.
+import {ShellExecResult}              from  '../sfdx-falcon-types';   // Interface. Represents the result of a call to shell.execL().
+import {Subscriber}                   from  '../sfdx-falcon-types';   // Type. Alias to an rxjs Subscriber<any> type.
 
 
 // Import TM-Tools Types
-import {SharingRulesCount}        from  '../tm-tools-types';      // Interface. Represents a collection of information that tracks the count of Criteria, Owner, and Territory-based Sharing Rules.
-import {TM1AnalysisReport}        from  '../tm-tools-types';      // Interface. Represents the data that is generated by a TM1 Analysis Report.
-import {TM1AnalyzeFilePaths}      from  '../tm-tools-types';      // Interface. Represents the complete suite of file paths required by the TM1 Analyze command.
-import {TM1ContextValidation}     from  '../tm-tools-types';      // Interface. Represents the structure of the return value of the Tm1Context.validate() function.
-import {TM1CleanFilePaths}        from  '../tm-tools-types';      // Interface. Represents the complete suite of file paths required by the tmtools:tm1:clean command.
-import {TM1ExtractFilePaths}      from  '../tm-tools-types';      // Interface. Represents the complete suite of file paths required by the TM1 Extract command.
-import {TM1ExtractionReport}      from  '../tm-tools-types';      // Interface. Represents the data that is generated by a TM1 Extraction Report.
-import {TM1HardDependencies}      from  '../tm-tools-types';      // Interface. Represents a complete view of HARD TM1 dependencies in an org.
-import {TM1OrgInfo}               from  '../tm-tools-types';      // Interface. Represents basic org information for a TM1 org
-import {TM1SoftDependencies}      from  '../tm-tools-types';      // Interface. Represents a complete view of SOFT TM1 dependencies in an org.
-import {TM1TransformFilePaths}    from  '../tm-tools-types';      // Interface. Represents the complete suite of file paths required by the TM1 Transform command.
-import {TM1TransformationReport}  from  '../tm-tools-types';      // Interface. Represents the data that is generated by a TM1 Transformation Report.
-import {TM2LoadFilePaths}     from  '../tm-tools-types';      // Interface. Represents the complete suite of file paths required by the TM2 DataLoad command.
-import {TM2DataLoadReport}        from  '../tm-tools-types';      // Interface. Represents the data that is generated by a TM2 DataLoad Report.
-import {TM2DeployFilePaths}       from  '../tm-tools-types';      // Interface. Represents the complete suite of file paths required by the TM2 Deploy command.
-import {TM2DeploymentReport}      from  '../tm-tools-types';      // Interface. Represents the data that is generated by a TM2 Deployment Report.
+import {SharingRulesCount}            from  '../tm-tools-types';      // Interface. Represents a collection of information that tracks the count of Criteria, Owner, and Territory-based Sharing Rules.
+import {TM1AnalysisReport}            from  '../tm-tools-types';      // Interface. Represents the data that is generated by a TM1 Analysis Report.
+import {TM1AnalyzeFilePaths}          from  '../tm-tools-types';      // Interface. Represents the complete suite of file paths required by the TM1 Analyze command.
+import {TM1ContextValidation}         from  '../tm-tools-types';      // Interface. Represents the structure of the return value of the Tm1Context.validate() function.
+import {TM1CleanFilePaths}            from  '../tm-tools-types';      // Interface. Represents the complete suite of file paths required by the tmtools:tm1:clean command.
+import {TM1ExtractFilePaths}          from  '../tm-tools-types';      // Interface. Represents the complete suite of file paths required by the TM1 Extract command.
+import {TM1ExtractionReport}          from  '../tm-tools-types';      // Interface. Represents the data that is generated by a TM1 Extraction Report.
+import {TM1HardDependencies}          from  '../tm-tools-types';      // Interface. Represents a complete view of HARD TM1 dependencies in an org.
+import {TM1OrgInfo}                   from  '../tm-tools-types';      // Interface. Represents basic org information for a TM1 org
+import {TM1SoftDependencies}          from  '../tm-tools-types';      // Interface. Represents a complete view of SOFT TM1 dependencies in an org.
+import {TM1TransformFilePaths}        from  '../tm-tools-types';      // Interface. Represents the complete suite of file paths required by the TM1 Transform command.
+import {TM1TransformationReport}      from  '../tm-tools-types';      // Interface. Represents the data that is generated by a TM1 Transformation Report.
+import {TM2LoadFilePaths}             from  '../tm-tools-types';      // Interface. Represents the complete suite of file paths required by the TM2 DataLoad command.
+import {TM2DataLoadReport}            from  '../tm-tools-types';      // Interface. Represents the data that is generated by a TM2 DataLoad Report.
+import {TM2DeployFilePaths}           from  '../tm-tools-types';      // Interface. Represents the complete suite of file paths required by the TM2 Deploy command.
+import {TM2DeploymentReport}          from  '../tm-tools-types';      // Interface. Represents the data that is generated by a TM2 Deployment Report.
+import {TM2SharingDeploymentReport}   from  '../tm-tools-types';      // Interface. Represents the full report data generated by the tmtools:tm2:deploysharing command.
+import {TM2DeploySharingFilePaths}    from  '../tm-tools-types';      // Interface. Represents the complete suite of file paths required by the tmtools:tm2:deploysharing command.
 
 // Set the File Local Debug Namespace
 const dbgNs = 'UTILITY:listr-tasks:';
@@ -1114,22 +1117,23 @@ function convertMetadataSource(mdapiSourceRootDir:string, sfdxSourceOutputDir:st
 // ────────────────────────────────────────────────────────────────────────────────────────────────┐
 /**
  * @function    deployFinalTm2Metadata
- * @param       {TmToolsLoad} tmToolsLoad Required. Fully-prepared instance of a TmToolsLoad object.
+ * @param       {TmToolsDeploySharing} tmToolsDeploySharing Required. Fully-prepared instance of a
+ *              `TmToolsDeploySharing` object.
  * @returns     {ListrObject}  A "runnable" Listr Object
  * @description Returns a "runnable" Listr Object that uses a fully-prepared instance of a
- *              TmToolsLoad object to attempt to deploy the final set of TM2 metadata, specifically
- *              the Sharing Rules.
+ *              `TmToolsDeploySharing` object to attempt to deploy the final set of TM2 sharing
+ *              rules metadata
  * @public
  */
 // ────────────────────────────────────────────────────────────────────────────────────────────────┘
-export function deployFinalTm2Metadata(tmToolsLoad:TmToolsLoad):ListrObject {
+export function deployFinalTm2Metadata(tmToolsDeploySharing:TmToolsDeploySharing):ListrObject {
 
   // Define function-local debug namespace and validate incoming arguments.
   const dbgNsLocal = `${dbgNs}deployFinalTm2Metadata`;
   SfdxFalconDebug.obj(`${dbgNsLocal}:arguments:`, arguments);
   
   // Validate incoming arguments.
-  typeValidator.throwOnNullInvalidInstance(tmToolsLoad, TmToolsLoad, `${dbgNsLocal}`, 'tmToolsLoad');
+  typeValidator.throwOnNullInvalidInstance(tmToolsDeploySharing, TmToolsDeploySharing, `${dbgNsLocal}`, 'tmToolsDeploySharing');
 
   // Make sure the calling scope has access to Shared Data.
   validateSharedData.call(this);
@@ -1146,10 +1150,10 @@ export function deployFinalTm2Metadata(tmToolsLoad:TmToolsLoad):ListrObject {
     
             // Initialize an OTR (Observable Task Result).
             const otr = initObservableTaskResult(`${dbgNsLocal}:FMDT1`, listrContext, thisTask, observer, this.sharedData, this.generatorResult,
-                        `Deploying metadata from ${tmToolsLoad.filePaths.tm2SharingRulesDeploymentDir}`);
+                        `Deploying metadata from ${tmToolsDeploySharing.filePaths.tm2SharingRulesDeploymentDir}`);
     
             // Execute the Task Logic.
-            tmToolsLoad.deploySharingRules()
+            tmToolsDeploySharing.deploySharingRules()
             .then((deploymentResult:DeployResult) => {
               SfdxFalconDebug.obj(`${dbgNsLocal}:FMDT1:deploymentResult:`, deploymentResult);
               finalizeObservableTaskResult(otr);
@@ -1166,7 +1170,7 @@ export function deployFinalTm2Metadata(tmToolsLoad:TmToolsLoad):ListrObject {
     {
       concurrent:   false,
       collapse:     false,
-      exitOnError:  true,
+      exitOnError:  false,
       renderer:     chooseListrRenderer()
     }
   );
@@ -1633,12 +1637,14 @@ export function generateTm1AnalysisReport(tm1Analysis:Tm1Analysis):ListrObject {
     
             // Execute the Task Logic.
             tm1Analysis.saveReport()
-            .then((tm1AnalysisReport:TM1AnalysisReport) => {
+            .then(async (tm1AnalysisReport:TM1AnalysisReport) => {
               SfdxFalconDebug.obj(`${dbgNsLocal}:RGT1:tm1AnalysisReport:`, tm1AnalysisReport);
+              await waitASecond(3);
               finalizeObservableTaskResult(otr);
             })
-            .catch((error:Error) => {
+            .catch(async (error:Error) => {
               SfdxFalconDebug.obj(`${dbgNsLocal}:RGT1:error:`, error);
+              await waitASecond(3);
               finalizeObservableTaskResult(otr, error);
             });
           });
@@ -1649,7 +1655,7 @@ export function generateTm1AnalysisReport(tm1Analysis:Tm1Analysis):ListrObject {
     {
       concurrent:   false,
       collapse:     false,
-      exitOnError:  false,
+      exitOnError:  true,
       renderer:     chooseListrRenderer()
     }
   );
@@ -1693,12 +1699,78 @@ export function generateTm2DataLoadReport(tmToolsLoad:TmToolsLoad):ListrObject {
     
             // Execute the Task Logic.
             tmToolsLoad.saveReport()
-            .then((tm2DataLoadReport:TM2DataLoadReport) => {
+            .then(async (tm2DataLoadReport:TM2DataLoadReport) => {
               SfdxFalconDebug.obj(`${dbgNsLocal}:RGT1:tm2DataLoadReport:`, tm2DataLoadReport);
+              await waitASecond(3);
               finalizeObservableTaskResult(otr);
             })
-            .catch((error:Error) => {
+            .catch(async (error:Error) => {
               SfdxFalconDebug.obj(`${dbgNsLocal}:RGT1:error:`, error);
+              await waitASecond(3);
+              finalizeObservableTaskResult(otr, error);
+            });
+          });
+        }
+      }
+    ],
+    // TASK GROUP OPTIONS: TM2 Data Load Tasks
+    {
+      concurrent:   false,
+      collapse:     false,
+      exitOnError:  true,
+      renderer:     chooseListrRenderer()
+    }
+  );
+}
+
+// ────────────────────────────────────────────────────────────────────────────────────────────────┐
+/**
+ * @function    generateTm2SharingDeploymentReport
+ * @param       {TmToolsDeploySharing} tmToolsDeploySharing Required. Fully-prepared instance of a
+ *              TmToolsDeploySharing object.
+ * @returns     {ListrObject}  A "runnable" Listr Object
+ * @description Returns a "runnable" Listr Object that uses a fully-prepared instance of a
+ *              `TmToolsDeploySharing` object generate the `tm2-sharingdeployment.json` report and
+ *              save it to disk.
+ * @public
+ */
+// ────────────────────────────────────────────────────────────────────────────────────────────────┘
+export function generateTm2SharingDeploymentReport(tmToolsDeploySharing:TmToolsDeploySharing):ListrObject {
+
+  // Define function-local debug namespace and validate incoming arguments.
+  const dbgNsLocal = `${dbgNs}generateTm2SharingDeploymentReport`;
+  SfdxFalconDebug.obj(`${dbgNsLocal}:arguments:`, arguments);
+
+  // Validate incoming arguments.
+  typeValidator.throwOnNullInvalidInstance(tmToolsDeploySharing, TmToolsDeploySharing, `${dbgNsLocal}`, 'tmToolsDeploySharing');
+
+  // Make sure the calling scope has access to Shared Data.
+  validateSharedData.call(this);
+
+  // Build and return a Listr Task Object.
+  return new listr(
+    // TASK GROUP: Report Generation Tasks
+    [
+      // ── REPORT GENERATION TASK 1: Generate TM2 Sharing Deployment Report ───────────────────────
+      {
+        title:  'Generate TM2 Sharing Rules Deployment Report',
+        task:   (listrContext:object, thisTask:ListrTask) => {
+          return new Observable(observer => {
+    
+            // Initialize an OTR (Observable Task Result).
+            const otr = initObservableTaskResult(`${dbgNsLocal}:RGT1`, listrContext, thisTask, observer, this.sharedData, this.generatorResult,
+                        `Saving TM2 Sharing Rules Deployment Report to ${tmToolsDeploySharing.filePaths.tm2SharingDeploymentReportPath}`);
+    
+            // Execute the Task Logic.
+            tmToolsDeploySharing.saveReport()
+            .then(async (tm2SharingDeploymentReport:TM2SharingDeploymentReport) => {
+              SfdxFalconDebug.obj(`${dbgNsLocal}:RGT1:tm2SharingDeploymentReport:`, tm2SharingDeploymentReport);
+              await waitASecond(3);
+              finalizeObservableTaskResult(otr);
+            })
+            .catch(async (error:Error) => {
+              SfdxFalconDebug.obj(`${dbgNsLocal}:RGT1:error:`, error);
+              await waitASecond(3);
               finalizeObservableTaskResult(otr, error);
             });
           });
@@ -3570,35 +3642,35 @@ export function validateTm1Extraction(tm1AnalysisReport:TM1AnalysisReport, tm1Ex
  * @param       {TM1TransformationReport} tm1TransformationReport Required. Report on transformed
  *              TM1 config.
  * @param       {TM2DeploymentReport} tm2DeploymentReport Required. Report on deployed TM2 config.
- * @param       {TM2LoadFilePaths} tm2LoadFilePaths Required. All file paths needed to
- *              carry out the TM2 Data Load tasks.
+ * @param       {TM2DeploySharingFilePaths} tm2DeploySharingFilePaths Required. All file paths
+ *              needed to carry out the TM2 Sharing Rules Deployment tasks.
  * @returns     {ListrObject}  A "runnable" Listr Object
- * @description Returns a "runnable" Listr Object that attempts to load the final set of TM2 config
- *              (data and metadata) into an org with an ACTIVE Territory2 Model.
+ * @description Returns a "runnable" Listr Object that attempts to validate that the target org
+ *              has the epxected Territory2Model in an `Active` state.
  * @public
  */
 // ────────────────────────────────────────────────────────────────────────────────────────────────┘
-export function validateTm2Activation(tm1AnalysisReport:TM1AnalysisReport, tm1ExtractionReport:TM1ExtractionReport, tm1TransformationReport:TM1TransformationReport, tm2DeploymentReport:TM2DeploymentReport, tm2LoadFilePaths:TM2LoadFilePaths):ListrObject {
+export function validateTm2Activation(tm1AnalysisReport:TM1AnalysisReport, tm1ExtractionReport:TM1ExtractionReport, tm1TransformationReport:TM1TransformationReport, tm2DeploymentReport:TM2DeploymentReport, tm2DeploySharingFilePaths:TM2DeploySharingFilePaths):ListrObject {
 
   // Define function-local debug namespace and validate incoming arguments.
   const dbgNsLocal = `${dbgNs}validateTm2Activation`;
   SfdxFalconDebug.obj(`${dbgNsLocal}:arguments:`, arguments);
 
   // Validate incoming arguments.
-  typeValidator.throwOnNullInvalidObject(tm1AnalysisReport,       `${dbgNsLocal}`, 'tm1AnalysisReport');
-  typeValidator.throwOnNullInvalidObject(tm1ExtractionReport,     `${dbgNsLocal}`, 'tm1ExtractionReport');
-  typeValidator.throwOnNullInvalidObject(tm1TransformationReport, `${dbgNsLocal}`, 'tm1TransformationReport');
-  typeValidator.throwOnNullInvalidObject(tm2DeploymentReport,     `${dbgNsLocal}`, 'tm2DeploymentReport');
-  typeValidator.throwOnNullInvalidObject(tm2LoadFilePaths,        `${dbgNsLocal}`, 'tm2LoadFilePaths');
+  typeValidator.throwOnNullInvalidObject(tm1AnalysisReport,         `${dbgNsLocal}`, 'tm1AnalysisReport');
+  typeValidator.throwOnNullInvalidObject(tm1ExtractionReport,       `${dbgNsLocal}`, 'tm1ExtractionReport');
+  typeValidator.throwOnNullInvalidObject(tm1TransformationReport,   `${dbgNsLocal}`, 'tm1TransformationReport');
+  typeValidator.throwOnNullInvalidObject(tm2DeploymentReport,       `${dbgNsLocal}`, 'tm2DeploymentReport');
+  typeValidator.throwOnNullInvalidObject(tm2DeploySharingFilePaths, `${dbgNsLocal}`, 'tm2DeploySharingFilePaths');
 
   // Make sure the calling scope has access to Shared Data.
   validateSharedData.call(this);
 
-  // Make sure that Shared Data has a valid Object key for tmToolsLoad.
-  typeValidator.throwOnInvalidObject(this.sharedData['tmToolsLoad'],  `${dbgNsLocal}`, 'this.sharedData.tmToolsLoad');
+  // Make sure that Shared Data has a valid Object key for tmToolsDeploySharing.
+  typeValidator.throwOnInvalidObject(this.sharedData['tmToolsDeploySharing'],  `${dbgNsLocal}`, 'this.sharedData.tmToolsDeploySharing');
 
-  // Define a variable to hold a TM Tools Load object.
-  let tmToolsLoad:TmToolsLoad = null;
+  // Define a variable to hold a TM Tools Sharing Deployment object.
+  let tmToolsDeploySharing:TmToolsDeploySharing = null;
 
   // Build and return a Listr Task Object.
   return new listr(
@@ -3616,17 +3688,17 @@ export function validateTm2Activation(tm1AnalysisReport:TM1AnalysisReport, tm1Ex
     
             // Define the Task Logic to be executed.
             const asyncTask = async () => {
-              tmToolsLoad = await TmToolsLoad.prepare(
+              tmToolsDeploySharing = await TmToolsDeploySharing.prepare(
                 tm1AnalysisReport,
                 tm1ExtractionReport,
                 tm1TransformationReport,
                 tm2DeploymentReport,
-                tm2LoadFilePaths
+                tm2DeploySharingFilePaths
               );
-              SfdxFalconDebug.obj(`${dbgNsLocal}:VT1:tmToolsLoad:`, tmToolsLoad);
+              SfdxFalconDebug.obj(`${dbgNsLocal}:VT1:tmToolsDeploySharing:`, tmToolsDeploySharing);
 
               // Put the TM Tools Load object in shared data so the caller can use it later.
-              this.sharedData['tmToolsLoad'] = tmToolsLoad;
+              this.sharedData['tmToolsDeploySharing'] = tmToolsDeploySharing;
             };
 
             // Execute the Task Logic.
@@ -3647,7 +3719,98 @@ export function validateTm2Activation(tm1AnalysisReport:TM1AnalysisReport, tm1Ex
     {
       concurrent:   false,
       collapse:     false,
-      exitOnError:  true,
+      exitOnError:  false,
+      renderer:     chooseListrRenderer()
+    }
+  );
+}
+
+// ────────────────────────────────────────────────────────────────────────────────────────────────┐
+/**
+ * @function    validateTm2Availability
+ * @param       {TM1AnalysisReport} tm1AnalysisReport Required. Report on target TM1 config.
+ * @param       {TM1ExtractionReport} tm1ExtractionReport Required. Report on extracted TM1 config.
+ * @param       {TM1TransformationReport} tm1TransformationReport Required. Report on transformed
+ *              TM1 config.
+ * @param       {TM2DeploymentReport} tm2DeploymentReport Required. Report on deployed TM2 config.
+ * @param       {TM2LoadFilePaths} tm2LoadFilePaths Required. All file paths needed to carry out the
+ *              TM2 Data Load tasks.
+ * @returns     {ListrObject}  A "runnable" Listr Object
+ * @description Returns a "runnable" Listr Object that attempts to validate that the target org
+ *              has the epxected Territory2Model in either `Planning` or `Active` state.
+ * @public
+ */
+// ────────────────────────────────────────────────────────────────────────────────────────────────┘
+export function validateTm2Availability(tm1AnalysisReport:TM1AnalysisReport, tm1ExtractionReport:TM1ExtractionReport, tm1TransformationReport:TM1TransformationReport, tm2DeploymentReport:TM2DeploymentReport, tm2LoadFilePaths:TM2LoadFilePaths):ListrObject {
+
+  // Define function-local debug namespace and validate incoming arguments.
+  const dbgNsLocal = `${dbgNs}validateTm2Availability`;
+  SfdxFalconDebug.obj(`${dbgNsLocal}:arguments:`, arguments);
+
+  // Validate incoming arguments.
+  typeValidator.throwOnNullInvalidObject(tm1AnalysisReport,         `${dbgNsLocal}`, 'tm1AnalysisReport');
+  typeValidator.throwOnNullInvalidObject(tm1ExtractionReport,       `${dbgNsLocal}`, 'tm1ExtractionReport');
+  typeValidator.throwOnNullInvalidObject(tm1TransformationReport,   `${dbgNsLocal}`, 'tm1TransformationReport');
+  typeValidator.throwOnNullInvalidObject(tm2DeploymentReport,       `${dbgNsLocal}`, 'tm2DeploymentReport');
+  typeValidator.throwOnNullInvalidObject(tm2LoadFilePaths,          `${dbgNsLocal}`, 'tm2LoadFilePaths');
+
+  // Make sure the calling scope has access to Shared Data.
+  validateSharedData.call(this);
+
+  // Make sure that Shared Data has a valid Object key for tmToolsLoad.
+  typeValidator.throwOnInvalidObject(this.sharedData['tmToolsLoad'],  `${dbgNsLocal}`, 'this.sharedData.tmToolsLoad');
+
+  // Define a variable to hold a TM Tools Data Load object.
+  let tmToolsLoad:TmToolsLoad = null;
+
+  // Build and return a Listr Task Object.
+  return new listr(
+    // TASK GROUP: TM2 Availability Validation Tasks
+    [
+      // ── Validation TASK 1: Make sure the Territory2Model 'IMPORTED_TERRITORY' is available ─────
+      {
+        title:  `Validate that the migrated Territory2 model is available (Active/Planning)`,
+        task:   (listrContext:object, thisTask:ListrTask) => {
+          return new Observable(observer => {
+    
+            // Initialize an OTR (Observable Task Result).
+            const otr = initObservableTaskResult(`${dbgNsLocal}:VT1`, listrContext, thisTask, observer, this.sharedData, this.generatorResult,
+                        `Querying ${tm2DeploymentReport.orgInfo.username} for a T2 Model named 'IMPORTED_TERRITORY' in 'Active' or 'Planning' state`);
+    
+            // Define the Task Logic to be executed.
+            const asyncTask = async () => {
+              tmToolsLoad = await TmToolsLoad.prepare(
+                tm1AnalysisReport,
+                tm1ExtractionReport,
+                tm1TransformationReport,
+                tm2DeploymentReport,
+                tm2LoadFilePaths
+              );
+              SfdxFalconDebug.obj(`${dbgNsLocal}:VT1:tmToolsLoad:`, tmToolsLoad);
+
+              // Put the TM Tools Data Load object in shared data so the caller can use it later.
+              this.sharedData['tmToolsLoad'] = tmToolsLoad;
+            };
+
+            // Execute the Task Logic.
+            asyncTask()
+              .then(async result => {
+                await waitASecond(3);
+                finalizeObservableTaskResult(otr);
+              })
+              .catch(async error => {
+                await waitASecond(3);
+                finalizeObservableTaskResult(otr, error);
+              });
+          });
+        }
+      }
+    ],
+    // TASK GROUP OPTIONS: TM2 Availability Validation Tasks
+    {
+      concurrent:   false,
+      collapse:     false,
+      exitOnError:  false,
       renderer:     chooseListrRenderer()
     }
   );

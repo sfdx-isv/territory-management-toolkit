@@ -39,6 +39,7 @@ $ sfdx plugins:install territory-management-tools
 * [`sfdx tmtools:tm1:extract [-s <directory>] [--falcondebug <array>] [--falcondebugerror] [--falcondebugsuccess] [--falcondebugdepth <number>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`](#sfdx-tmtoolstm1extract--s-directory---falcondebug-array---falcondebugerror---falcondebugsuccess---falcondebugdepth-number---json---loglevel-tracedebuginfowarnerrorfataltracedebuginfowarnerrorfatal)
 * [`sfdx tmtools:tm1:transform -s <directory> [--falcondebug <array>] [--falcondebugerror] [--falcondebugsuccess] [--falcondebugdepth <number>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`](#sfdx-tmtoolstm1transform--s-directory---falcondebug-array---falcondebugerror---falcondebugsuccess---falcondebugdepth-number---json---loglevel-tracedebuginfowarnerrorfataltracedebuginfowarnerrorfatal)
 * [`sfdx tmtools:tm2:deploy -s <directory> [--falcondebug <array>] [--falcondebugerror] [--falcondebugsuccess] [--falcondebugdepth <number>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`](#sfdx-tmtoolstm2deploy--s-directory---falcondebug-array---falcondebugerror---falcondebugsuccess---falcondebugdepth-number---json---loglevel-tracedebuginfowarnerrorfataltracedebuginfowarnerrorfatal)
+* [`sfdx tmtools:tm2:deploysharing -s <directory> [--falcondebug <array>] [--falcondebugerror] [--falcondebugsuccess] [--falcondebugdepth <number>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`](#sfdx-tmtoolstm2deploysharing--s-directory---falcondebug-array---falcondebugerror---falcondebugsuccess---falcondebugdepth-number---json---loglevel-tracedebuginfowarnerrorfataltracedebuginfowarnerrorfatal)
 * [`sfdx tmtools:tm2:load -s <directory> [--falcondebug <array>] [--falcondebugerror] [--falcondebugsuccess] [--falcondebugdepth <number>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`](#sfdx-tmtoolstm2load--s-directory---falcondebug-array---falcondebugerror---falcondebugsuccess---falcondebugdepth-number---json---loglevel-tracedebuginfowarnerrorfataltracedebuginfowarnerrorfatal)
 
 ## `sfdx tmtools:tm1:analyze [-d <directory>] [--falcondebug <array>] [--falcondebugerror] [--falcondebugsuccess] [--falcondebugdepth <number>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`
@@ -239,6 +240,45 @@ EXAMPLES
 ```
 
 _See code: [src/commands/tmtools/tm2/deploy.ts](https://github.com/sfdx-isv/territory-management-tools/blob/v1.0.0/src/commands/tmtools/tm2/deploy.ts)_
+
+## `sfdx tmtools:tm2:deploysharing -s <directory> [--falcondebug <array>] [--falcondebugerror] [--falcondebugsuccess] [--falcondebugdepth <number>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`
+
+TODO: Write Description
+
+```
+USAGE
+  $ sfdx tmtools:tm2:deploysharing -s <directory> [--falcondebug <array>] [--falcondebugerror] [--falcondebugsuccess] 
+  [--falcondebugdepth <number>] [--json] [--loglevel 
+  trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]
+
+OPTIONS
+  -s, --sourcedir=sourcedir                                                         (required) [default: .] TODO: Write
+                                                                                    Description
+
+  --falcondebug=falcondebug                                                         [default: ] List of debug namespaces
+                                                                                    which should render output
+
+  --falcondebugdepth=falcondebugdepth                                               [default: 2] Sets the depth of
+                                                                                    object inspection when debug output
+                                                                                    is displayed
+
+  --falcondebugerror                                                                Display extended information for
+                                                                                    uncaught Errors
+
+  --falcondebugsuccess                                                              Display extended information upon
+                                                                                    successful command completion
+
+  --json                                                                            format output as json
+
+  --loglevel=(trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL)  [default: warn] logging level for
+                                                                                    this command invocation
+
+EXAMPLES
+  $ sfdx tmtools:tm2:deploysharing
+  $ sfdx tmtools:tm2:deploysharing -s ~/tm2-deployment-report-directory
+```
+
+_See code: [src/commands/tmtools/tm2/deploysharing.ts](https://github.com/sfdx-isv/territory-management-tools/blob/v1.0.0/src/commands/tmtools/tm2/deploysharing.ts)_
 
 ## `sfdx tmtools:tm2:load -s <directory> [--falcondebug <array>] [--falcondebugerror] [--falcondebugsuccess] [--falcondebugdepth <number>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`
 
