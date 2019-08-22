@@ -277,6 +277,18 @@ export class TmToolsLoad {
                                 , bulk2InsertError);
     });
 
+    // Check the result for an incomplete job or any failed records and throw an error if present.
+    if (this._objectT2ABulk2OperationStatus.currentJobStatus.state !== 'JobComplete'
+        || this._objectT2ABulk2OperationStatus.currentJobStatus.numberRecordsFailed > 0) {
+      const dataInsertionError =
+        new SfdxFalconError ( `One ore more ObjectTerritory2Association records could not be inserted. `
+                            + `Please see '${this._filePaths.objectTerritory2AssociationCsv}.failedResults' for details.`
+                            , `Bulk2InsertIncomplete`
+                            , `${dbgNsLocal}`);
+      dataInsertionError.setDetail(this._objectT2ABulk2OperationStatus);
+      throw dataInsertionError;
+    }
+
     // Debug and return.
     SfdxFalconDebug.obj(`${dbgNsLocal}:_objectT2ABulk2OperationStatus:`, this._objectT2ABulk2OperationStatus);
     return this._objectT2ABulk2OperationStatus;
@@ -325,6 +337,18 @@ export class TmToolsLoad {
                                 , `${dbgNsLocal}`
                                 , bulk2InsertError);
     });
+
+    // Check the result for an incomplete job or any failed records and throw an error if present.
+    if (this._userT2ABulk2OperationStatus.currentJobStatus.state !== 'JobComplete'
+        || this._userT2ABulk2OperationStatus.currentJobStatus.numberRecordsFailed > 0) {
+      const dataInsertionError =
+        new SfdxFalconError ( `One ore more UserTerritory2Association records could not be inserted. `
+                            + `Please see '${this._filePaths.userTerritory2AssociationCsv}.failedResults' for details.`
+                            , `Bulk2InsertIncomplete`
+                            , `${dbgNsLocal}`);
+      dataInsertionError.setDetail(this._userT2ABulk2OperationStatus);
+      throw dataInsertionError;
+    }
 
     // Debug and return.
     SfdxFalconDebug.obj(`${dbgNsLocal}:_userT2ABulk2OperationStatus:`, this._userT2ABulk2OperationStatus);
