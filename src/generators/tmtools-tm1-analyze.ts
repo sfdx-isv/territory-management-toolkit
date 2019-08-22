@@ -95,7 +95,7 @@ export default class Tm1Analyze extends SfdxFalconYeomanGenerator<InterviewAnswe
 
     // Initialize the "Opening Message" and "Confirmation Question".
     this.openingMessage       = `TM-Tools Plugin\n${this.cliCommandName}\nv${this.pluginVersion}`;
-    this.confirmationQuestion = `Analyze your org's TM1 configuration using the above settings?`;
+    this.confirmationQuestion = `Analyze TM1 configuration using the above settings?`;
 
     // Initialize DEFAULT Interview Answers.
     this.defaultAnswers.targetDirectory   = path.resolve(opts.outputDir as string);

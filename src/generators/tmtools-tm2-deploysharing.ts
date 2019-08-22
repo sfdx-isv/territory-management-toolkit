@@ -99,7 +99,7 @@ export default class Tm2DeploySharing extends SfdxFalconYeomanGenerator<Intervie
 
     // Initialize the "Opening Message" and "Confirmation Question".
     this.openingMessage       = `TM-Tools Plugin\n${this.cliCommandName}\nv${this.pluginVersion}`;
-    this.confirmationQuestion = 'Deploy TM2 sharing rules metadata to your org using the above settings?';
+    this.confirmationQuestion = 'Deploy TM2 Sharing Rules metadata using the above settings?';
 
     // Initialize all TM1/TM2 Reports to NULL.
     this.tm1AnalysisReport        = null;
@@ -240,7 +240,7 @@ export default class Tm2DeploySharing extends SfdxFalconYeomanGenerator<Intervie
       dbgNsLocal:     `${dbgNsLocal}`,        // Local Debug Namespace for this function. DO NOT add trailing : char.
       throwOnFailure: false,                  // Define whether to throw an Error on task failure or not.
       preTaskMessage: {                       // Message displayed to the user BEFORE tasks are run.
-        message: `Deploying final set of TM2 Metadata...`,
+        message: `Deploying TM2 Sharing Rules Metadata...`,
         styling: `yellow`
       },
       postTaskMessage: {                      // Message displayed to the user AFTER tasks are run.

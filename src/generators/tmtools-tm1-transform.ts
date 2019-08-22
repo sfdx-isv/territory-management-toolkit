@@ -30,6 +30,7 @@ import {SfdxFalconTableData}            from  '../modules/sfdx-falcon-util/ux'; 
 import {GeneratorOptions}               from  '../modules/sfdx-falcon-yeoman-command';            // Interface. Represents options used by SFDX-Falcon Yeoman generators.
 import {SfdxFalconYeomanGenerator}      from  '../modules/sfdx-falcon-yeoman-generator';          // Class. Abstract base class class for building Yeoman Generators for SFDX-Falcon commands.
 import TmFilePaths                      from  '../modules/tm-tools-objects/tm-file-paths';        // Class. Utility class for generatig File Paths required by various TM-Tools commands.
+import {TmToolsTransform}               from  '../modules/tm-tools-transform';                    // Class. Provides TM1 to TM2 transformation services given the location of source config.
 
 // Import Falcon Types
 import {ListrTaskBundle}                from  '../modules/sfdx-falcon-types';                     // Interface. Represents the suite of information required to run a Listr Task Bundle.
@@ -74,6 +75,7 @@ export default class Tm1Transform extends SfdxFalconYeomanGenerator<InterviewAns
   protected tm1TransformFilePaths:    TM1TransformFilePaths;    // Holds a complete set of known (and knowable) file paths needed by the Transform command.
   protected tm1AnalysisReport:        TM1AnalysisReport;        // Report data created by a previously executed TM1 Analysis.
   protected tm1ExtractionReport:      TM1ExtractionReport;      // Report data created by a previously executed TM1 Extraction.
+  protected tmToolsTransform:         TmToolsTransform;         // Holds the TM-Tools Transformation worker performs the transformation.
 
   //───────────────────────────────────────────────────────────────────────────┐
   /**
@@ -101,7 +103,8 @@ export default class Tm1Transform extends SfdxFalconYeomanGenerator<InterviewAns
     this.defaultAnswers.baseDirectory = path.resolve(opts.sourceDir as string);
 
     // Initialize Shared Data.
-    this.sharedData['reportJson'] = {};
+    this.sharedData['reportJson']       = {};
+    this.sharedData['tmToolsTransform'] = {};
   }
 
   //───────────────────────────────────────────────────────────────────────────┐
@@ -195,6 +198,51 @@ export default class Tm1Transform extends SfdxFalconYeomanGenerator<InterviewAns
 
   //───────────────────────────────────────────────────────────────────────────┐
   /**
+   * @method      _generateReport
+   * @returns     {Promise<void>}
+   * @description Generates the TM1 Transformation Report (`tm1-transformation.json`)
+   *              and saves it to the user's local system.
+   * @protected @async
+   */
+  //───────────────────────────────────────────────────────────────────────────┘
+  protected async _generateReport():Promise<void> {
+    
+    // Define function-local debug namespace.
+    const dbgNsLocal = `${dbgNs}_generateReport`;
+
+    // Define a Task Bundle
+    const taskBundle:ListrTaskBundle = {
+      dbgNsLocal:     `${dbgNsLocal}`,        // Local Debug Namespace for this function. DO NOT add trailing : char.
+      throwOnFailure: false,                  // Define whether to throw an Error on task failure or not.
+      preTaskMessage: {                       // Message displayed to the user BEFORE tasks are run.
+        message: `Generating TM1 Transformation Report...`,
+        styling: `yellow`
+      },
+      postTaskMessage: {                      // Message displayed to the user AFTER tasks are run.
+        message: ``,
+        styling: ``
+      },
+      generatorStatusSuccess: {               // Generator Status message used on SUCCESS.
+        type:     StatusMessageType.SUCCESS,
+        title:    `TM1 Transformation Report`,
+        message:  `TM1 transformation report saved to ${this.tm1TransformFilePaths.tm1TransformationReportPath}`
+      },
+      generatorStatusFailure: {               // Generator Status message used on FAILURE.
+        type:     StatusMessageType.WARNING,
+        title:    `TM1 Transformation Report`,
+        message:  `WARNING - TM1 transformation report could not be created`
+      },
+      listrObject:                            // The Listr Tasks that will be run.
+      listrTasks.generateTm1TransformationReport.call(this,
+                                                      this.tmToolsTransform)
+    };
+
+    // Run the Task Bundle.
+    await this._runListrTaskBundle(taskBundle);
+  }
+
+  //───────────────────────────────────────────────────────────────────────────┐
+  /**
    * @method      _transformTm1Config
    * @returns     {Promise<void>}
    * @description Uses information from the User's "Final Answers" to transform
@@ -238,6 +286,9 @@ export default class Tm1Transform extends SfdxFalconYeomanGenerator<InterviewAns
 
     // Run the Task Bundle.
     await this._runListrTaskBundle(taskBundle);
+
+    // Extract the tmToolsTransform worker from shared data.
+    this.tmToolsTransform = this.sharedData['tmToolsTransform'];
   }
 
   //───────────────────────────────────────────────────────────────────────────┐
@@ -270,7 +321,7 @@ export default class Tm1Transform extends SfdxFalconYeomanGenerator<InterviewAns
     return this._default_prompting(
       // Pre-Interview Styled Message
       {
-        message:  `Starting TM1 transformation interview...`,
+        message:  `Starting TM1 Transformation Interview...`,
         styling:  `yellow`
       },
       // Post-Interview Styled Message
@@ -339,6 +390,9 @@ export default class Tm1Transform extends SfdxFalconYeomanGenerator<InterviewAns
 
     // Transform the user's TM1 config.
     await this._transformTm1Config();
+
+    // Generate the final report.
+    await this._generateReport();
   }
 
   //───────────────────────────────────────────────────────────────────────────┐

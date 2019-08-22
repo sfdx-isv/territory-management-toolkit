@@ -97,7 +97,7 @@ export default class Tm2Load extends SfdxFalconYeomanGenerator<InterviewAnswers>
 
     // Initialize the "Opening Message" and "Confirmation Question".
     this.openingMessage       = `TM-Tools Plugin\n${this.cliCommandName}\nv${this.pluginVersion}`;
-    this.confirmationQuestion = 'Load the FINAL set of TM2 object/user territory association data to your TM2 org using the above settings?';
+    this.confirmationQuestion = 'Load TM2 Object/User Territory2 Association data using the above settings?';
 
     // Initialize all TM1/TM2 Reports to NULL.
     this.tm1AnalysisReport        = null;
@@ -246,16 +246,16 @@ export default class Tm2Load extends SfdxFalconYeomanGenerator<InterviewAnswers>
 
   //───────────────────────────────────────────────────────────────────────────┐
   /**
-   * @method      _loadFinalTm2Config
+   * @method      _loadTm2Data
    * @returns     {Promise<void>}
    * @description Uses information from the User's "Final Answers" to deploy and
    *              load the final set of TM2 config using the pre and post-deploy
-   *              transformed data and metadata.  These tasks will only work
-   *              against an org with an active Territory2 Model.
+   *              transformed data.  These tasks will only work against an org
+   *              with an active/planning Territory2 Model.
    * @protected @async
    */
   //───────────────────────────────────────────────────────────────────────────┘
-  protected async _loadFinalTm2Config():Promise<void> {
+  protected async _loadTm2Data():Promise<void> {
     
     // Check if the Generator was aborted by _deployFinalTm2Config().
     if (this.generatorStatus.aborted) {
@@ -269,10 +269,10 @@ export default class Tm2Load extends SfdxFalconYeomanGenerator<InterviewAnswers>
 
     // Define a Task Bundle
     const taskBundle:ListrTaskBundle = {
-      dbgNsLocal:     `${dbgNs}_loadTm2Config`,       // Local Debug Namespace for this function. DO NOT add trailing : char.
+      dbgNsLocal:     `${dbgNs}_loadTm2Data`,         // Local Debug Namespace for this function. DO NOT add trailing : char.
       throwOnFailure: false,                          // Define whether to throw an Error on task failure or not.
       preTaskMessage: {                               // Message displayed to the user BEFORE tasks are run.
-        message: `Loading final set of TM2 Data...`,
+        message: `Loading TM2 Object/User T2 Association Data...`,
         styling: `yellow`
       },
       postTaskMessage: {                              // Message displayed to the user AFTER tasks are run.
@@ -290,8 +290,8 @@ export default class Tm2Load extends SfdxFalconYeomanGenerator<InterviewAnswers>
         message:  `WARNING - Final TM2 data load had some errors (see above)`
       },
       listrObject:                                    // The Listr Tasks that will be run.
-      listrTasks.loadFinalTm2Config.call( this,
-                                          this.tmToolsLoad)
+      listrTasks.loadTm2Data.call(this,
+                                  this.tmToolsLoad)
     };
 
     // Run the Task Bundle.
@@ -378,7 +378,7 @@ export default class Tm2Load extends SfdxFalconYeomanGenerator<InterviewAnswers>
     return this._default_prompting(
       // Pre-Interview Styled Message
       {
-        message:  `Starting TM2 data load interview...`,
+        message:  `Starting TM2 Data Load Interview...`,
         styling:  `yellow`
       },
       // Post-Interview Styled Message
@@ -467,7 +467,7 @@ export default class Tm2Load extends SfdxFalconYeomanGenerator<InterviewAnswers>
     }
 
     // Perform the final Data Load.
-    await this._loadFinalTm2Config();
+    await this._loadTm2Data();
 
     // Generate the final report.
     await this._generateReport();

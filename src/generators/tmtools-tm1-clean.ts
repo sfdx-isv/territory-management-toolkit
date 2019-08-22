@@ -249,6 +249,51 @@ export default class Tm2Clean extends SfdxFalconYeomanGenerator<InterviewAnswers
 
   //───────────────────────────────────────────────────────────────────────────┐
   /**
+   * @method      _generateReport
+   * @returns     {Promise<void>}
+   * @description Generates the TM1 Cleanup Report (`tm1-cleanup.json`)
+   *              and saves it to the user's local system.
+   * @protected @async
+   */
+  //───────────────────────────────────────────────────────────────────────────┘
+  protected async _generateReport():Promise<void> {
+    
+    // Define function-local debug namespace.
+    const dbgNsLocal = `${dbgNs}_generateReport`;
+
+    // Define a Task Bundle
+    const taskBundle:ListrTaskBundle = {
+      dbgNsLocal:     `${dbgNsLocal}`,        // Local Debug Namespace for this function. DO NOT add trailing : char.
+      throwOnFailure: false,                  // Define whether to throw an Error on task failure or not.
+      preTaskMessage: {                       // Message displayed to the user BEFORE tasks are run.
+        message: `Generating TM1 Cleanup Report...`,
+        styling: `yellow`
+      },
+      postTaskMessage: {                      // Message displayed to the user AFTER tasks are run.
+        message: ``,
+        styling: ``
+      },
+      generatorStatusSuccess: {               // Generator Status message used on SUCCESS.
+        type:     StatusMessageType.SUCCESS,
+        title:    `TM1 Cleanup Report`,
+        message:  `TM1 cleanup report saved to ${this.tm1CleanFilePaths.tm1CleanupReportPath}`
+      },
+      generatorStatusFailure: {               // Generator Status message used on FAILURE.
+        type:     StatusMessageType.WARNING,
+        title:    `TM1 Cleanup Report`,
+        message:  `WARNING - TM1 cleanup report could not be created`
+      },
+      listrObject:                            // The Listr Tasks that will be run.
+      listrTasks.generateTm1CleanupReport.call( this,
+                                                this.tmToolsClean)
+    };
+
+    // Run the Task Bundle.
+    await this._runListrTaskBundle(taskBundle);
+  }
+
+  //───────────────────────────────────────────────────────────────────────────┐
+  /**
    * @method      initializing
    * @returns     {Promise<void>}
    * @description STEP ONE in the Yeoman run-loop.  Uses Yeoman's "initializing"
@@ -277,7 +322,7 @@ export default class Tm2Clean extends SfdxFalconYeomanGenerator<InterviewAnswers
     return this._default_prompting(
       // Pre-Interview Styled Message
       {
-        message:  `Starting TM1 cleanup interview...`,
+        message:  `Starting TM1 Cleanup Interview...`,
         styling:  `yellow`
       },
       // Post-Interview Styled Message
@@ -355,6 +400,9 @@ export default class Tm2Clean extends SfdxFalconYeomanGenerator<InterviewAnswers
 
     // Cleanup the user's TM1 config.
     await this._cleanTm1Config();
+
+    // Generate the final report.
+    await this._generateReport();
   }
 
   //───────────────────────────────────────────────────────────────────────────┐

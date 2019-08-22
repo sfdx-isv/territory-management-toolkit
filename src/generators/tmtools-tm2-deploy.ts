@@ -96,7 +96,7 @@ export default class Tm2Deploy extends SfdxFalconYeomanGenerator<InterviewAnswer
 
     // Initialize the "Opening Message" and "Confirmation Question".
     this.openingMessage       = `TM-Tools Plugin\n${this.cliCommandName}\nv${this.pluginVersion}`;
-    this.confirmationQuestion = 'Deploy TM2 metadata to an org using the above settings?';
+    this.confirmationQuestion = 'Deploy TM2 metadata using the above settings?';
 
     // Initialize all Reports to NULL.
     this.tm1AnalysisReport        = null;
@@ -255,6 +255,51 @@ export default class Tm2Deploy extends SfdxFalconYeomanGenerator<InterviewAnswer
 
   //───────────────────────────────────────────────────────────────────────────┐
   /**
+   * @method      _generateReport
+   * @returns     {Promise<void>}
+   * @description Generates the TM2 Deployment Report (`tm2-deployment.json`)
+   *              and saves it to the user's local system.
+   * @protected @async
+   */
+  //───────────────────────────────────────────────────────────────────────────┘
+  protected async _generateReport():Promise<void> {
+    
+    // Define function-local debug namespace.
+    const dbgNsLocal = `${dbgNs}_generateReport`;
+
+    // Define a Task Bundle
+    const taskBundle:ListrTaskBundle = {
+      dbgNsLocal:     `${dbgNsLocal}`,        // Local Debug Namespace for this function. DO NOT add trailing : char.
+      throwOnFailure: false,                  // Define whether to throw an Error on task failure or not.
+      preTaskMessage: {                       // Message displayed to the user BEFORE tasks are run.
+        message: `Generating TM2 Deployment Report...`,
+        styling: `yellow`
+      },
+      postTaskMessage: {                      // Message displayed to the user AFTER tasks are run.
+        message: ``,
+        styling: ``
+      },
+      generatorStatusSuccess: {               // Generator Status message used on SUCCESS.
+        type:     StatusMessageType.SUCCESS,
+        title:    `TM2 Deployment Report`,
+        message:  `TM2 deployment report saved to ${this.tm2DeployFilePaths.tm2DeploymentReportPath}`
+      },
+      generatorStatusFailure: {               // Generator Status message used on FAILURE.
+        type:     StatusMessageType.WARNING,
+        title:    `TM2 Deployment Report`,
+        message:  `WARNING - TM2 deployment report could not be created`
+      },
+      listrObject:                            // The Listr Tasks that will be run.
+      listrTasks.generateTm2DeploymentReport.call(this,
+                                                  this.tmToolsDeploy)
+    };
+
+    // Run the Task Bundle.
+    await this._runListrTaskBundle(taskBundle);
+  }
+
+  //───────────────────────────────────────────────────────────────────────────┐
+  /**
    * @method      _runPostDeploymentTasks
    * @returns     {Promise<void>}
    * @description After a successful deployment of "main" metadata, queries the
@@ -340,7 +385,7 @@ export default class Tm2Deploy extends SfdxFalconYeomanGenerator<InterviewAnswer
     return this._default_prompting(
       // Pre-Interview Styled Message
       {
-        message:  `Starting TM2 deployment interview...`,
+        message:  `Starting TM2 Deployment Interview...`,
         styling:  `yellow`
       },
       // Post-Interview Styled Message
@@ -421,6 +466,9 @@ export default class Tm2Deploy extends SfdxFalconYeomanGenerator<InterviewAnswer
 
     // Perform all post-deployment tasks.
     await this._runPostDeploymentTasks();
+
+    // Generate the final report.
+    await this._generateReport();
   }
 
   //───────────────────────────────────────────────────────────────────────────┐
