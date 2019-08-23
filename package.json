@@ -1,9 +1,9 @@
 {
-  "name": "territory-management-tools",
-  "description": "Tools for territory management",
-  "version": "1.0.1",
-  "author": "Vivek M. Chawla @VivekMChawla",
-  "bugs": "https://github.com/sfdx-isv/territory-management-tools/issues",
+  "name": "territory-management-toolkit",
+  "description": "The Territory Management Toolkit (TM-Tools) is a Salesforce CLI Plugin that provides tools for simplifying the migration of a Salesforce org from Territory Management (TM1) to Enterprise Territory Management (TM2).",
+  "version": "1.0.0",
+  "author": "Vivek M. Chawla (https://twitter.com/VivekMChawla)",
+  "bugs": "https://github.com/sfdx-isv/territory-management-toolkit/issues",
   "dependencies": {
     "@oclif/command": "1.5.18",
     "@oclif/config": "1.13.3",
@@ -74,9 +74,13 @@
     "/npm-shrinkwrap.json",
     "/oclif.manifest.json"
   ],
-  "homepage": "https://github.com/sfdx-isv/territory-management-tools",
+  "homepage": "https://github.com/sfdx-isv/territory-management-toolkit",
   "keywords": [
-    "sfdx-plugin"
+    "sfdx-plugin",
+    "territory-management",
+    "enterprise-territory-management",
+    "salesforce",
+    "salesforce-cli"
   ],
   "license": "MIT",
   "oclif": {
@@ -84,7 +88,7 @@
     "bin": "sfdx",
     "topics": {
       "tmtools": {
-        "description": "Territory Management Tools"
+        "description": "Territory Management Toolkit"
       },
       "tmtools:tm1": {
         "description": "Tools related to TM1 configuration and operations"
@@ -97,7 +101,7 @@
       "@oclif/plugin-help"
     ]
   },
-  "repository": "sfdx-isv/territory-management-tools",
+  "repository": "sfdx-isv/territory-management-toolkit",
   "scripts": {
     "postpack": "rm -f oclif.manifest.json",
     "posttest": "tslint -p test -t stylish",

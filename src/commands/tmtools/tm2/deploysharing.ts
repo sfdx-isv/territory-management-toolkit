@@ -32,7 +32,7 @@ SfdxFalconDebug.msg(`${dbgNs}`, `Debugging initialized for ${dbgNs}`);
 
 // Use SfdxCore's Messages framework to get the message bundles for this command.
 Messages.importMessagesDirectory(__dirname);
-const commandMessages = Messages.loadMessages('territory-management-tools', 'tmtools-tm2-deploysharing');
+const commandMessages = Messages.loadMessages('territory-management-toolkit', 'tmtools-tm2-deploysharing');
 
 
 //─────────────────────────────────────────────────────────────────────────────────────────────────┐

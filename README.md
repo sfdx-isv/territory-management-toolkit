@@ -1,13 +1,13 @@
 # TM-Tools Plugin for the Salesforce CLI
 
-[![Version](https://img.shields.io/npm/v/territory-management-tools.svg)](https://npmjs.org/package/territory-management-tools)
-[![CircleCI](https://circleci.com/gh/sfdx-isv/territory-management-tools/tree/master.svg?style=shield)](https://circleci.com/gh/sfdx-isv/territory-management-tools/tree/master)
-[![Appveyor CI](https://ci.appveyor.com/api/projects/status/github/sfdx-isv/territory-management-tools?branch=master&svg=true)](https://ci.appveyor.com/project/heroku/territory-management-tools/branch/master)
-[![Codecov](https://codecov.io/gh/sfdx-isv/territory-management-tools/branch/master/graph/badge.svg)](https://codecov.io/gh/sfdx-isv/territory-management-tools)
-[![Greenkeeper](https://badges.greenkeeper.io/sfdx-isv/territory-management-tools.svg)](https://greenkeeper.io/)
-[![Known Vulnerabilities](https://snyk.io/test/github/sfdx-isv/territory-management-tools/badge.svg)](https://snyk.io/test/github/sfdx-isv/territory-management-tools)
-[![Downloads/week](https://img.shields.io/npm/dw/territory-management-tools.svg)](https://npmjs.org/package/territory-management-tools)
-[![License](https://img.shields.io/npm/l/territory-management-tools.svg)](https://github.com/sfdx-isv/territory-management-tools/blob/master/package.json)
+[![Version](https://img.shields.io/npm/v/territory-management-toolkit.svg)](https://npmjs.org/package/territory-management-toolkit)
+[![CircleCI](https://circleci.com/gh/sfdx-isv/territory-management-toolkit/tree/master.svg?style=shield)](https://circleci.com/gh/sfdx-isv/territory-management-toolkit/tree/master)
+[![Appveyor CI](https://ci.appveyor.com/api/projects/status/github/sfdx-isv/territory-management-toolkit?branch=master&svg=true)](https://ci.appveyor.com/project/heroku/territory-management-toolkit/branch/master)
+[![Codecov](https://codecov.io/gh/sfdx-isv/territory-management-toolkit/branch/master/graph/badge.svg)](https://codecov.io/gh/sfdx-isv/territory-management-toolkit)
+[![Greenkeeper](https://badges.greenkeeper.io/sfdx-isv/territory-management-toolkit.svg)](https://greenkeeper.io/)
+[![Known Vulnerabilities](https://snyk.io/test/github/sfdx-isv/territory-management-toolkit/badge.svg)](https://snyk.io/test/github/sfdx-isv/territory-management-toolkit)
+[![Downloads/week](https://img.shields.io/npm/dw/territory-management-toolkit.svg)](https://npmjs.org/package/territory-management-toolkit)
+[![License](https://img.shields.io/npm/l/territory-management-toolkit.svg)](https://github.com/sfdx-isv/territory-management-toolkit/blob/master/package.json)
 
 A plugin for the Salesforce CLI that makes it easy to migrate from Territory Management (TM1) to Enterprise Territory Management (TM2) by creating a structured, multi-step environment to automate the extraction, transformation, and deployment/load of metadata and data from TM1 to TM2.
 
@@ -18,7 +18,7 @@ Installing the TM-Tools Plugin is easy if you have already [installed the Salesf
 **Open a terminal window (command prompt) and enter the following:**
 
 ```
-$ sfdx plugins:install territory-management-tools
+$ sfdx plugins:install territory-management-toolkit
 ```
 
 **You should see something similar to this:**
@@ -26,7 +26,7 @@ $ sfdx plugins:install territory-management-tools
 ![Install the CLI Plugin](https://drive.google.com/uc?export=view&id=1h6iUbZXc3XRJrhE-8uAy_HkqH1d57XBj)
 
 **Important Notes:**
-1. The command `sfdx plugins:install` pulls the plugin source code directly from the [territory-management-tools package](https://www.npmjs.com/package/sfdx-falcon), hosted by [NPM](www.npmjs.com)
+1. The command `sfdx plugins:install` pulls the plugin source code directly from the [territory-management-toolkit package](https://www.npmjs.com/package/sfdx-falcon), hosted by [NPM](www.npmjs.com)
 2. The TM-Tools Plugin has not been digitially signed (yet), so you will need to acknowledge the warning to continue the installation
 
 
@@ -79,7 +79,7 @@ EXAMPLES
   $ sfdx tmtools:tm1:analyze -d ~/output-directory
 ```
 
-_See code: [src/commands/tmtools/tm1/analyze.ts](https://github.com/sfdx-isv/territory-management-tools/blob/v1.0.0/src/commands/tmtools/tm1/analyze.ts)_
+_See code: [src/commands/tmtools/tm1/analyze.ts](https://github.com/sfdx-isv/territory-management-toolkit/blob/v1.0.0/src/commands/tmtools/tm1/analyze.ts)_
 
 ## `sfdx tmtools:tm1:clean -s <directory> [--falcondebug <array>] [--falcondebugerror] [--falcondebugsuccess] [--falcondebugdepth <number>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`
 
@@ -121,7 +121,7 @@ EXAMPLES
   $ sfdx tmtools:tm1:clean -s ~/tm1-transformation-report-directory
 ```
 
-_See code: [src/commands/tmtools/tm1/clean.ts](https://github.com/sfdx-isv/territory-management-tools/blob/v1.0.0/src/commands/tmtools/tm1/clean.ts)_
+_See code: [src/commands/tmtools/tm1/clean.ts](https://github.com/sfdx-isv/territory-management-toolkit/blob/v1.0.0/src/commands/tmtools/tm1/clean.ts)_
 
 ## `sfdx tmtools:tm1:extract [-s <directory>] [--falcondebug <array>] [--falcondebugerror] [--falcondebugsuccess] [--falcondebugdepth <number>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`
 
@@ -162,7 +162,7 @@ EXAMPLES
   $ sfdx tmtools:tm1:extract -s ~/tm1-analysis-report-directory
 ```
 
-_See code: [src/commands/tmtools/tm1/extract.ts](https://github.com/sfdx-isv/territory-management-tools/blob/v1.0.0/src/commands/tmtools/tm1/extract.ts)_
+_See code: [src/commands/tmtools/tm1/extract.ts](https://github.com/sfdx-isv/territory-management-toolkit/blob/v1.0.0/src/commands/tmtools/tm1/extract.ts)_
 
 ## `sfdx tmtools:tm1:transform -s <directory> [--falcondebug <array>] [--falcondebugerror] [--falcondebugsuccess] [--falcondebugdepth <number>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`
 
@@ -203,7 +203,7 @@ EXAMPLES
   $ sfdx tmtools:tm1:transform -s ~/tm1-extraction-report-directory
 ```
 
-_See code: [src/commands/tmtools/tm1/transform.ts](https://github.com/sfdx-isv/territory-management-tools/blob/v1.0.0/src/commands/tmtools/tm1/transform.ts)_
+_See code: [src/commands/tmtools/tm1/transform.ts](https://github.com/sfdx-isv/territory-management-toolkit/blob/v1.0.0/src/commands/tmtools/tm1/transform.ts)_
 
 ## `sfdx tmtools:tm2:deploy -s <directory> [--falcondebug <array>] [--falcondebugerror] [--falcondebugsuccess] [--falcondebugdepth <number>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`
 
@@ -245,7 +245,7 @@ EXAMPLES
   $ sfdx tmtools:tm2:deploy -s ~/tm1-transformation-report-directory
 ```
 
-_See code: [src/commands/tmtools/tm2/deploy.ts](https://github.com/sfdx-isv/territory-management-tools/blob/v1.0.0/src/commands/tmtools/tm2/deploy.ts)_
+_See code: [src/commands/tmtools/tm2/deploy.ts](https://github.com/sfdx-isv/territory-management-toolkit/blob/v1.0.0/src/commands/tmtools/tm2/deploy.ts)_
 
 ## `sfdx tmtools:tm2:deploysharing -s <directory> [--falcondebug <array>] [--falcondebugerror] [--falcondebugsuccess] [--falcondebugdepth <number>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`
 
@@ -286,7 +286,7 @@ EXAMPLES
   $ sfdx tmtools:tm2:deploysharing -s ~/tm2-deployment-report-directory
 ```
 
-_See code: [src/commands/tmtools/tm2/deploysharing.ts](https://github.com/sfdx-isv/territory-management-tools/blob/v1.0.0/src/commands/tmtools/tm2/deploysharing.ts)_
+_See code: [src/commands/tmtools/tm2/deploysharing.ts](https://github.com/sfdx-isv/territory-management-toolkit/blob/v1.0.0/src/commands/tmtools/tm2/deploysharing.ts)_
 
 ## `sfdx tmtools:tm2:load -s <directory> [--falcondebug <array>] [--falcondebugerror] [--falcondebugsuccess] [--falcondebugdepth <number>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`
 
@@ -327,7 +327,7 @@ EXAMPLES
   $ sfdx tmtools:tm2:load -s ~/tm2-deployment-report-directory
 ```
 
-_See code: [src/commands/tmtools/tm2/load.ts](https://github.com/sfdx-isv/territory-management-tools/blob/v1.0.0/src/commands/tmtools/tm2/load.ts)_
+_See code: [src/commands/tmtools/tm2/load.ts](https://github.com/sfdx-isv/territory-management-toolkit/blob/v1.0.0/src/commands/tmtools/tm2/load.ts)_
 <!-- commandsstop -->
 
 

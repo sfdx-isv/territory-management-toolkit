@@ -46,7 +46,7 @@ jobs:
 
 workflows:
   version: 2
-  "territory-management-tools":
+  "territory-management-toolkit":
     jobs:
       - node-latest
       - node-8

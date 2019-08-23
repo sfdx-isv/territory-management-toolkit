@@ -69,8 +69,8 @@ export interface SfdxFalconCommandResultDetail {
 // specifying the module name as the first parameter of loadMessages().
 //─────────────────────────────────────────────────────────────────────────────┘
 Messages.importMessagesDirectory(__dirname);
-const baseMessages  = Messages.loadMessages('territory-management-tools', 'sfdxFalconCommand');
-const errorMessages = Messages.loadMessages('territory-management-tools', 'sfdxFalconError');
+const baseMessages  = Messages.loadMessages('territory-management-toolkit', 'sfdxFalconCommand');
+const errorMessages = Messages.loadMessages('territory-management-toolkit', 'sfdxFalconError');
 
 //─────────────────────────────────────────────────────────────────────────────────────────────────┐
 /**
