@@ -1,13 +1,14 @@
 {
   "name": "territory-management-tools",
   "description": "Tools for territory management",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": "Vivek M. Chawla @VivekMChawla",
   "bugs": "https://github.com/sfdx-isv/territory-management-tools/issues",
   "dependencies": {
     "@oclif/command": "1.5.18",
     "@oclif/config": "1.13.3",
     "@oclif/errors": "1.2.2",
+    "@oclif/plugin-help": "2.2.1",
     "@salesforce/command": "2.1.0",
     "@salesforce/core": "2.1.1",
     "chalk": "2.4.2",
@@ -35,7 +36,6 @@
   },
   "devDependencies": {
     "@oclif/dev-cli": "1.22.2",
-    "@oclif/plugin-help": "2.2.1",
     "@oclif/test": "1.2.5",
     "@salesforce/dev-config": "1.5.0",
     "@types/chai": "^4.2.0",
