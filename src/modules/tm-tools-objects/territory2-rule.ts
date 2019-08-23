@@ -138,19 +138,17 @@ export class Territory2Rule extends Metadata {
    */
   //───────────────────────────────────────────────────────────────────────────┘
   protected async buildXml():Promise<void> {
-    this.xmlRoot.ele('active').txt(this._ataRuleRecord.IsActive);
-    if (this._ataRuleRecord.BooleanFilter) {
-      this.xmlRoot.ele('booleanFilter').txt(this._ataRuleRecord.BooleanFilter);
-    }
-    this.xmlRoot.ele('name').txt(this.name);
-    this.xmlRoot.ele('objectType').txt(this._objectType);
+    if (this._ataRuleRecord.IsActive)       this.xmlRoot.ele('active').txt(this._ataRuleRecord.IsActive);
+    if (this._ataRuleRecord.BooleanFilter)  this.xmlRoot.ele('booleanFilter').txt(this._ataRuleRecord.BooleanFilter);
+    if (this.name)                          this.xmlRoot.ele('name').txt(this.name);
+    if (this._objectType)                   this.xmlRoot.ele('objectType').txt(this._objectType);
     for (const ataRuleItemRecord of this._ataRuleItemRecords) {
       const ruleItemsNode = this.xmlRoot.ele('ruleItems');
       // Ensure that the Field Name is always prepended by "Account."
       const fieldName = (ataRuleItemRecord.Field.startsWith('Account.')) ? ataRuleItemRecord.Field : 'Account.' + ataRuleItemRecord.Field;
-      ruleItemsNode.ele('field').txt(fieldName);
-      ruleItemsNode.ele('operation').txt(ataRuleItemRecord.Operation);
-      ruleItemsNode.ele('value').txt(ataRuleItemRecord.Value);
+      if (fieldName)                    ruleItemsNode.ele('field').txt(fieldName);
+      if (ataRuleItemRecord.Operation)  ruleItemsNode.ele('operation').txt(ataRuleItemRecord.Operation);
+      if (ataRuleItemRecord.Value)      ruleItemsNode.ele('value').txt(ataRuleItemRecord.Value);
     }
   }
 }

@@ -93,7 +93,7 @@ export class Territory2Type extends Metadata {
    */
   //───────────────────────────────────────────────────────────────────────────┘
   protected async buildXml():Promise<void> {
-    this.xmlRoot.ele('name').txt(this.name);
-    this.xmlRoot.ele('priority').txt(this.priority);
+    if (this.name)      this.xmlRoot.ele('name').txt(this.name);
+    if (this.priority)  this.xmlRoot.ele('priority').txt(this.priority);
   }
 }

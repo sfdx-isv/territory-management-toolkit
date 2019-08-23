@@ -84,7 +84,7 @@ export class Territory2Model extends Metadata {
    */
   //───────────────────────────────────────────────────────────────────────────┘
   protected async buildXml():Promise<void> {
-    this.xmlRoot.ele('description').txt(this.description);
-    this.xmlRoot.ele('name').txt(this.name);
+    if (this.description) this.xmlRoot.ele('description').txt(this.description);
+    if (this.name)        this.xmlRoot.ele('name').txt(this.name);
   }
 }

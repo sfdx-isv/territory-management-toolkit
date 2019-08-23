@@ -143,20 +143,20 @@ export class Territory2 extends Metadata {
    */
   //───────────────────────────────────────────────────────────────────────────┘
   protected async buildXml():Promise<void> {
-    this.xmlRoot.ele('accountAccessLevel').txt(this._territoryRecord.AccountAccessLevel);
-    this.xmlRoot.ele('caseAccessLevel').txt(this._territoryRecord.CaseAccessLevel);
-    this.xmlRoot.ele('contactAccessLevel').txt(this._territoryRecord.ContactAccessLevel);
-    this.xmlRoot.ele('description').txt(this._territoryRecord.Description);
-    this.xmlRoot.ele('name').txt(this.name);
-    this.xmlRoot.ele('opportunityAccessLevel').txt(this._territoryRecord.OpportunityAccessLevel);
+    if (this._territoryRecord.AccountAccessLevel)     this.xmlRoot.ele('accountAccessLevel').txt(this._territoryRecord.AccountAccessLevel);
+    if (this._territoryRecord.CaseAccessLevel)        this.xmlRoot.ele('caseAccessLevel').txt(this._territoryRecord.CaseAccessLevel);
+    if (this._territoryRecord.ContactAccessLevel)     this.xmlRoot.ele('contactAccessLevel').txt(this._territoryRecord.ContactAccessLevel);
+    if (this._territoryRecord.Description)            this.xmlRoot.ele('description').txt(this._territoryRecord.Description);
+    if (this.name)                                    this.xmlRoot.ele('name').txt(this.name);
+    if (this._territoryRecord.OpportunityAccessLevel) this.xmlRoot.ele('opportunityAccessLevel').txt(this._territoryRecord.OpportunityAccessLevel);
     if (this._parentTerritoryRecord) {
       this.xmlRoot.ele('parentTerritory').txt(this._parentTerritoryRecord.DeveloperName);
     }
     for (const ataRuleRecord of this._ataRuleRecords) {
       const ruleAssociationsNode = this.xmlRoot.ele('ruleAssociations');
-      ruleAssociationsNode.ele('inherited').txt(ataRuleRecord.IsInherited);
-      ruleAssociationsNode.ele('ruleName').txt(this._ataRuleDevNamesByRuleId.get(ataRuleRecord.Id));
+      if (ataRuleRecord.IsInherited)                            ruleAssociationsNode.ele('inherited').txt(ataRuleRecord.IsInherited);
+      if (this._ataRuleDevNamesByRuleId.get(ataRuleRecord.Id))  ruleAssociationsNode.ele('ruleName').txt(this._ataRuleDevNamesByRuleId.get(ataRuleRecord.Id));
     }
-    this.xmlRoot.ele('territory2Type').txt(this._territory2Type.developerName);
+    if (this._territory2Type.developerName) this.xmlRoot.ele('territory2Type').txt(this._territory2Type.developerName);
   }
 }
