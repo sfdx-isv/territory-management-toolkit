@@ -79,6 +79,16 @@ export interface SfdxForceDataSoqlQueryOptions {
   perfLog?:       boolean;
 }
 
+/**
+ * Type. Alias for a Map with string keys holding StandardOrgInfo values.
+ */
+export type StandardOrgInfoMap = Map<string, StandardOrgInfo>;
+
+/**
+ * Type. Alias for a Map with string keys holding ScratchOrgInfo values.
+ */
+export type ScratchOrgInfoMap = Map<string, ScratchOrgInfo>;
+
 //─────────────────────────────────────────────────────────────────────────────────────────────────┐
 /**
  * @class       ScratchOrgInfo

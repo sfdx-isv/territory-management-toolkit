@@ -108,6 +108,14 @@ export const enum SfdxFalconResultType {
 
 //─────────────────────────────────────────────────────────────────────────────────────────────────┐
 /**
+ * @type        ErrorOrResult
+ * @description Alias to a combination of Error or SfdxFalconResult.
+ */
+//─────────────────────────────────────────────────────────────────────────────────────────────────┘
+export type ErrorOrResult = Error | SfdxFalconResult;
+
+//─────────────────────────────────────────────────────────────────────────────────────────────────┐
+/**
  * @class       SfdxFalconResult
  * @description Implements a framework for creating results-driven, informational objects with a
  *              concept of heredity (child results) and the ability to "bubble up" both Errors

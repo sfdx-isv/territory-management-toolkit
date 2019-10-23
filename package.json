@@ -16,7 +16,7 @@
     "debug": "4.1.1",
     "falcon-listr-update-renderer": "0.4.2",
     "fs-extra": "8.1.0",
-    "inquirer": "6.5.1",
+    "inquirer": "7.0.0",
     "json2csv": "4.5.2",
     "listr": "0.14.3",
     "lodash": "4.17.15",

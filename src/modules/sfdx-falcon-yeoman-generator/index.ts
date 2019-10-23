@@ -470,7 +470,7 @@ export abstract class SfdxFalconYeomanGenerator<T extends object> extends Genera
   protected async _executeInitializationTasks():Promise<void> {
 
     // Define the first group of tasks (Git Initialization).
-    const gitInitTasks = listrTasks.gitInitTasks.call(this, this.generatorRequirements.gitRemoteUri);
+    const gitInitTasks = listrTasks.gitEnvironmentCheck.call(this, this.generatorRequirements.gitRemoteUri);
 
     // Define the second group of tasks (SFDX Initialization).
     const sfdxInitTasks = listrTasks.sfdxInitTasks.call(this);

@@ -2046,7 +2046,7 @@ export function generateTm2SharingDeploymentReport(tmToolsDeploySharing:TmToolsD
 
 // ────────────────────────────────────────────────────────────────────────────────────────────────┐
 /**
- * @function    gitInitTasks
+ * @function    gitEnvironmentCheck
  * @returns     {ListrObject}  A "runnable" Listr Object
  * @description Returns a Listr-compatible Task Object that verifies the presence of the Git
  *              executable in the local environment and checks if a Git Remote is reachable, if
@@ -2054,7 +2054,7 @@ export function generateTm2SharingDeploymentReport(tmToolsDeploySharing:TmToolsD
  * @public
  */
 // ────────────────────────────────────────────────────────────────────────────────────────────────┘
-export function gitInitTasks(gitRemoteUri:string=''):ListrObject {
+export function gitEnvironmentCheck(gitRemoteUri:string=''):ListrObject {
 
   // Debug incoming arguments.
   SfdxFalconDebug.obj(`${dbgNs}gitInitTasks:arguments:`, arguments);
