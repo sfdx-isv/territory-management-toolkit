@@ -1,32 +1,27 @@
 //─────────────────────────────────────────────────────────────────────────────────────────────────┐
 /**
- * @file          commands/tmtools/tm2/load.ts
- * @copyright     Vivek M. Chawla - 2019
  * @author        Vivek M. Chawla <@VivekMChawla>
- * @summary       Implements the CLI command "tmtools:tm2:load"
- * @description   Salesforce CLI Plugin command (tmtools:tm2:load) that allows a Salesforce Admin
+ * @copyright     2019, Vivek M. Chawla / Salesforce. All rights reserved.
+ * @license       BSD-3-Clause For full license text, see the LICENSE file in the repo root or
+ *                `https://opensource.org/licenses/BSD-3-Clause`
+ * @file          commands/tmtools/tm2/load.ts
+ * @summary       Implements the CLI command `tmtools:tm2:load`.
+ * @description   Salesforce CLI Plugin command `tmtools:tm2:load`. Allows a Salesforce Admin
  *                to...
- * @version       1.0.0
- * @license       MIT
+ *                TODO: Add description
  */
 //─────────────────────────────────────────────────────────────────────────────────────────────────┘
-// Import External Libraries & Modules
-import {flags}                        from  '@salesforce/command';  // Allows creation of flags for CLI commands.
-import {Messages}                     from  '@salesforce/core';     // Messages library that simplifies using external JSON for string reuse.
-import {SfdxError}                    from  '@salesforce/core';     // Generalized SFDX error which also contains an action.
-import {AnyJson}                      from  '@salesforce/ts-types'; // Safe type for use where "any" might otherwise be used.
-
-// Import Internal Classes & Functions
-import {SfdxFalconDebug}              from  '../../../modules/sfdx-falcon-debug';           // Class. Provides custom "debugging" services (ie. debug-style info to console.log()).
-import {SfdxFalconError}              from  '../../../modules/sfdx-falcon-error';           // Class. Extends SfdxError to provide specialized error structures for SFDX-Falcon modules.
-import {SfdxFalconYeomanCommand}      from  '../../../modules/sfdx-falcon-yeoman-command';  // Class. Base class that CLI commands in this project that use Yeoman should use.
-
-// Import Falcon Types
-import {SfdxFalconCommandType}        from  '../../../modules/sfdx-falcon-command'; // Enum. Represents the types of SFDX-Falcon Commands.
+// Import External Libraries, Classes, & Functions
+import  {flags}                       from  '@salesforce/command';  // Allows creation of flags for CLI commands.
+import  {Messages}                    from  '@salesforce/core';     // Messages library that simplifies using external JSON for string reuse.
+import  {SfdxFalconGeneratorCommand}  from  '@sfdx-falcon/command'; // Abstract Class. Extend when building Salesforce CLI commands that use the SFDX-Falcon Library.
+import  {SfdxFalconDebug}             from  '@sfdx-falcon/debug';   // Class. Provides custom "debugging" services (ie. debug-style info to console.log()).
+import  {SfdxFalconResult}            from  '@sfdx-falcon/status';  // Class. Implements a framework for creating results-driven, informational objects with a concept of heredity (child results) and the ability to "bubble up" both Errors (thrown exceptions) and application-defined "failures".
+import  path                          = require('path');            // NodeJS native file path library.
 
 // Set the File Local Debug Namespace
-const dbgNs = 'COMMAND:tmtools-tm2-load:';
-SfdxFalconDebug.msg(`${dbgNs}`, `Debugging initialized for ${dbgNs}`);
+const dbgNs = 'COMMAND:tmtools-tm2-load';
+SfdxFalconDebug.msg(`${dbgNs}:`, `Debugging initialized for ${dbgNs}`);
 
 // Use SfdxCore's Messages framework to get the message bundles for this command.
 Messages.importMessagesDirectory(__dirname);
@@ -36,13 +31,14 @@ const commandMessages = Messages.loadMessages('territory-management-toolkit', 't
 //─────────────────────────────────────────────────────────────────────────────────────────────────┐
 /**
  * @class       TmtoolsTm2Load
- * @extends     SfdxFalconYeomanCommand
- * @summary     Implements the CLI Command "tmtools:tm2:load"
- * @description The command "tmtools:tm2:load"...TODO: Add description
+ * @extends     SfdxFalconGeneratorCommand
+ * @summary     Implements the CLI Command `tmtools:tm2:load`
+ * @description The command `tmtools:tm2:load` asks the uer to...
+ *              TODO: Add description
  * @public
  */
 //─────────────────────────────────────────────────────────────────────────────────────────────────┘
-export default class TmtoolsTm2Load extends SfdxFalconYeomanCommand {
+export default class TmtoolsTm2Load extends SfdxFalconGeneratorCommand {
 
   // Define the basic properties of this CLI command.
   public static description = commandMessages.getMessage('commandDescription');
@@ -67,7 +63,7 @@ export default class TmtoolsTm2Load extends SfdxFalconYeomanCommand {
     }),
 
     // IMPORTANT! The next line MUST be here to import the FalconDebug flags.
-    ...SfdxFalconYeomanCommand.falconBaseflagsConfig
+    ...SfdxFalconGeneratorCommand.falconBaseflagsConfig
   };
 
   // Identify the core SFDX arguments/features required by this command.
@@ -79,49 +75,32 @@ export default class TmtoolsTm2Load extends SfdxFalconYeomanCommand {
 
   //───────────────────────────────────────────────────────────────────────────┐
   /**
-   * @function    run
+   * @function    runCommand
    * @returns     {Promise<AnyJson>}  Resolves with a JSON object that the CLI
-   *              will pass to the user as stdout if the --json flag was set.
-   * @description Entrypoint function for "sfdx tmtools:tm2:import".
+   *              will pass to the user as stdout if the `--json` flag was set.
+   * @description Entrypoint function for `sfdx tmtools:tm2:import`.
    * @public @async
    */
   //───────────────────────────────────────────────────────────────────────────┘
-  public async run():Promise<AnyJson> {
+  public async runCommand():Promise<SfdxFalconResult> {
 
-    // Initialize the SfdxFalconCommand (required by ALL classes that extend SfdxFalconCommand).
-    this.sfdxFalconCommandInit('tmtools:tm2:load', SfdxFalconCommandType.UNKNOWN);
+    // Set function-local debug namespace.
+    const funcName  = `runCommand`;
+    const dbgNsLocal  = `${dbgNs}:${funcName}`;
 
     // Run a Yeoman Generator to interact with and run tasks for the user.
-    await super.runYeomanGenerator({
+    const generatorResult = await super.runGenerator({
+      commandName:    this.commandName,
+      generatorPath:  path.resolve(__dirname, '../../../generators'),
       generatorType:  'tmtools-tm2-load',
-      sourceDir:      this.sourceDirectory,
-      options: []
-    })
-    .then(generatorResult   => this.onSuccess(generatorResult)) // Implemented by parent class
-    .catch(generatorResult  => this.onError(generatorResult));  // Implemented by parent class
+      packageJson:    this.packageJson,
+      customOpts: {
+        sourceDir:    this.sourceDirectory
+      }
+    });
 
-    // Return the JSON Response that was created by onSuccess()
-    return this.falconJsonResponse as unknown as AnyJson;
-  }
-
-  //───────────────────────────────────────────────────────────────────────────┐
-  /**
-   * @method      buildFinalError
-   * @param       {SfdxFalconError} cmdError  Required. Error object used as
-   *              the basis for the "friendly error message" being created
-   *              by this method.
-   * @returns     {SfdxError}
-   * @description Builds a user-friendly error message that is appropriate to
-   *              the CLI command that's being implemented by this class. The
-   *              output of this method will always be used by the onError()
-   *              method from the base class to communicate the end-of-command
-   *              error state.
-   * @protected
-   */
-  //───────────────────────────────────────────────────────────────────────────┘
-  protected buildFinalError(cmdError:SfdxFalconError):SfdxError {
-
-    // If not implementing anything special here, simply return cmdError.
-    return cmdError;
+    // Debug and send the results back to the caller.
+    SfdxFalconDebug.obj(`${dbgNsLocal}:generatorResult:`, generatorResult);
+    return generatorResult;
   }
 }

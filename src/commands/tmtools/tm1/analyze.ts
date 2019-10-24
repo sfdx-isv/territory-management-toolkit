@@ -5,21 +5,19 @@
  * @license       BSD-3-Clause For full license text, see the LICENSE file in the repo root or
  *                `https://opensource.org/licenses/BSD-3-Clause`
  * @file          commands/tmtools/tm1/analyze.ts
- * @summary       Implements the CLI command `tmtools:tm1:analyze`
- * @description   Salesforce CLI Plugin command (`tmtools:tm1:analyze`) that allows a Salesforce Admin
- *                to analzye the Salesforce Territory Management (TM1) configuration in a target org
+ * @summary       Implements the CLI command `tmtools:tm1:analyze`.
+ * @description   Salesforce CLI Plugin command `tmtools:tm1:analyze`. Allows a Salesforce Admin to
+ *                analzye the Salesforce Territory Management (TM1) configuration in a target org
  *                and store the analysis locally on the user's local system.
  */
 //─────────────────────────────────────────────────────────────────────────────────────────────────┘
-// Import External Modules
-import {flags}                        from  '@salesforce/command';  // Allows creation of flags for CLI commands.
-import {Messages}                     from  '@salesforce/core';     // Messages library that simplifies using external JSON for string reuse.
+// Import External Libraries, Classes, & Functions
+import  {flags}                       from  '@salesforce/command';  // Allows creation of flags for CLI commands.
+import  {Messages}                    from  '@salesforce/core';     // Messages library that simplifies using external JSON for string reuse.
+import  {SfdxFalconGeneratorCommand}  from  '@sfdx-falcon/command'; // Abstract Class. Extend when building Salesforce CLI commands that use the SFDX-Falcon Library.
+import  {SfdxFalconDebug}             from  '@sfdx-falcon/debug';   // Class. Provides custom "debugging" services (ie. debug-style info to console.log()).
+import  {SfdxFalconResult}            from  '@sfdx-falcon/status';  // Class. Implements a framework for creating results-driven, informational objects with a concept of heredity (child results) and the ability to "bubble up" both Errors (thrown exceptions) and application-defined "failures".
 import  path                          = require('path');            // NodeJS native file path library.
-
-// Import Internal Classes & Functions
-import  {SfdxFalconGeneratorCommand}  from  '@sfdx-falcon/command';   // Abstract Class. Extend when building Salesforce CLI commands that use the SFDX-Falcon Library.
-import  {SfdxFalconDebug}             from  '@sfdx-falcon/debug';     // Class. Provides custom "debugging" services (ie. debug-style info to console.log()).
-import  {SfdxFalconResult}            from  '@sfdx-falcon/status';    // Class. Implements a framework for creating results-driven, informational objects with a concept of heredity (child results) and the ability to "bubble up" both Errors (thrown exceptions) and application-defined "failures".
 
 // Set the File Local Debug Namespace
 const dbgNs = 'COMMAND:tmtools-tm1-analyze';
@@ -34,7 +32,7 @@ const commandMessages = Messages.loadMessages('territory-management-toolkit', 't
 /**
  * @class       TmtoolsTm1Analyze
  * @extends     SfdxFalconGeneratorCommand
- * @summary     Implements the CLI Command `tmtools:tm1:analyze`
+ * @summary     Implements the CLI Command `tmtools:tm1:analyze`.
  * @description The command `tmtools:tm1:analyze` asks the user to specify a target org that is
  *              currently using TM1, then runs a series of queries and other operations in order to
  *              analyze that org's current TM1 configuration (ie. metadata/data).  The end result of
@@ -95,12 +93,12 @@ export default class TmtoolsTm1Analyze extends SfdxFalconGeneratorCommand {
 
     // Run a Yeoman Generator to interact with and run tasks for the user.
     const generatorResult = await super.runGenerator({
-      commandName:      this.commandName,
-      generatorPath:    path.resolve(__dirname, '../../../generators'),
-      generatorType:    'tmtools-tm1-analyze',
-      packageJson:      this.packageJson,
+      commandName:    this.commandName,
+      generatorPath:  path.resolve(__dirname, '../../../generators'),
+      generatorType:  'tmtools-tm1-analyze',
+      packageJson:    this.packageJson,
       customOpts: {
-        outputDir:        this.outputDirectory
+        outputDir:    this.outputDirectory
       }
     });
 
