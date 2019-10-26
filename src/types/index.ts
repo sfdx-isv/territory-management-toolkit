@@ -1,17 +1,17 @@
 //─────────────────────────────────────────────────────────────────────────────────────────────────┐
 /**
- * @file          modules/tm-tools-types/index.ts
- * @copyright     Vivek M. Chawla - 2019
  * @author        Vivek M. Chawla <@VivekMChawla>
+ * @copyright     2019, Vivek M. Chawla / Salesforce. All rights reserved.
+ * @license       BSD-3-Clause For full license text, see the LICENSE file in the repo root or
+ *                `https://opensource.org/licenses/BSD-3-Clause`
+ * @file          types/index.ts
  * @summary       Collection of interfaces and types used across TM-Tools modules.
  * @description   Collection of interfaces and types used across TM-Tools modules.
- * @version       1.0.0
- * @license       MIT
  */
 //─────────────────────────────────────────────────────────────────────────────────────────────────┘
 // Import External Modules/Types
-import {JsonMap}                from  '@salesforce/ts-types';     // Any JSON-compatible object.
-import {AnyJson}                from  '@salesforce/ts-types';     // Any valid JSON value.
+import  {JsonMap} from  '@sfdx-falcon/types'; // Type. Any JSON-compatible object.
+import  {AnyJson} from  '@sfdx-falcon/types'; // Type. Any valid JSON value.
 
 //
 //
@@ -291,7 +291,7 @@ export type Territory2RecordsByDevName = Map<DeveloperName, Territory2Record>;
 /**
  * Type. Represents a map of SharingRules Objects by Developer Name.
  */
-export type SharingRulesObjectsByDevName = Map<DeveloperName, import('../tm-tools-objects/sharing-rules').SharingRules>;
+export type SharingRulesObjectsByDevName = Map<DeveloperName, import('../modules/tm-tools-objects/sharing-rules').SharingRules>;
 
 /**
  * Type. Represents a map of Territory Names by Territory ID.
@@ -301,22 +301,22 @@ export type TerritoryNamesByTerritoryId = Map<SObjectRecordId, string>;
 /**
  * Type. Represents a map of Territory2 Objects by Developer Name.
  */
-export type Territory2ObjectsByDevName  = Map<DeveloperName, import('../tm-tools-objects/territory2').Territory2>;
+export type Territory2ObjectsByDevName  = Map<DeveloperName, import('../modules/tm-tools-objects/territory2').Territory2>;
 
 /**
  * Type. Represents a map of Territory2Model Objects by Developer Name.
  */
-export type Territory2ModelObjectsByDevName = Map<DeveloperName, import('../tm-tools-objects/territory2-model').Territory2Model>;
+export type Territory2ModelObjectsByDevName = Map<DeveloperName, import('../modules/tm-tools-objects/territory2-model').Territory2Model>;
 
 /**
  * Type. Represents a map of Territory2Rule Objects by Developer Name.
  */
-export type Territory2RuleObjectsByDevName = Map<DeveloperName, import('../tm-tools-objects/territory2-rule').Territory2Rule>;
+export type Territory2RuleObjectsByDevName = Map<DeveloperName, import('../modules/tm-tools-objects/territory2-rule').Territory2Rule>;
 
 /**
  * Type. Represents a map of Territory2Type Objects by Developer Name.
  */
-export type Territory2TypeObjectsByDevName = Map<DeveloperName, import('../tm-tools-objects/territory2-type').Territory2Type>;
+export type Territory2TypeObjectsByDevName = Map<DeveloperName, import('../modules/tm-tools-objects/territory2-type').Territory2Type>;
 
 //
 //
@@ -652,8 +652,8 @@ export interface TM1TransformationStatus extends JsonMap {
  * Interface. Represents the set of status information tracked by the `tmtools:tm2:load` command.
  */
 export interface TM2DataLoadStatus extends JsonMap {
-  objectT2AssociationBulkLoad:  import('../sfdx-falcon-types').Bulk2OperationStatus;
-  userT2AssociationBulkLoad:    import('../sfdx-falcon-types').Bulk2OperationStatus;
+  objectT2AssociationBulkLoad:  import('@sfdx-falcon/types').Bulk2OperationStatus;
+  userT2AssociationBulkLoad:    import('@sfdx-falcon/types').Bulk2OperationStatus;
 }
 
 
@@ -696,7 +696,7 @@ export interface TM1TransformationReport extends JsonMap {
  */
 export interface TM1CleanupReport extends JsonMap {
   orgInfo:          TM1OrgInfo;
-  deploymentResult: import('../sfdx-falcon-types').DeployResult;
+  deploymentResult: import('@sfdx-falcon/types').DeployResult;
 }
 
 /**
@@ -704,7 +704,7 @@ export interface TM1CleanupReport extends JsonMap {
  */
 export interface TM2DeploymentReport extends JsonMap {
   orgInfo:          TM1OrgInfo;
-  deploymentResult: import('../sfdx-falcon-types').DeployResult;
+  deploymentResult: import('@sfdx-falcon/types').DeployResult;
 }
 
 /**
@@ -720,7 +720,7 @@ export interface TM2DataLoadReport extends JsonMap {
  */
 export interface TM2SharingDeploymentReport extends JsonMap {
   orgInfo:  TM1OrgInfo;
-  deploymentResult: import('../sfdx-falcon-types').DeployResult;
+  deploymentResult: import('@sfdx-falcon/types').DeployResult;
 }
 
 //
