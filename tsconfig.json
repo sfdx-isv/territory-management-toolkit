@@ -2,7 +2,17 @@
   "extends": "./node_modules/@salesforce/dev-config/tsconfig",
   "compilerOptions": {
     "outDir": "./lib",
-    "rootDir": "./src"
+    "rootDir": "./src",
+    "baseUrl": "./src",
+    "paths": {
+      "@tmt-builders/*":    ["builders/*"],
+      "@tmt-generators/*":  ["generators/*"],
+      "@tmt-models/*":      ["models/*"],
+      "@tmt-modules/*":     ["modules/*"],
+      "@tmt-types":         ["types"],
+      "@tmt-utilities/*":   ["utilities/*"],
+      "@tmt-workers/*":     ["workers/*"]
+    }
   },
   "include": [
     "./src/**/*"
