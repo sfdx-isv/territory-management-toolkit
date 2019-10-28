@@ -496,37 +496,48 @@ export abstract class SfdxFalconModel {
                               , null
                               , {modelState: this._state});
   }
+    
+  //───────────────────────────────────────────────────────────────────────────┐
+  /**
+   * @method      _build
+   * @param       {T=object}  [opts]  Optional. Custom build options proxied
+   *              to this method from the public `build()` method.
+   * @return      {Promise<boolean>}
+   * @description **IMPORTANT: Must be overriden by derived class**
+   *              Performs the work of building this model. Must return `true` if
+   *              building was successful, `false` (or throw an error) if not.
+   *              This method is called by the public method `build()`, which is
+   *              defined by the base class. Errors thrown by this method may
+   *              be trapped by the base `build()` method if `this.trapErrors`
+   *              is set to `true`.
+   * @protected @async
+   */
+  //───────────────────────────────────────────────────────────────────────────┘
+  protected async _build<T extends object = object>(opts?:T):Promise<boolean> {
 
+    // Define external debug namespace.
+    const funcName  = `_build`;
+    const dbgNsExt  = `${this._dbgNs}:${funcName}`;
+
+    // Throw an Error indicating this capability has not been implemented.
+    throw new SfdxFalconError	( `The ability to build this Model has not been implemented. `
+                              + `Please override the _build() method in the ${this.constructor.name} `
+                              + `class if you'd like to support the use of this feature.`
+                              , `ImplementationError`
+                              , `${dbgNsExt}`);
+  }
+
+  //───────────────────────────────────────────────────────────────────────────┐
   /**
-   * Initializes all model-specific member variables and structures. Called by the
-   * `constructor` and again by the `refresh()` method when the caller wants to
-   * rebuild/reinitialize the model.
+   * @method      _initialize
+   * @return      {boolean}
+   * @description Initializes all model-specific member variables and structures.
+   *              Called by the `constructor` and again by the `refresh()`
+   *              method when the caller wants to rebuild/reinitialize the model.
+   * @protected @abstract
    */
+  //───────────────────────────────────────────────────────────────────────────┘
   protected abstract _initialize():void;
-  /**
-   * Performs the work of initializaing this model. Must return `true` if intialization was
-   * successful, `false` (or throw an error) if unsuccessful. This method is called
-   * by the public method `build()`, which is defined by the base class. Errors
-   * thrown by this method may be trapped by the base `build()` method if
-   * `this.trapErrors` is set to `true`.
-   */
-  protected async abstract _build<T extends object = object>(opts?:T):Promise<boolean>;
-  /**
-   * Performs the work of loading this model. Must return `true` if loading was
-   * successful, `false` (or throw an error) if unsuccessful. This method is called
-   * by the public method `load()`, which is defined by the base class. Errors
-   * thrown by this method may be trapped by the base `load()` method if
-   * `this.trapErrors` is set to `true`.
-   */
-  protected async abstract _load<T extends object = object>(opts?:T):Promise<boolean>;
-  /**
-   * Performs the work of refreshing this model. Must return `true` if the refresh was
-   * successful, `false` (or throw an error) if unsuccessful. This method is called
-   * by the public method `refresh()`, which is defined by the base class. Errors
-   * thrown by this method may be trapped by the base `refresh()` method if
-   * `this.trapErrors` is set to `true`.
-   */
-  protected async abstract _refresh():Promise<boolean>;
 
   //───────────────────────────────────────────────────────────────────────────┐
   /**
@@ -551,6 +562,36 @@ export abstract class SfdxFalconModel {
     else {
       return this._state.ready;
     }
+  }
+
+  //───────────────────────────────────────────────────────────────────────────┐
+  /**
+   * @method      _load
+   * @param       {T=object}  [opts]  Optional. Custom load options proxied
+   *              to this method from the public `load()` method.
+   * @return      {Promise<boolean>}
+   * @description **IMPORTANT: Must be overriden by derived class**
+   *              Performs the work of loading this model. Must return `true` if
+   *              loading was successful, `false` (or throw an error) if not.
+   *              This method is called by the public method `load()`, which is
+   *              defined by the base class. Errors thrown by this method may
+   *              be trapped by the base `load()` method if `this.trapErrors`
+   *              is set to `true`.
+   * @protected @async
+   */
+  //───────────────────────────────────────────────────────────────────────────┘
+  protected async _load<T extends object = object>(opts?:T):Promise<boolean> {
+
+    // Define external debug namespace.
+    const funcName  = `_load`;
+    const dbgNsExt  = `${this._dbgNs}:${funcName}`;
+
+    // Throw an Error indicating this capability has not been implemented.
+    throw new SfdxFalconError	( `The ability to load this Model has not been implemented. `
+                              + `Please override the _load() method in the ${this.constructor.name} `
+                              + `class if you'd like to support the use of this feature.`
+                              , `ImplementationError`
+                              , `${dbgNsExt}`);
   }
 
   //───────────────────────────────────────────────────────────────────────────┐
