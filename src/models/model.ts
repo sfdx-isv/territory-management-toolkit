@@ -13,19 +13,12 @@
  *                built, loaded, or reloaded as needed.
  */
 //─────────────────────────────────────────────────────────────────────────────────────────────────┘
-// Import External Libraries, Modules, and Types
-//import  * as  fse           from  'fs-extra';               // Module that adds a few extra file system methods that aren't included in the native fs module. It is a drop in replacement for fs.
-
 // Import SFDX-Falcon Libraries
-import  {TypeValidator}     from  '@sfdx-falcon/validator'; // Library. Collection of Type Validation helper functions.
+import  {TypeValidator}   from  '@sfdx-falcon/validator'; // Library. Collection of Type Validation helper functions.
 
 // Import SFDX-Falcon Classes & Functions
-import  {SfdxFalconDebug}   from  '@sfdx-falcon/debug';     // Class. Provides custom "debugging" services (ie. debug-style info to console.log()).
-import  {SfdxFalconError}   from  '@sfdx-falcon/error';     // Class. Extends SfdxError to provide specialized error structures for SFDX-Falcon modules.
-
-// Import SFDX-Falcon Types
-//import  {AnyConstructor}    from  '@sfdx-falcon/types';     // Type. A constructor for any type T. T defaults to object when not explicitly supplied.
-//import  {JsonMap}           from  '@sfdx-falcon/types';     // Interface. Any JSON-compatible object.
+import  {SfdxFalconDebug} from  '@sfdx-falcon/debug';     // Class. Provides custom "debugging" services (ie. debug-style info to console.log()).
+import  {SfdxFalconError} from  '@sfdx-falcon/error';     // Class. Extends SfdxError to provide specialized error structures for SFDX-Falcon modules.
 
 // Set the File Local Debug Namespace
 const dbgNs = '@sfdx-falcon:model';
@@ -67,10 +60,43 @@ export interface ModelState {
 
 //─────────────────────────────────────────────────────────────────────────────────────────────────┐
 /**
- * Interface. Represents options that can be passed to the `SfdxFalconModel` constructor.
+ * Interface. Represents the collective options object for classes derived from `SfdxFalconModel`.
+ *
+ * * `constructorOpts`: Used by the `constructor()` method of the derived class
+ * * `buildOpts`: Used by the `_build()` method of the derived class
+ * * `loadOpts`: Used by the `_load()` method of the derived class
+ *
+ * Derived classes should define their own Options interface that extends `SfdxFalconModelOptions`,
+ * then provide this interface as the type parameter `T` when extendeing `SfdxFalconModel<T>`.
  */
 //─────────────────────────────────────────────────────────────────────────────────────────────────┘
 export interface SfdxFalconModelOptions {
+  /**
+   * Optional. Used by the `constructor()` method of classes that extend `SfdxFalconModel`.
+   */
+  constructorOpts?: {
+    [key:string]: unknown;
+  };
+  /**
+   * Optional. Used by the `build()` method of classes that extend `SfdxFalconModel`.
+   */
+  buildOpts?: {
+    [key:string]: unknown;
+  };
+  /**
+   * Optional. Used by the `load()` method of classes that extend `SfdxFalconModel`.
+   */
+  loadOpts?: {
+    [key:string]: unknown;
+  };
+}
+
+//─────────────────────────────────────────────────────────────────────────────────────────────────┐
+/**
+ * Interface. Represents options that can be passed to the `SfdxFalconModel` base constructor.
+ */
+//─────────────────────────────────────────────────────────────────────────────────────────────────┘
+interface SfdxFalconModelBaseOptions {
   /**
    * Optional. Sets the base debug namespace (`this.dbgNs`) of the class being instantiated. Useful
    * for normalizing the namespace when set by the code that's instantiating an `SfdxFalconModel`
@@ -94,7 +120,7 @@ export interface SfdxFalconModelOptions {
  *              loaded, and/or reloaded as needed.
  */
 //─────────────────────────────────────────────────────────────────────────────────────────────────┘
-export abstract class SfdxFalconModel {
+export abstract class SfdxFalconModel<T extends SfdxFalconModelOptions> {
 
   /**
    * Indicates whether errors during model building/loading should be captured.
@@ -114,15 +140,15 @@ export abstract class SfdxFalconModel {
    */
   private readonly _errors: SfdxFalconError[];
   /**
-   * Options object that was provided to the `build()` method. These options will be reused
-   * if the model is refreshed.
+   * Options object that was provided to the `build()` method. Must extend `SfdxFalconModelOptions`.
+   * These options will be reused if the model is refreshed.
    */
-  private _buildOpts:  object;
+  private _buildOpts:  T;
   /**
-   * Options object that was provided to the `load()` method. These options will be reused
-   * if the model is refreshed.
+   * Options object that was provided to the `load()` method. Must extend `SfdxFalconModelOptions`.
+   * These options will be reused if the model is refreshed.
    */
-  private _loadOpts:  object;
+  private _loadOpts:  T;
   /**
    * The debug namespace for this instance. Will always return `@sfdx-falcon:worker`
    * appended by `:` and the name of the derived class, eg. `@sfdx-falcon:worker:MyCustomWorker`.
@@ -156,14 +182,14 @@ export abstract class SfdxFalconModel {
   //───────────────────────────────────────────────────────────────────────────┐
   /**
    * @constructs  SfdxFalconModel
-   * @param       {SfdxFalconModelOptions} [opts]  Optional. Allows the caller
-   *              to customize how this `SfdxFalconModel`-derived object is
-   *              constructed.
+   * @param       {SfdxFalconModelBaseOptions} [opts]  Optional. Allows the
+   *              caller to customize how this `SfdxFalconModel`-derived object
+   *              is constructed.
    * @description Constructs an `SfdxFalconModel` object.
    * @public
    */
   //───────────────────────────────────────────────────────────────────────────┘
-  public constructor(opts?:SfdxFalconModelOptions) {
+  public constructor(opts?:SfdxFalconModelBaseOptions) {
 
     // Define the local and external debug namespaces.
     const funcName          = `constructor`;
@@ -191,8 +217,8 @@ export abstract class SfdxFalconModel {
     this.trapErrors   = (typeof opts.trapErrors !== 'undefined') ? opts.trapErrors : false;
     this._dbgNs       = `${dbgNsExt}`;
     this._errors      = [];
-    this._buildOpts   = {};
-    this._loadOpts    = {};
+    this._buildOpts   = {} as T;
+    this._loadOpts    = {} as T;
     this._state       = {
       built:        false,
       loaded:       false,
@@ -217,7 +243,9 @@ export abstract class SfdxFalconModel {
   //───────────────────────────────────────────────────────────────────────────┐
   /**
    * @method      build
-   * @param       {T=object}  [opts]  Optional. Build-specific options.
+   * @param       {T} [opts]  Optional. Build-specific options. The generic type
+   *              for this parameter is supplied by the derived class, providing
+   *              type safety for this method in instances of the derived class.
    * @return      {Promise<ModelState>}  Representation of this `SfdxFalconModel`
    *              object's state at the conclusion of the build process.
    * @description Executes the `_build()` method from the dervied class and
@@ -226,7 +254,7 @@ export abstract class SfdxFalconModel {
    * @public @async
    */
   //───────────────────────────────────────────────────────────────────────────┘
-  public async build<T extends object = object>(opts?:T):Promise<ModelState> {
+  public async build(opts?:T):Promise<ModelState> {
 
     // Define function-local and external debug namespaces.
     const funcName    = `build`;
@@ -246,9 +274,10 @@ export abstract class SfdxFalconModel {
                                 , `${dbgNsExt}`);
     }
 
-    // If provided, Make sure that the `opts` argument is an object
+    // If provided, Make sure that the `opts` argument is an object AND that it's got some Build Options.
     if (typeof opts !== 'undefined') {
-      TypeValidator.throwOnEmptyNullInvalidObject(opts,	`${dbgNsExt}`,	`BuildOptions`);
+      TypeValidator.throwOnEmptyNullInvalidObject(opts,	          `${dbgNsExt}`,	`SfdxFalconModelOptions`);
+      TypeValidator.throwOnEmptyNullInvalidObject(opts.buildOpts,	`${dbgNsExt}`,	`SfdxFalconModelOptions.buildOpts`);
     }
     else {
       opts = {} as T;
@@ -258,7 +287,7 @@ export abstract class SfdxFalconModel {
     this._buildOpts = opts;
 
     // Build the model using the method implemented by the derived class.
-    await this._build<T>(opts)
+    await this._build(opts)
     .then((success:boolean) => {
       if (success) {
         this._state.built     = true;
@@ -378,7 +407,9 @@ export abstract class SfdxFalconModel {
   //───────────────────────────────────────────────────────────────────────────┐
   /**
    * @method      load
-   * @param       {T=object}  [opts]  Optional. Loading-specific options.
+   * @param       {T} [opts]  Optional. Load-specific options. Generic type
+   *              for this parameter is supplied by the derived class, providing
+   *              type safety for this method in instances of the derived class.
    * @return      {Promise<ModelState>}  Representation of this `SfdxFalconModel`
    *              object's state at the conclusion of the loading process.
    * @description Executes the `_load()` method from the dervied class and
@@ -387,7 +418,7 @@ export abstract class SfdxFalconModel {
    * @public @async
    */
   //───────────────────────────────────────────────────────────────────────────┘
-  public async load<T extends object = object>(opts?:T):Promise<ModelState> {
+  public async load(opts?:T):Promise<ModelState> {
 
     // Define function-local and external debug namespaces.
     const funcName    = `load`;
@@ -419,7 +450,7 @@ export abstract class SfdxFalconModel {
     this._loadOpts = opts;
     
     // Load the model using the method implemented by the derived class.
-    await this._load<T>(opts)
+    await this._load(opts)
     .then((success:boolean) => {
       if (success) {
         this._state.loaded    = true;
@@ -496,6 +527,9 @@ export abstract class SfdxFalconModel {
                                 , `${errName}`
                                 , `${dbgNsExt}`);
     }
+
+
+TODO: do a check for finalized because you can not refesh a finalized model
 
     // Initialize the model to reset everything to the starting state.
     this.initialize();
@@ -595,8 +629,8 @@ export abstract class SfdxFalconModel {
   //───────────────────────────────────────────────────────────────────────────┐
   /**
    * @method      _build
-   * @param       {T=object}  [opts]  Optional. Custom build options proxied
-   *              to this method from the public `build()` method.
+   * @param       {T} [opts]  Optional. Custom build options proxied to this
+   *              method from the public `build()` method.
    * @return      {Promise<boolean>}
    * @description **IMPORTANT: Must be overriden by derived class**
    *              Performs the work of building this model. Must return `true` if
@@ -608,7 +642,7 @@ export abstract class SfdxFalconModel {
    * @protected @async
    */
   //───────────────────────────────────────────────────────────────────────────┘
-  protected async _build<T extends object = object>(opts?:T):Promise<boolean> {
+  protected async _build(opts?:T):Promise<boolean> {
 
     // Define external debug namespace.
     const funcName  = `_build`;
@@ -667,8 +701,8 @@ export abstract class SfdxFalconModel {
   //───────────────────────────────────────────────────────────────────────────┐
   /**
    * @method      _load
-   * @param       {T=object}  [opts]  Optional. Custom load options proxied
-   *              to this method from the public `load()` method.
+   * @param       {T} [opts]  Optional. Custom load options proxied to this
+   *              method from the public `load()` method.
    * @return      {Promise<boolean>}
    * @description **IMPORTANT: Must be overriden by derived class**
    *              Performs the work of loading this model. Must return `true` if
@@ -680,7 +714,7 @@ export abstract class SfdxFalconModel {
    * @protected @async
    */
   //───────────────────────────────────────────────────────────────────────────┘
-  protected async _load<T extends object = object>(opts?:T):Promise<boolean> {
+  protected async _load(opts?:T):Promise<boolean> {
 
     // Define external debug namespace.
     const funcName  = `_load`;
@@ -754,18 +788,18 @@ export abstract class SfdxFalconModel {
 // ────────────────────────────────────────────────────────────────────────────────────────────────┐
 /**
  * @function    determineDbgNsExt
- * @param       {SfdxFalconWorkerOptions} opts  Required. Options passed to the `SfdxFalconModel`
- *              constructor.
+ * @param       {SfdxFalconModelBaseOptions} opts  Required. Options passed to the `SfdxFalconModel`
+ *              base constructor.
  * @param       {string}  derivedClassName  Required. Name of the class extending `SfdxFalconModel`.
  * @param       {string}  dbgNsAlt  Required. Alternative DbgNs to be used if the `opts` argument
  *              did not contain a valid `dbgNsExt` string member.
  * @returns     {string}  The correct External Debug Namespace based on the provided values.
- * @description Given an `SfdxFalconModelOptions` object, the name of the derived class, and an
- *              alternative debug namespace to use if the `SfdxFalconModelOptions` don't have the
- *              appropriate info, returns the correct External Debug Namespace string.
+ * @description Given an `SfdxFalconModelBaseOptions` object, the name of the derived class, and an
+ *              alternative debug namespace to use if the `SfdxFalconModelBaseOptions` don't have
+ *              the appropriate info, returns the correct External Debug Namespace string.
  */
 // ────────────────────────────────────────────────────────────────────────────────────────────────┘
-function determineDbgNsExt(opts:SfdxFalconModelOptions, derivedClassName:string, dbgNsAlt:string):string {
+function determineDbgNsExt(opts:SfdxFalconModelBaseOptions, derivedClassName:string, dbgNsAlt:string):string {
 
   // Define local debug namespace.
   const dbgNsLocal = `${dbgNs}:determineDbgNsExt`;
