@@ -230,6 +230,7 @@ export abstract class SfdxFalconModel {
 
     // Define function-local and external debug namespaces.
     const funcName    = `build`;
+    const errName     = `BuildError`;
     const dbgNsLocal  = `${dbgNs}:${funcName}`;
     const dbgNsExt    = `${this._dbgNs}:${funcName}`;
     
@@ -241,7 +242,7 @@ export abstract class SfdxFalconModel {
     if (this._state.ready) {
       throw new SfdxFalconError	( `This model has already been built/loaded/finalized. Use this `
                                 + `object's refresh() method if rebuilding is required.`
-                                , `BuildError`
+                                , `${errName}`
                                 , `${dbgNsExt}`);
     }
 
@@ -269,7 +270,7 @@ export abstract class SfdxFalconModel {
       }
       else {
         throw new SfdxFalconError ( `The _build() function failed but did not provide specifics.`
-                                  , `BuildError`
+                                  , `${errName}`
                                   , `${dbgNsExt}`);
       }
     })
@@ -283,7 +284,7 @@ export abstract class SfdxFalconModel {
 
       // Craft an SfdxFalconError to either trap or throw.
       const caughtError = new SfdxFalconError	( `The _build() function failed. ${buildError.message}`
-                                              , `BuildError`
+                                              , `${errName}`
                                               , `${dbgNsExt}`
                                               , buildError);
       SfdxFalconDebug.obj(`${dbgNsLocal}:caughtError:`, caughtError);
@@ -390,6 +391,7 @@ export abstract class SfdxFalconModel {
 
     // Define function-local and external debug namespaces.
     const funcName    = `load`;
+    const errName     = `LoadError`;
     const dbgNsLocal  = `${dbgNs}:${funcName}`;
     const dbgNsExt    = `${this._dbgNs}:${funcName}`;
     
@@ -401,7 +403,7 @@ export abstract class SfdxFalconModel {
     if (this._state.ready) {
       throw new SfdxFalconError	( `This model has already been built/loaded/finalized. Use this `
                                 + `object's refresh() method if reloading is required.`
-                                , `LoadError`
+                                , `${errName}`
                                 , `${dbgNsExt}`);
     }
 
@@ -429,7 +431,7 @@ export abstract class SfdxFalconModel {
       }
       else {
         throw new SfdxFalconError ( `The _load() function failed but did not provide specifics.`
-                                  , `LoadError`
+                                  , `${errName}`
                                   , `${dbgNsExt}`);
       }
     })
@@ -443,7 +445,7 @@ export abstract class SfdxFalconModel {
 
       // Craft an SfdxFalconError to either trap or throw.
       const caughtError = new SfdxFalconError	( `The _load() function failed. ${loadError.message}`
-                                              , `LoadError`
+                                              , `${errName}`
                                               , `${dbgNsExt}`
                                               , loadError);
       SfdxFalconDebug.obj(`${dbgNsLocal}:caughtError:`, caughtError);
@@ -479,6 +481,7 @@ export abstract class SfdxFalconModel {
 
     // Define function-local and external debug namespaces.
     const funcName    = `refresh`;
+    const errName     = `RefreshError`;
     const dbgNsLocal  = `${dbgNs}:${funcName}`;
     const dbgNsExt    = `${this._dbgNs}:${funcName}`;
     
@@ -490,7 +493,7 @@ export abstract class SfdxFalconModel {
     if (this._state.ready !== true) {
       throw new SfdxFalconError	( `This model has not been built/loaded/finalized. The refresh() method `
                                 + `can only be called after a successful call to build() or load().`
-                                , `RefreshError`
+                                , `${errName}`
                                 , `${dbgNsExt}`);
     }
 
@@ -508,7 +511,7 @@ export abstract class SfdxFalconModel {
         }
         else {
           throw new SfdxFalconError ( `The _build() function failed during refresh but did not provide specifics.`
-                                    , `RefreshError`
+                                    , `${errName}`
                                     , `${dbgNsExt}`);
         }
       })
@@ -518,7 +521,7 @@ export abstract class SfdxFalconModel {
   
         // Craft an SfdxFalconError to either trap or throw.
         const caughtError = new SfdxFalconError	( `The _build() function failed during refresh. ${buildError.message}`
-                                                , `RefreshError`
+                                                , `${errName}`
                                                 , `${dbgNsExt}`
                                                 , buildError);
         SfdxFalconDebug.obj(`${dbgNsLocal}:caughtError:`, caughtError);
@@ -550,7 +553,7 @@ export abstract class SfdxFalconModel {
         }
         else {
           throw new SfdxFalconError ( `The _load() function failed during refresh but did not provide specifics.`
-                                    , `RefreshError`
+                                    , `${errName}`
                                     , `${dbgNsExt}`);
         }
       })
@@ -560,7 +563,7 @@ export abstract class SfdxFalconModel {
   
         // Craft an SfdxFalconError to either trap or throw.
         const caughtError = new SfdxFalconError	( `The _load() function failed during refresh. ${loadError.message}`
-                                                , `RefreshError`
+                                                , `${errName}`
                                                 , `${dbgNsExt}`
                                                 , loadError);
         SfdxFalconDebug.obj(`${dbgNsLocal}:caughtError:`, caughtError);
@@ -583,7 +586,7 @@ export abstract class SfdxFalconModel {
 
     // If we get here, the state of the object was screwed up.
     throw new SfdxFalconError	( `The refresh failed because the Model was in an unexpected state.`
-                              , `RefreshError`
+                              , `${errName}`
                               , `${dbgNsExt}`
                               , null
                               , {modelState: this._state});
