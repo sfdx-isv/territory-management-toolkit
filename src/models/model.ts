@@ -27,12 +27,9 @@ import  {SfdxFalconError}   from  '@sfdx-falcon/error';     // Class. Extends Sf
 //import  {AnyConstructor}    from  '@sfdx-falcon/types';     // Type. A constructor for any type T. T defaults to object when not explicitly supplied.
 //import  {JsonMap}           from  '@sfdx-falcon/types';     // Interface. Any JSON-compatible object.
 
-
 // Set the File Local Debug Namespace
 const dbgNs = '@sfdx-falcon:model';
 SfdxFalconDebug.msg(`${dbgNs}:`, `Debugging initialized for ${dbgNs}`);
-
-
 
 
 //─────────────────────────────────────────────────────────────────────────────────────────────────┐
@@ -194,6 +191,17 @@ export abstract class SfdxFalconModel {
       ready:        false,
       stale:        false
     };
+
+    // Call the initialize() method.
+    try {
+      this.initialize();
+    }
+    catch (initializationError) {
+      throw new SfdxFalconError	( `Constructor initialization failed. ${initializationError.message}`
+                                , `InitializationError`
+                                , `${dbgNsExt}:${funcName}`
+                                , initializationError);
+    }
   }
 
   //───────────────────────────────────────────────────────────────────────────┐
