@@ -528,8 +528,13 @@ export abstract class SfdxFalconModel<T extends SfdxFalconModelOptions> {
                                 , `${dbgNsExt}`);
     }
 
-
-TODO: do a check for finalized because you can not refesh a finalized model
+    // Refuse attempts to refresh a Finalized model since we have no way of repeating that.
+    if (this._state.finalized === true) {
+      throw new SfdxFalconError	( `This model can not be refreshed because it was not built using the `
+                                + `build() or load() methods.`
+                                , `${errName}`
+                                , `${dbgNsExt}`);
+    }
 
     // Initialize the model to reset everything to the starting state.
     this.initialize();
