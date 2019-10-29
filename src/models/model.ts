@@ -243,9 +243,11 @@ export abstract class SfdxFalconModel<T extends SfdxFalconModelOptions> {
   //───────────────────────────────────────────────────────────────────────────┐
   /**
    * @method      build
-   * @param       {T} [opts]  Optional. Build-specific options. The generic type
-   *              for this parameter is supplied by the derived class, providing
-   *              type safety for this method in instances of the derived class.
+   * @param       {T} [opts]  Optional. If provided, should contain an
+   *              `SfdxFalconModelOptions` derived object with build-specific
+   *              options in its `buildOpts` member. The generic type for this
+   *              parameter is supplied by the derived class, providing type
+   *              safety for this method in instances of the derived class.
    * @return      {Promise<ModelState>}  Representation of this `SfdxFalconModel`
    *              object's state at the conclusion of the build process.
    * @description Executes the `_build()` method from the dervied class and
@@ -407,9 +409,11 @@ export abstract class SfdxFalconModel<T extends SfdxFalconModelOptions> {
   //───────────────────────────────────────────────────────────────────────────┐
   /**
    * @method      load
-   * @param       {T} [opts]  Optional. Load-specific options. Generic type
-   *              for this parameter is supplied by the derived class, providing
-   *              type safety for this method in instances of the derived class.
+   * @param       {T} [opts]  Optional. If provided, should contain an
+   *              `SfdxFalconModelOptions` derived object with build-specific
+   *              options in its `loadOpts` member. The generic type for this
+   *              parameter is supplied by the derived class, providing type
+   *              safety for this method in instances of the derived class.
    * @return      {Promise<ModelState>}  Representation of this `SfdxFalconModel`
    *              object's state at the conclusion of the loading process.
    * @description Executes the `_load()` method from the dervied class and
@@ -438,9 +442,10 @@ export abstract class SfdxFalconModel<T extends SfdxFalconModelOptions> {
                                 , `${dbgNsExt}`);
     }
 
-    // If provided, Make sure that the `opts` argument is an object
+    // If provided, Make sure that the `opts` argument is an object AND that it's got some Load Options.
     if (typeof opts !== 'undefined') {
-      TypeValidator.throwOnEmptyNullInvalidObject(opts,	`${dbgNsExt}`,	`LoadOptions`);
+      TypeValidator.throwOnEmptyNullInvalidObject(opts,	          `${dbgNsExt}`,	`SfdxFalconModelOptions`);
+      TypeValidator.throwOnEmptyNullInvalidObject(opts.loadOpts,	`${dbgNsExt}`,	`SfdxFalconModelOptions.loadOpts`);
     }
     else {
       opts = {} as T;
