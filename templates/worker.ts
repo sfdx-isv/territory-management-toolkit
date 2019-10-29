@@ -56,17 +56,30 @@ export class ClassName extends SfdxFalconWorker {
   /**
    * @constructs  ClassName
    * @param       {ClassNameOptions}  [opts]  Optional. Represents the options
-   *              required to construct/prepare this `SfdxFalconWorker`-derived
-   *              object.
+   *              required to construct/prepare this `ClassName` object.
    * @description Constructs a `ClassName` object.
    * @public
    */
   //───────────────────────────────────────────────────────────────────────────┘
   constructor(opts?:ClassNameOptions) {
+
+    // Call the superclass constructor.
     super({
-      dbgNsExt:   `${dbgNs}`, // Sets the base debug namespace for this Worker.
-      prepared:   false       // Set to `false` if this Worker requires preparation.
+      dbgNsExt: `WORKER`, // Sets the base debug namespace for this Worker.
+      prepared: false     // Indicates this worker requires preparation.
     });
+
+    // Define the local debug namespace and echo incoming arguments.
+    const dbgNsLocal = `${this.dbgNs}:constructor`;
+    SfdxFalconDebug.obj(`${dbgNsLocal}:arguments:`, arguments);
+
+    // Validate incoming options.
+    TypeValidator.throwOnEmptyNullInvalidObject(opts,           `${dbgNsLocal}`, `ClassNameOptions`);
+    TypeValidator.throwOnEmptyNullInvalidString(opts.optionOne, `${dbgNsLocal}`, `ClassNameOptions.optionOne`);
+    TypeValidator.throwOnEmptyNullInvalidString(opts.optionTwo, `${dbgNsLocal}`, `ClassNameOptions.optionTwo`);
+
+    // Perform initialization.
+    // TODO: Add initialization logic here.
   }
 
 
