@@ -277,7 +277,7 @@ export abstract class SfdxFalconModel<T extends SfdxFalconModelOptions> {
     }
 
     // If provided, Make sure that the `opts` argument is an object AND that it's got some Build Options.
-    if (typeof opts !== 'undefined') {
+    if (TypeValidator.isNotNullUndefined(opts)) {
       TypeValidator.throwOnEmptyNullInvalidObject(opts,	          `${dbgNsExt}`,	`SfdxFalconModelOptions`);
       TypeValidator.throwOnEmptyNullInvalidObject(opts.buildOpts,	`${dbgNsExt}`,	`SfdxFalconModelOptions.buildOpts`);
     }
@@ -443,7 +443,7 @@ export abstract class SfdxFalconModel<T extends SfdxFalconModelOptions> {
     }
 
     // If provided, Make sure that the `opts` argument is an object AND that it's got some Load Options.
-    if (typeof opts !== 'undefined') {
+    if (TypeValidator.isNotNullUndefined(opts)) {
       TypeValidator.throwOnEmptyNullInvalidObject(opts,	          `${dbgNsExt}`,	`SfdxFalconModelOptions`);
       TypeValidator.throwOnEmptyNullInvalidObject(opts.loadOpts,	`${dbgNsExt}`,	`SfdxFalconModelOptions.loadOpts`);
     }
@@ -639,7 +639,7 @@ export abstract class SfdxFalconModel<T extends SfdxFalconModelOptions> {
   //───────────────────────────────────────────────────────────────────────────┐
   /**
    * @method      _build
-   * @param       {T} [opts]  Optional. Custom build options proxied to this
+   * @param       {T} opts  Required. Custom build options proxied to this
    *              method from the public `build()` method.
    * @return      {Promise<boolean>}
    * @description **IMPORTANT: Must be overriden by derived class**
@@ -652,7 +652,7 @@ export abstract class SfdxFalconModel<T extends SfdxFalconModelOptions> {
    * @protected @async
    */
   //───────────────────────────────────────────────────────────────────────────┘
-  protected async _build(opts?:T):Promise<boolean> {
+  protected async _build(_opts:T):Promise<boolean> {
 
     // Define external debug namespace.
     const funcName  = `_build`;
@@ -711,7 +711,7 @@ export abstract class SfdxFalconModel<T extends SfdxFalconModelOptions> {
   //───────────────────────────────────────────────────────────────────────────┐
   /**
    * @method      _load
-   * @param       {T} [opts]  Optional. Custom load options proxied to this
+   * @param       {T} opts  Required. Custom load options proxied to this
    *              method from the public `load()` method.
    * @return      {Promise<boolean>}
    * @description **IMPORTANT: Must be overriden by derived class**
@@ -724,7 +724,7 @@ export abstract class SfdxFalconModel<T extends SfdxFalconModelOptions> {
    * @protected @async
    */
   //───────────────────────────────────────────────────────────────────────────┘
-  protected async _load(opts?:T):Promise<boolean> {
+  protected async _load(_opts:T):Promise<boolean> {
 
     // Define external debug namespace.
     const funcName  = `_load`;
