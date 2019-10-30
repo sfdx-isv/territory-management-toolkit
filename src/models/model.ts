@@ -20,6 +20,10 @@ import  {TypeValidator}   from  '@sfdx-falcon/validator'; // Library. Collection
 import  {SfdxFalconDebug} from  '@sfdx-falcon/debug';     // Class. Provides custom "debugging" services (ie. debug-style info to console.log()).
 import  {SfdxFalconError} from  '@sfdx-falcon/error';     // Class. Extends SfdxError to provide specialized error structures for SFDX-Falcon modules.
 
+// Define file-global constants
+const BUILD_KEY = `@sfdx-falcon/model:BUILT`;
+const LOAD_KEY  = `@sfdx-falcon/model:LOADED`;
+
 // Set the File Local Debug Namespace
 const dbgNs = '@sfdx-falcon:model';
 SfdxFalconDebug.msg(`${dbgNs}:`, `Debugging initialized for ${dbgNs}`);
@@ -40,18 +44,20 @@ export interface ModelState {
    */
   loaded:       boolean;
   /**
-   * Indicates that the model was made ready via some sort of customized process, capped
-   * off by a call to `SfdxFalconModel.finalize()`.
+   * Indicates that the model may be made ready via a customized process.
    */
-  finalized:    boolean;
+  customized:   boolean;
   /**
    * Indicates that the model encountered one or more errors during building/loading.
    */
   failed:       boolean;
   /**
-   * Indicates that the model has been either `built` or `loaded` and is now ready for use.
+   * Indicates the readiness state of the model. Uses the keys `BUILT` or `LOADED` for tracking
+   * the state after successful `build()` or `load()` calls. Custom built models must add their
+   * own "required" states to this map using `SfdxFalconModel.requireReady()` and set them as
+   * "ready" using `SfdxFalconModel.setReady()`.
    */
-  ready:        boolean;
+  ready:        Map<string, boolean>;
   /**
    * Indicates that information in the model may no longer be relevant and should be refreshed.
    */
@@ -132,7 +138,7 @@ export abstract class SfdxFalconModel<T extends SfdxFalconModelOptions> {
    */
   private readonly _dbgNs:  string;
   /**
-   * Tracks the state (`built`/`loaded`/`ready`/`stale`) of this model.
+   * Tracks the (`built`/`loaded`/`customized`/`ready`/`stale`) state of this model.
    */
   private readonly _state:  ModelState;
   /**
@@ -157,7 +163,18 @@ export abstract class SfdxFalconModel<T extends SfdxFalconModelOptions> {
   /**
    * Indicates wheter or not the methods and properties of this instance are ready for use.
    */
-  public get ready() { return this._state.ready; }
+  public get ready() {
+    if (this._state.ready.size < 1) {
+      return false;
+    }
+    for (const value of this._state.ready.values()) {
+      if (value !== true) {
+        SfdxFalconDebug.obj(`${dbgNs}:_state.ready:`, this._state.ready, `One or more of the READY values are FALSE`);
+        return false;
+      }
+    }
+    return true;
+  }
   /**
    * Indicates whether or not the model was made ready via the `build()` method.
    */
@@ -167,9 +184,9 @@ export abstract class SfdxFalconModel<T extends SfdxFalconModelOptions> {
    */
   public get loaded() { return this._state.loaded; }
   /**
-   * Indicates whether or not the model was made ready via the `finalize()` method.
+   * Indicates whether or not the model has had at least one custom build step executed successfully.
    */
-  public get finalized() { return this._state.finalized; }
+  public get customized() { return this._state.customized; }
   /**
    * Indicates that an error was trapped while executing the `build()`, `load()`, or `refresh()` method.
    */
@@ -222,9 +239,9 @@ export abstract class SfdxFalconModel<T extends SfdxFalconModelOptions> {
     this._state       = {
       built:        false,
       loaded:       false,
-      finalized:    false,
+      customized:   false,
       failed:       false,
-      ready:        false,
+      ready:        new Map<string, boolean>(),
       stale:        false
     };
 
@@ -268,10 +285,28 @@ export abstract class SfdxFalconModel<T extends SfdxFalconModelOptions> {
     SfdxFalconDebug.obj(`${dbgNsLocal}:arguments:`, arguments);
     SfdxFalconDebug.obj(`${dbgNsExt}:arguments:`,   arguments);
     
-    // Make sure this model has not already been built/loaded/finalized.
-    if (this._state.ready) {
-      throw new SfdxFalconError	( `This model has already been built/loaded/finalized. Use this `
-                                + `object's refresh() method if rebuilding is required.`
+    // Make sure this model has not been LOADED.
+    if (this.loaded) {
+      throw new SfdxFalconError	( `This model has already been loaded and may not be built. `
+                                + `Use the refresh() method to reload, or use the reset() `
+                                + `method then call build() again to switch to building.`
+                                , `${errName}`
+                                , `${dbgNsExt}`);
+    }
+
+    // Make sure this model has not been CUSTOMIZED.
+    if (this.customized) {
+      throw new SfdxFalconError	( `This model is being readied by a custom process and may not be `
+                                + `built. Use this object's reset() method and call build() again `
+                                + `if using the build() method is required.`
+                                , `${errName}`
+                                , `${dbgNsExt}`);
+    }
+
+    // Make sure this model has not already been MADE READY.
+    if (this.ready) {
+      throw new SfdxFalconError	( `This model is already ready and can not be built again. Use `
+                                + `this object's refresh() method if rebuilding is required.`
                                 , `${errName}`
                                 , `${dbgNsExt}`);
     }
@@ -288,36 +323,50 @@ export abstract class SfdxFalconModel<T extends SfdxFalconModelOptions> {
     // Keep a copy of the Options object that the caller provided.
     this._buildOpts = opts;
 
+    // Mark this as a "built" model, which immediate negates "loaded".
+    this._state.built   = true;
+    this._state.loaded  = false;
+
     // Build the model using the method implemented by the derived class.
     await this._build(opts)
     .then((success:boolean) => {
-      if (success) {
-        this._state.built     = true;
-        this._state.ready     = true;
-        this._state.loaded    = false;
-        this._state.finalized = false;
-        this._state.failed    = false;
-        this._state.stale     = false;
-      }
-      else {
+
+      // Make sure the _build() function succeeded.
+      if (success !== true) {
         throw new SfdxFalconError ( `The _build() function failed but did not provide specifics.`
                                   , `${errName}`
-                                  , `${dbgNsExt}`);
+                                  , `${dbgNsExt}`
+                                  , null
+                                  , this._state);
       }
+
+      // If there are any CUSTOM build steps, make sure they succeeded. This allows
+      // developers to create custom builds that also leverage the build() method
+      if (success === true && (this.customized && this.ready !== true)) {
+        throw new SfdxFalconError ( `The _build() function succeeded but at least one `
+                                  + `required custom build step was not marked as READY.`
+                                  , `${errName}`
+                                  , `${dbgNsExt}`
+                                  , null
+                                  , this._state);
+      }
+      
+      // If we get here, we had a successful build.  Update state members to match.
+      this._state.ready.set(BUILD_KEY, true);
+      this._state.failed  = false;
+      this._state.stale   = false;
     })
     .catch((buildError:Error) => {
-      this._state.failed    = true;
-      this._state.ready     = false;
-      this._state.built     = false;
-      this._state.loaded    = false;
-      this._state.finalized = false;
-      this._state.stale     = false;
+      this._state.ready.set(BUILD_KEY, false);
+      this._state.failed  = true;
 
       // Craft an SfdxFalconError to either trap or throw.
-      const caughtError = new SfdxFalconError	( `The _build() function failed. ${buildError.message}`
+      const caughtError = new SfdxFalconError	( `Model Build Failed. ${buildError.message}`
                                               , `${errName}`
                                               , `${dbgNsExt}`
-                                              , buildError);
+                                              , buildError
+                                              , this._state);
+      
       SfdxFalconDebug.obj(`${dbgNsLocal}:caughtError:`, caughtError);
       SfdxFalconDebug.obj(`${dbgNsExt}:caughtError:`,   caughtError);
       
@@ -347,6 +396,7 @@ export abstract class SfdxFalconModel<T extends SfdxFalconModelOptions> {
    * @protected
    */
   //───────────────────────────────────────────────────────────────────────────┘
+  /*
   public async finalize():Promise<ModelState> {
 
     // Define function-local and external debug namespaces.
@@ -404,7 +454,7 @@ export abstract class SfdxFalconModel<T extends SfdxFalconModelOptions> {
     SfdxFalconDebug.obj(`${dbgNsLocal}:ModelState:`, this._state);
     SfdxFalconDebug.obj(`${dbgNsExt}:ModelState:`,   this._state);
     return this._state;
-  }
+  }//*/
 
   //───────────────────────────────────────────────────────────────────────────┐
   /**
@@ -434,10 +484,28 @@ export abstract class SfdxFalconModel<T extends SfdxFalconModelOptions> {
     SfdxFalconDebug.obj(`${dbgNsLocal}:arguments:`, arguments);
     SfdxFalconDebug.obj(`${dbgNsExt}:arguments:`,   arguments);
     
-    // Make sure this model has not already been built/loaded/finalized.
-    if (this._state.ready) {
-      throw new SfdxFalconError	( `This model has already been built/loaded/finalized. Use this `
-                                + `object's refresh() method if reloading is required.`
+    // Make sure this model has not been BUILT.
+    if (this.built) {
+      throw new SfdxFalconError	( `This model has already been built and may not be loaded. `
+                                + `Use the refresh() method to rebuild, or use the reset() `
+                                + `method then call load() again to switch to loading.`
+                                , `${errName}`
+                                , `${dbgNsExt}`);
+    }
+
+    // Make sure this model has not been CUSTOMIZED.
+    if (this.customized) {
+      throw new SfdxFalconError	( `This model is being readied by a custom process and may not be `
+                                + `loaded. Use this object's reset() method and call load() again `
+                                + `if using the load() method is required.`
+                                , `${errName}`
+                                , `${dbgNsExt}`);
+    }
+
+    // Make sure this model has not already been MADE READY.
+    if (this.ready) {
+      throw new SfdxFalconError	( `This model is already ready and can not be loaded again. Use `
+                                + `this object's refresh() method if reloading is required.`
                                 , `${errName}`
                                 , `${dbgNsExt}`);
     }
@@ -453,37 +521,40 @@ export abstract class SfdxFalconModel<T extends SfdxFalconModelOptions> {
 
     // Keep a copy of the Options object that the caller provided.
     this._loadOpts = opts;
+
+    // Mark this as a "loaded" model, which immediate negates "built".
+    this._state.loaded  = true;
+    this._state.built   = false;
     
     // Load the model using the method implemented by the derived class.
     await this._load(opts)
     .then((success:boolean) => {
-      if (success) {
-        this._state.loaded    = true;
-        this._state.ready     = true;
-        this._state.built     = false;
-        this._state.finalized = false;
-        this._state.failed    = false;
-        this._state.stale     = false;
-      }
-      else {
+
+      // Make sure the _load() function succeeded.
+      if (success !== true) {
         throw new SfdxFalconError ( `The _load() function failed but did not provide specifics.`
                                   , `${errName}`
-                                  , `${dbgNsExt}`);
+                                  , `${dbgNsExt}`
+                                  , null
+                                  , this._state);
       }
+
+      // If we get here, we had a successful load.  Update state members to match.
+      this._state.ready.set(LOAD_KEY, true);
+      this._state.failed  = false;
+      this._state.stale   = false;
     })
     .catch((loadError:Error) => {
-      this._state.failed    = true;
-      this._state.ready     = false;
-      this._state.loaded    = false;
-      this._state.built     = false;
-      this._state.finalized = false;
-      this._state.stale     = false;
+      this._state.ready.set(LOAD_KEY, false);
+      this._state.failed  = true;
 
       // Craft an SfdxFalconError to either trap or throw.
-      const caughtError = new SfdxFalconError	( `The _load() function failed. ${loadError.message}`
+      const caughtError = new SfdxFalconError	( `Model Load Failed. ${loadError.message}`
                                               , `${errName}`
                                               , `${dbgNsExt}`
-                                              , loadError);
+                                              , loadError
+                                              , this._state);
+
       SfdxFalconDebug.obj(`${dbgNsLocal}:caughtError:`, caughtError);
       SfdxFalconDebug.obj(`${dbgNsExt}:caughtError:`,   caughtError);
       
@@ -525,22 +596,15 @@ export abstract class SfdxFalconModel<T extends SfdxFalconModelOptions> {
     SfdxFalconDebug.obj(`${dbgNsLocal}:arguments:`, arguments);
     SfdxFalconDebug.obj(`${dbgNsExt}:arguments:`,   arguments);
     
-    // Make sure this model HAS already been built/loaded/finalized.
-    if (this._state.ready !== true) {
-      throw new SfdxFalconError	( `This model has not been built/loaded/finalized. The refresh() method `
-                                + `can only be called after a successful call to build() or load().`
+    // Make sure this model has already been MADE READY.
+    if (this.ready !== true) {
+      throw new SfdxFalconError	( `This model can not be refreshed. The refresh() method can only be called `
+                                + `after a model is made ready via build(), load(), or by performing required `
+                                + `custom build steps.`
                                 , `${errName}`
                                 , `${dbgNsExt}`);
     }
-
-    // Refuse attempts to refresh a Finalized model since we have no way of repeating that.
-    if (this._state.finalized === true) {
-      throw new SfdxFalconError	( `This model can not be refreshed because it was not built using the `
-                                + `build() or load() methods.`
-                                , `${errName}`
-                                , `${dbgNsExt}`);
-    }
-
+    
     // Initialize the model to reset everything to the starting state.
     this.initialize();
 
@@ -549,25 +613,43 @@ export abstract class SfdxFalconModel<T extends SfdxFalconModelOptions> {
       TypeValidator.throwOnNullInvalidObject(this._buildOpts,	`${dbgNsExt}`,	`cached Build Options (this._buildOpts)`);
       await this._build(this._buildOpts)
       .then((success:boolean) => {
-        if (success) {
-          this._state.ready   = true;
-          this._state.failed  = false;
-        }
-        else {
+
+        // Make sure the _build() function succeeded.
+        if (success !== true) {
           throw new SfdxFalconError ( `The _build() function failed during refresh but did not provide specifics.`
                                     , `${errName}`
-                                    , `${dbgNsExt}`);
+                                    , `${dbgNsExt}`
+                                    , null
+                                    , this._state);
         }
+
+        // If the _build() function executed any custom build steps, make sure that
+        // they collectively performed everything that was required of them.
+        if (success === true && (this.customized && this.ready !== true)) {
+          throw new SfdxFalconError ( `The _build() function succeeded during refresh but at least `
+                                    + `one required custom build step was not marked as READY.`
+                                    , `${errName}`
+                                    , `${dbgNsExt}`
+                                    , null
+                                    , this._state);
+        }
+
+        // If we get here, we had a successful rebuild.  Update state members to match.
+        this._state.ready.set(BUILD_KEY, true);
+        this._state.failed  = false;
+        this._state.stale   = false;
       })
       .catch((buildError:Error) => {
-        this._state.ready   = false;
+        this._state.ready.set(BUILD_KEY, false);
         this._state.failed  = true;
-  
+    
         // Craft an SfdxFalconError to either trap or throw.
-        const caughtError = new SfdxFalconError	( `The _build() function failed during refresh. ${buildError.message}`
+        const caughtError = new SfdxFalconError	( `Refresh Model Build Failed. ${buildError.message}`
                                                 , `${errName}`
                                                 , `${dbgNsExt}`
-                                                , buildError);
+                                                , buildError
+                                                , this._state);
+        
         SfdxFalconDebug.obj(`${dbgNsLocal}:caughtError:`, caughtError);
         SfdxFalconDebug.obj(`${dbgNsExt}:caughtError:`,   caughtError);
         
@@ -591,25 +673,32 @@ export abstract class SfdxFalconModel<T extends SfdxFalconModelOptions> {
       TypeValidator.throwOnNullInvalidObject(this._loadOpts,	`${dbgNsExt}`,	`cached Load Options (this._loadOpts)`);
       await this._load(this._loadOpts)
       .then((success:boolean) => {
-        if (success) {
-          this._state.ready   = true;
-          this._state.failed  = false;
-        }
-        else {
+
+        // Make sure the _load() function succeeded.
+        if (success !== true) {
           throw new SfdxFalconError ( `The _load() function failed during refresh but did not provide specifics.`
                                     , `${errName}`
-                                    , `${dbgNsExt}`);
+                                    , `${dbgNsExt}`
+                                    , null
+                                    , this._state);
         }
+
+        // If we get here, we had a successful load.  Update state members to match.
+        this._state.ready.set(LOAD_KEY, true);
+        this._state.failed  = false;
+        this._state.stale   = false;
       })
       .catch((loadError:Error) => {
+        this._state.ready.set(LOAD_KEY, false);
         this._state.failed  = true;
-        this._state.ready   = false;
-  
+    
         // Craft an SfdxFalconError to either trap or throw.
-        const caughtError = new SfdxFalconError	( `The _load() function failed during refresh. ${loadError.message}`
+        const caughtError = new SfdxFalconError	( `Refresh Model Load Failed. ${loadError.message}`
                                                 , `${errName}`
                                                 , `${dbgNsExt}`
-                                                , loadError);
+                                                , loadError
+                                                , this._state);
+
         SfdxFalconDebug.obj(`${dbgNsLocal}:caughtError:`, caughtError);
         SfdxFalconDebug.obj(`${dbgNsExt}:caughtError:`,   caughtError);
         
@@ -694,6 +783,7 @@ export abstract class SfdxFalconModel<T extends SfdxFalconModelOptions> {
    * @protected @async
    */
   //───────────────────────────────────────────────────────────────────────────┘
+  /*
   protected async _finalize():Promise<boolean> {
 
     // Define external debug namespace.
@@ -706,7 +796,7 @@ export abstract class SfdxFalconModel<T extends SfdxFalconModelOptions> {
                               + `class if you'd like to support the use of this feature.`
                               , `ImplementationError`
                               , `${dbgNsExt}`);
-  }
+  }//*/
 
   //───────────────────────────────────────────────────────────────────────────┐
   /**
@@ -752,15 +842,104 @@ export abstract class SfdxFalconModel<T extends SfdxFalconModelOptions> {
     // Define external debug namespace.
     const dbgNsExt = `${this._dbgNs}:isReady`;
 
+    // Get the ready-state.
+    const readyState = this.ready;
+
     // Check if this instance is explicitly NOT ready (eg. strict inequality for `true`).
-    if (this._state.ready !== true) {
+    if (readyState !== true) {
       throw new SfdxFalconError ( `The operation against this ${this.constructor.name} object is not allowed until the model is ready.`
                                 , `ModelNotReady`
                                 , `${dbgNsExt}`);
     }
     else {
-      return this._state.ready;
+      return readyState;
     }
+  }
+
+  //───────────────────────────────────────────────────────────────────────────┐
+  /**
+   * @method      requireReady
+   * @param       {string}  requirement Required. String key that will be used
+   *              in the `_state.ready` map to track readiness of a particular
+   *              build/load activity.
+   * @return      {void}
+   * @description Given a string, use it as the `key` for a new element of the
+   *              `_state.ready` map, using `false` as the `value`.  This has
+   *              the effect of "registering" a readiness requirement. Until
+   *              the `value` is flipped to `true` for all elements of the map,
+   *              the getter for `this.ready` will always return false and
+   *              calls to the `this.isReady()` function will throw an error.
+   * @protected
+   */
+  //───────────────────────────────────────────────────────────────────────────┘
+  protected requireReady(requirement:string):void {
+
+    // Define function-local and external debug namespaces.
+    const funcName    = `requireReady`;
+    const dbgNsLocal  = `${dbgNs}:${funcName}`;
+    const dbgNsExt    = `${this._dbgNs}:${funcName}`;
+
+    // Debug incoming arguments.
+    SfdxFalconDebug.obj(`${dbgNsLocal}:arguments:`, arguments);
+    SfdxFalconDebug.obj(`${dbgNsExt}:arguments:`,   arguments);
+
+    // Validate incoming arguments.
+    TypeValidator.throwOnEmptyNullInvalidString(requirement,  `${dbgNsExt}`,  `requirement`);
+
+    // Set the Readiness Requirement.
+    this._state.ready.set(requirement, false);
+  }
+
+  //───────────────────────────────────────────────────────────────────────────┐
+  /**
+   * @method      setReady
+   * @param       {string}  requirement Required. String key that will be used
+   *              to find the element in the `_state.ready` map that should be
+   *              set as READY.
+   * @return      {void}
+   * @description Given a `string`, use it as the `key` to find the element in
+   *              the `_state.ready` map that the caller wishes to set as
+   *              READY. If found, the `value` of this element will be set to
+   *              `true`.
+   *
+   *              If a matching `key` can not be found, it means that the
+   *              `requirement` supplied by the caller was never registered as
+   *              such using the `requireReady()` method. If this happens,
+   *              an error will be thrown.
+   * @protected
+   */
+  //───────────────────────────────────────────────────────────────────────────┘
+  protected setReady(requirement:string):void {
+
+    // Define function-local and external debug namespaces.
+    const funcName    = `setReady`;
+    const dbgNsLocal  = `${dbgNs}:${funcName}`;
+    const dbgNsExt    = `${this._dbgNs}:${funcName}`;
+
+    // Debug incoming arguments.
+    SfdxFalconDebug.obj(`${dbgNsLocal}:arguments:`, arguments);
+    SfdxFalconDebug.obj(`${dbgNsExt}:arguments:`,   arguments);
+
+    // Validate incoming arguments.
+    TypeValidator.throwOnEmptyNullInvalidString(requirement,  `${dbgNsExt}`,  `requirement`);
+    
+    // Make sure a matching key can be found.
+    if (this._state.ready.has(requirement) !== true) {
+      SfdxFalconDebug.msg(`${dbgNsLocal}:InvalidRequirement:`,  `The key '${requirement}' was not found in this._state.ready.`);
+      SfdxFalconDebug.msg(`${dbgNsExt}:InvalidRequirement:`,    `The key '${requirement}' was not found in this._state.ready.`);
+      throw new SfdxFalconError ( `The key '${requirement}' does not match any registered requirements. `
+                                + `Make sure all requirements are registered by calling requireReady() `
+                                + `inside your model's _initialze() method.`
+                                , `InvalidRequirement`
+                                , `${dbgNsLocal}`);
+    }
+
+    // Key found! Flip it to `true`.
+    this._state.ready.set(requirement, true);
+
+    // Because at least one custom required step is being marked
+    // `true`, go ahead and mark this model as "customized".
+    this._state.customized = true;
   }
 
   //───────────────────────────────────────────────────────────────────────────┐
@@ -778,19 +957,26 @@ export abstract class SfdxFalconModel<T extends SfdxFalconModelOptions> {
     // Define the external debug namespace.
     const dbgNsExt = `${this._dbgNs}:initialize`;
 
-    // Ensure that READY and STALE states are set to `false`.
-    this._state.ready   = false;
-    this._state.stale   = false;
+    // Ensure that the STALE state is set to `false`.
+    this._state.stale       = false;
+    this._state.failed      = false;
+    this._state.customized  = false;
+
+    // Delete all keys in the Ready State Map.
+    this._state.ready.forEach((_value, key, map) => { map.delete(key); });
 
     // Ask the derived class to initialize the member vars it cares about.
+    // This should include all `setRequirement()` calls if the derived class
+    // supports customized builds.
     try {
       this._initialize();
     }
     catch (initializationError) {
-      throw new SfdxFalconError	( `Member variables for this model could not be initialized. ${initializationError.message}`
+      throw new SfdxFalconError	( `Initialization failed. ${initializationError.message}`
                                 , `InitializationError`
                                 , `${dbgNsExt}`
-                                , initializationError);
+                                , initializationError
+                                , this._state);
     }
   }
 }
