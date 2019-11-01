@@ -830,6 +830,81 @@ export abstract class SfdxFalconModel<T extends SfdxFalconModelOptions> {
 
   //───────────────────────────────────────────────────────────────────────────┐
   /**
+   * @method      addReadyRequirement
+   * @param       {string}  requirement Required. String key that will be used
+   *              in the `_state.ready` map to track readiness of a particular
+   *              build/load activity.
+   * @return      {void}
+   * @description Given a string, use it as the `key` for a new element of the
+   *              `_state.ready` map, using `false` as the `value`.  This has
+   *              the effect of "registering" a readiness requirement. Until
+   *              the `value` is flipped to `true` for all elements of the map,
+   *              the getter for `this.ready` will always return false and
+   *              calls to the `this.isReady()` function will throw an error.
+   * @protected
+   */
+  //───────────────────────────────────────────────────────────────────────────┘
+  protected addReadyRequirement(requirement:string):void {
+
+    // Define function-local and external debug namespaces.
+    const funcName    = `addReadyRequirement`;
+    const dbgNsLocal  = `${dbgNs}:${funcName}`;
+    const dbgNsExt    = `${this._dbgNs}:${funcName}`;
+
+    // Debug incoming arguments.
+    SfdxFalconDebug.obj(`${dbgNsLocal}:arguments:`, arguments);
+    SfdxFalconDebug.obj(`${dbgNsExt}:arguments:`,   arguments);
+
+    // Validate incoming arguments.
+    TypeValidator.throwOnEmptyNullInvalidString(requirement,  `${dbgNsExt}`,  `requirement`);
+
+    // Set the Readiness Requirement.
+    this._state.ready.set(requirement, false);
+  }
+
+  //───────────────────────────────────────────────────────────────────────────┐
+  /**
+   * @method      checkReadyRequirement
+   * @param       {string}  requirement Required. String key representing the
+   *              requirement that should be checked. Must match a key in the
+   *              `_state.ready` or an error will be thrown.
+   * @return      {boolean} The value from the matching element in `_state.ready`
+   * @description Given a string, use it as the `key` to retrieve the matching
+   *              `boolean` value from the `_state.ready` map. If a matching key
+   *              can not be found an error will be thrown.
+   * @protected
+   */
+  //───────────────────────────────────────────────────────────────────────────┘
+  protected checkReadyRequirement(requirement:string):boolean {
+
+    // Define function-local and external debug namespaces.
+    const funcName    = `checkReadyRequirement`;
+    const dbgNsLocal  = `${dbgNs}:${funcName}`;
+    const dbgNsExt    = `${this._dbgNs}:${funcName}`;
+
+    // Debug incoming arguments.
+    SfdxFalconDebug.obj(`${dbgNsLocal}:arguments:`, arguments);
+    SfdxFalconDebug.obj(`${dbgNsExt}:arguments:`,   arguments);
+
+    // Validate incoming arguments.
+    TypeValidator.throwOnEmptyNullInvalidString(requirement,  `${dbgNsExt}`,  `requirement`);
+
+    // Try to get the matching element from the `_state.ready` map.
+    const requirementReadyState = this._state.ready.get(requirement);
+
+    // Make sure we got a boolean. If not, the key supplied didn't match a valid requirement.
+    if (TypeValidator.isNullInvalidBoolean(requirementReadyState)) {
+      throw new SfdxFalconError ( `The string '${requirement}' is not a registered build requirement for ${this.constructor.name} models.`
+                                , `InvalidReadyRequirement`
+                                , `${dbgNsExt}`);
+    }
+
+    // Return the ready state for the specified requirement.
+    return requirementReadyState;
+  }
+  
+  //───────────────────────────────────────────────────────────────────────────┐
+  /**
    * @method      isReady
    * @return      {boolean}
    * @description Returns `true` if the `_state.ready` member of an `SfdxFalconModel`
@@ -854,40 +929,6 @@ export abstract class SfdxFalconModel<T extends SfdxFalconModelOptions> {
     else {
       return readyState;
     }
-  }
-
-  //───────────────────────────────────────────────────────────────────────────┐
-  /**
-   * @method      requireReady
-   * @param       {string}  requirement Required. String key that will be used
-   *              in the `_state.ready` map to track readiness of a particular
-   *              build/load activity.
-   * @return      {void}
-   * @description Given a string, use it as the `key` for a new element of the
-   *              `_state.ready` map, using `false` as the `value`.  This has
-   *              the effect of "registering" a readiness requirement. Until
-   *              the `value` is flipped to `true` for all elements of the map,
-   *              the getter for `this.ready` will always return false and
-   *              calls to the `this.isReady()` function will throw an error.
-   * @protected
-   */
-  //───────────────────────────────────────────────────────────────────────────┘
-  protected requireReady(requirement:string):void {
-
-    // Define function-local and external debug namespaces.
-    const funcName    = `requireReady`;
-    const dbgNsLocal  = `${dbgNs}:${funcName}`;
-    const dbgNsExt    = `${this._dbgNs}:${funcName}`;
-
-    // Debug incoming arguments.
-    SfdxFalconDebug.obj(`${dbgNsLocal}:arguments:`, arguments);
-    SfdxFalconDebug.obj(`${dbgNsExt}:arguments:`,   arguments);
-
-    // Validate incoming arguments.
-    TypeValidator.throwOnEmptyNullInvalidString(requirement,  `${dbgNsExt}`,  `requirement`);
-
-    // Set the Readiness Requirement.
-    this._state.ready.set(requirement, false);
   }
 
   //───────────────────────────────────────────────────────────────────────────┐
