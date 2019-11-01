@@ -163,13 +163,19 @@ export class Tm1Analysis extends SfdxFalconModel<Tm1AnalysisOptions> {
   //───────────────────────────────────────────────────────────────────────────┐
   /**
    * @method      analyzeAccountShares
-   * @return      {number}  Number of Account Share records present in the
-   *              target org with "TerritoryManual" as their RowCause.
-   * @description ???
+   * @return      {number}  Number of `AccountShare` records present in the
+   *              target org with `TerritoryManual` as their `RowCause`.
+   * @description Queries the target org for the count of `AccountShare` records
+   *              that have `TerritoryManual` as their `RowCause`.
    * @public @async
    */
   //───────────────────────────────────────────────────────────────────────────┘
   public async analyzeAccountShares():Promise<number> {
+
+    // Define function-local and external debug namespaces.
+    const funcName    = `analyzeAccountShares`;
+    const dbgNsLocal  = `${dbgNs}:${funcName}`;
+    const dbgNsExt    = `${this.dbgNs}:${funcName}`;
 
     // Add a delay for dramatic effect.
     await AsyncUtil.waitASecond(this._defaultDelay);
@@ -190,17 +196,19 @@ export class Tm1Analysis extends SfdxFalconModel<Tm1AnalysisOptions> {
       }
     )
     .then((successResult:SfdxFalconResult) => {
-      SfdxFalconDebug.obj(`${dbgNs}analyzeAccountShares:successResult:`, successResult);
+      SfdxFalconDebug.obj(`${dbgNsLocal}:successResult:`, successResult);
+      SfdxFalconDebug.obj(`${dbgNsExt}:successResult:`,   successResult);
       this._accountShareRecordCount = SfdxUtil.getRecordCountFromResult(successResult);
     })
     .catch((failureResult:SfdxFalconResult|Error) => {
-      SfdxFalconDebug.obj(`${dbgNs}analyzeAccountShares:failureResult:`, failureResult);
+      SfdxFalconDebug.obj(`${dbgNsLocal}:failureResult:`, failureResult);
+      SfdxFalconDebug.obj(`${dbgNsExt}:failureResult:`,   failureResult);
       if (failureResult instanceof SfdxFalconResult) {
         // Add additional context and repackage the Error contained by the SfdxFalconResult
         throw failureResult.error(
           new SfdxFalconError ( `The target org (${this._aliasOrUsername}) does not appear to have Territory Management (TM1) enabled.`
                               , `MissingTM1Config`
-                              , `${dbgNs}analyzeAccountShares`
+                              , `${dbgNsExt}`
                               ,  failureResult.errObj)
         );
       }
@@ -209,7 +217,8 @@ export class Tm1Analysis extends SfdxFalconModel<Tm1AnalysisOptions> {
       }
     });
 
-    // Return the result.
+    // Set the related build requirement as ready and return the result.
+    this.setReady(funcName);
     return this._accountShareRecordCount;
   }
 
@@ -217,11 +226,17 @@ export class Tm1Analysis extends SfdxFalconModel<Tm1AnalysisOptions> {
   /**
    * @method      analyzeAtaRuleItems
    * @return      {number}  Number of TM1 ATA Rule Items present in the target org.
-   * @description ???
+   * @description Queries the target org for the `AccountTerritoryAssignmentRuleItem`
+   *              (aka "ATA Rule Item") record count.
    * @public @async
    */
   //───────────────────────────────────────────────────────────────────────────┘
   public async analyzeAtaRuleItems():Promise<number> {
+
+    // Define function-local and external debug namespaces.
+    const funcName    = `analyzeAtaRuleItems`;
+    const dbgNsLocal  = `${dbgNs}:${funcName}`;
+    const dbgNsExt    = `${this.dbgNs}:${funcName}`;
 
     // Add a delay for dramatic effect.
     await AsyncUtil.waitASecond(this._defaultDelay);
@@ -242,17 +257,19 @@ export class Tm1Analysis extends SfdxFalconModel<Tm1AnalysisOptions> {
       }
     )
     .then((successResult:SfdxFalconResult) => {
-      SfdxFalconDebug.obj(`${dbgNs}analyzeAtaRuleItems:successResult:`, successResult);
+      SfdxFalconDebug.obj(`${dbgNsLocal}:successResult:`, successResult);
+      SfdxFalconDebug.obj(`${dbgNsExt}:successResult:`,   successResult);
       this._ataRuleItemRecordCount = SfdxUtil.getRecordCountFromResult(successResult);
     })
     .catch((failureResult:SfdxFalconResult|Error) => {
-      SfdxFalconDebug.obj(`${dbgNs}analyzeAtaRuleItems:failureResult:`, failureResult);
+      SfdxFalconDebug.obj(`${dbgNsLocal}:failureResult:`, failureResult);
+      SfdxFalconDebug.obj(`${dbgNsExt}:failureResult:`,   failureResult);
       if (failureResult instanceof SfdxFalconResult) {
         // Add additional context and repackage the Error contained by the SfdxFalconResult
         throw failureResult.error(
           new SfdxFalconError ( `The target org (${this._aliasOrUsername}) does not appear to have Territory Management (TM1) enabled.`
                               , `MissingTM1Config`
-                              , `${dbgNs}analyzeAtaRuleItems`
+                              , `${dbgNsExt}`
                               ,  failureResult.errObj)
         );
       }
@@ -261,7 +278,8 @@ export class Tm1Analysis extends SfdxFalconModel<Tm1AnalysisOptions> {
       }
     });
 
-    // Return the result.
+    // Set the related build requirement as ready and return the result.
+    this.setReady(funcName);
     return this._ataRuleItemRecordCount;
   }
 
@@ -269,11 +287,17 @@ export class Tm1Analysis extends SfdxFalconModel<Tm1AnalysisOptions> {
   /**
    * @method      analyzeAtaRules
    * @return      {number}  Number of TM1 ATA Rules present in the target org.
-   * @description ???
+   * @description Queries the target org for the `AccountTerritoryAssignmentRule`
+   *              (aka "ATA Rule") record count.
    * @public @async
    */
   //───────────────────────────────────────────────────────────────────────────┘
   public async analyzeAtaRules():Promise<number> {
+
+    // Define function-local and external debug namespaces.
+    const funcName    = `analyzeAtaRules`;
+    const dbgNsLocal  = `${dbgNs}:${funcName}`;
+    const dbgNsExt    = `${this.dbgNs}:${funcName}`;
 
     // Add a delay for dramatic effect.
     await AsyncUtil.waitASecond(this._defaultDelay);
@@ -294,17 +318,19 @@ export class Tm1Analysis extends SfdxFalconModel<Tm1AnalysisOptions> {
       }
     )
     .then((successResult:SfdxFalconResult) => {
-      SfdxFalconDebug.obj(`${dbgNs}analyzeAtaRules:successResult:`, successResult);
+      SfdxFalconDebug.obj(`${dbgNsLocal}:successResult:`, successResult);
+      SfdxFalconDebug.obj(`${dbgNsExt}:successResult:`,   successResult);
       this._ataRuleRecordCount = SfdxUtil.getRecordCountFromResult(successResult);
     })
     .catch((failureResult:SfdxFalconResult|Error) => {
-      SfdxFalconDebug.obj(`${dbgNs}analyzeAtaRules:failureResult:`, failureResult);
+      SfdxFalconDebug.obj(`${dbgNsLocal}:failureResult:`, failureResult);
+      SfdxFalconDebug.obj(`${dbgNsExt}:failureResult:`,   failureResult);
       if (failureResult instanceof SfdxFalconResult) {
         // Add additional context and repackage the Error contained by the SfdxFalconResult
         throw failureResult.error(
           new SfdxFalconError ( `The target org (${this._aliasOrUsername}) does not appear to have Territory Management (TM1) enabled.`
                               , `MissingTM1Config`
-                              , `${dbgNs}analyzeAtaRules`
+                              , `${dbgNsExt}`
                               ,  failureResult.errObj)
         );
       }
@@ -313,7 +339,8 @@ export class Tm1Analysis extends SfdxFalconModel<Tm1AnalysisOptions> {
       }
     });
 
-    // Return the result.
+    // Set the related build requirement as ready and return the result.
+    this.setReady(funcName);
     return this._ataRuleRecordCount;
   }
 
@@ -321,12 +348,18 @@ export class Tm1Analysis extends SfdxFalconModel<Tm1AnalysisOptions> {
   /**
    * @method      analyzeGroups
    * @return      {number}  Number of Group records present in the target org
-   *              with "Territory" or "TerritoryAndSubordinates" as their Type.
-   * @description ???
+   *              with `Territory` or `TerritoryAndSubordinates` as their `Type`.
+   * @description Queries the target org for the count of `Group` records with
+   *              `Territory` or `TerritoryAndSubordinates` as their `Type`.
    * @public @async
    */
   //───────────────────────────────────────────────────────────────────────────┘
   public async analyzeGroups():Promise<number> {
+
+    // Define function-local and external debug namespaces.
+    const funcName    = `analyzeGroups`;
+    const dbgNsLocal  = `${dbgNs}:${funcName}`;
+    const dbgNsExt    = `${this.dbgNs}:${funcName}`;
 
     // Add a delay for dramatic effect.
     await AsyncUtil.waitASecond(this._defaultDelay);
@@ -347,17 +380,19 @@ export class Tm1Analysis extends SfdxFalconModel<Tm1AnalysisOptions> {
       }
     )
     .then((successResult:SfdxFalconResult) => {
-      SfdxFalconDebug.obj(`${dbgNs}analyzeGroups:successResult:`, successResult);
+      SfdxFalconDebug.obj(`${dbgNsLocal}:successResult:`, successResult);
+      SfdxFalconDebug.obj(`${dbgNsExt}:successResult:`,   successResult);
       this._groupRecordCount = SfdxUtil.getRecordCountFromResult(successResult);
     })
     .catch((failureResult:SfdxFalconResult|Error) => {
-      SfdxFalconDebug.obj(`${dbgNs}analyzeGroups:failureResult:`, failureResult);
+      SfdxFalconDebug.obj(`${dbgNsLocal}:failureResult:`, failureResult);
+      SfdxFalconDebug.obj(`${dbgNsExt}:failureResult:`,   failureResult);
       if (failureResult instanceof SfdxFalconResult) {
         // Add additional context and repackage the Error contained by the SfdxFalconResult
         throw failureResult.error(
           new SfdxFalconError ( `The target org (${this._aliasOrUsername}) does not appear to have Territory Management (TM1) enabled.`
                               , `MissingTM1Config`
-                              , `${dbgNs}analyzeGroups`
+                              , `${dbgNsExt}`
                               ,  failureResult.errObj)
         );
       }
@@ -366,7 +401,8 @@ export class Tm1Analysis extends SfdxFalconModel<Tm1AnalysisOptions> {
       }
     });
 
-    // Return the result.
+    // Set the related build requirement as ready and return the result.
+    this.setReady(funcName);
     return this._groupRecordCount;
   }
 
@@ -376,18 +412,25 @@ export class Tm1Analysis extends SfdxFalconModel<Tm1AnalysisOptions> {
    * @return      {TM1HardDependencies} Object containing the HARD TM1
    *              Dependency Count and an array of the HARD TM1 Dependencies
    *              that were found.
-   * @description ???
+   * @description TODO: Not implemented yet. Intent is to use the Dependency API
+   *              to get all known HARD (aka compile time) dependencies.
    * @public @async
    */
   //───────────────────────────────────────────────────────────────────────────┘
   public async analyzeHardTm1Dependencies():Promise<TM1HardDependencies> {
 
+    // Define function-local and external debug namespaces.
+    const funcName    = `analyzeHardTm1Dependencies`;
+    //const dbgNsLocal  = `${dbgNs}:${funcName}`;
+    //const dbgNsExt    = `${this.dbgNs}:${funcName}`;
+
     // Add a delay for dramatic effect.
     await AsyncUtil.waitASecond(this._defaultDelay);
 
-    // Do stuff...
+    // TODO: Implement the analysis logic for this method.
 
-    // Return the result.
+    // Set the related build requirement as ready and return the result.
+    this.setReady(funcName);
     return {
       hardTm1DependencyCount: this._hardTm1DependencyCount,
       hardTm1Dependencies:    this._hardTm1Dependencies
@@ -400,18 +443,27 @@ export class Tm1Analysis extends SfdxFalconModel<Tm1AnalysisOptions> {
    * @return      {TM1SoftDependencies}  Object containing the SOFT TM1
    *              Dependency Count and an array of the SOFT TM1 Dependencies
    *              that were found.
-   * @description ???
+   * @description TODO: Not implemented yet. Intent is to crawl any metadata
+   *              that might have TM1 dependencies that are only visible at
+   *              runtime. For example, an Apex class with dynamic SOQL that
+   *              refers to the `Territory` object.
    * @public @async
    */
   //───────────────────────────────────────────────────────────────────────────┘
   public async analyzeSoftTm1Dependencies():Promise<TM1SoftDependencies> {
 
+    // Define function-local and external debug namespaces.
+    const funcName    = `analyzeSoftTm1Dependencies`;
+    //const dbgNsLocal  = `${dbgNs}:${funcName}`;
+    //const dbgNsExt    = `${this.dbgNs}:${funcName}`;
+
     // Add a delay for dramatic effect.
     await AsyncUtil.waitASecond(this._defaultDelay);
 
-    // Do stuff...
+    // TODO: Implement the analysis logic for this method.
 
-    // Return the result.
+    // Set the related build requirement as ready and return the result.
+    this.setReady(funcName);
     return {
       softTm1DependencyCount: this._softTm1DependencyCount,
       softTm1Dependencies:    this._softTm1Dependencies
@@ -422,21 +474,28 @@ export class Tm1Analysis extends SfdxFalconModel<Tm1AnalysisOptions> {
   /**
    * @method      analyzeAccountSharingRules
    * @return      {Promise<SharingRulesCount>} Criteria, Owner, and Territory
-   *              Sharing Rule counts for the ACCOUNT object that are shared
-   *              TO or FROM a TM1 Territory or TM1 "Territories and
-   *              Subordinates" group.
-   * @description ???
+   *              Sharing Rule counts for the `Account` object that are shared
+   *              TO or FROM a TM1 `Territory` or TM1 `Territories and Subordinates`
+   *              group.
+   * @description TODO: Not implemented yet. Intent is to do a metadata retrieve
+   *              of all sharing rules and process the resulting XML localy.
    * @public @async
    */
   //───────────────────────────────────────────────────────────────────────────┘
   public async analyzeAccountSharingRules():Promise<SharingRulesCount> {
 
+    // Define function-local and external debug namespaces.
+    const funcName    = `analyzeAccountSharingRules`;
+    //const dbgNsLocal  = `${dbgNs}:${funcName}`;
+    //const dbgNsExt    = `${this.dbgNs}:${funcName}`;
+
     // Add a delay for dramatic effect.
     await AsyncUtil.waitASecond(this._defaultDelay);
 
-    // Do stuff...
+    // TODO: Implement the analysis logic for this method.
 
-    // Return the result.
+    // Set the related build requirement as ready and return the result.
+    this.setReady(funcName);
     return this._accountSharingRulesCount;
   }
 
@@ -444,21 +503,28 @@ export class Tm1Analysis extends SfdxFalconModel<Tm1AnalysisOptions> {
   /**
    * @method      analyzeLeadSharingRules
    * @return      {Promise<SharingRulesCount>} Criteria, Owner, and Territory
-   *              based Sharing Rule counts for the LEAD object that are shared
-   *              TO or FROM a TM1 Territory or TM1 "Territories and
-   *              Subordinates" group.
-   * @description ???
+   *              based Sharing Rule counts for the `Lead` object that are shared
+   *              TO or FROM a TM1 `Territory` or TM1 `Territories and Subordinates`
+   *              group.
+   * @description TODO: Not implemented yet. Intent is to do a metadata retrieve
+   *              of all sharing rules and process the resulting XML localy.
    * @public @async
    */
   //───────────────────────────────────────────────────────────────────────────┘
   public async analyzeLeadSharingRules():Promise<SharingRulesCount> {
 
+    // Define function-local and external debug namespaces.
+    const funcName    = `analyzeLeadSharingRules`;
+    //const dbgNsLocal  = `${dbgNs}:${funcName}`;
+    //const dbgNsExt    = `${this.dbgNs}:${funcName}`;
+
     // Add a delay for dramatic effect.
     await AsyncUtil.waitASecond(this._defaultDelay);
 
-    // Do stuff...
+    // TODO: Implement the analysis logic for this method.
 
-    // Return the result.
+    // Set the related build requirement as ready and return the result.
+    this.setReady(funcName);
     return this._leadSharingRulesCount;
   }
 
@@ -466,33 +532,45 @@ export class Tm1Analysis extends SfdxFalconModel<Tm1AnalysisOptions> {
   /**
    * @method      analyzeOpportunitySharingRules
    * @return      {Promise<SharingRulesCount>} Criteria, Owner, and Territory
-   *              based Sharing Rule counts for the OPPORTUNITY object that
-   *              are shared TO or FROM a TM1 Territory or TM1 "Territories and
-   *              Subordinates" group.
-   * @description ???
+   *              based Sharing Rule counts for the `Opportunity` object that
+   *              are shared TO or FROM a TM1 `Territory` or TM1
+   *              `Territories and Subordinates` group.
+   * @description TODO: Not implemented yet. Intent is to do a metadata retrieve
+   *              of all sharing rules and process the resulting XML localy.
    * @public @async
    */
   //───────────────────────────────────────────────────────────────────────────┘
   public async analyzeOpportunitySharingRules():Promise<SharingRulesCount> {
 
+    // Define function-local and external debug namespaces.
+    const funcName    = `analyzeOpportunitySharingRules`;
+    //const dbgNsLocal  = `${dbgNs}:${funcName}`;
+    //const dbgNsExt    = `${this.dbgNs}:${funcName}`;
+
     // Add a delay for dramatic effect.
     await AsyncUtil.waitASecond(this._defaultDelay);
 
-    // Do stuff...
+    // TODO: Implement the analysis logic for this method.
 
-    // Return the result.
+    // Set the related build requirement as ready and return the result.
+    this.setReady(funcName);
     return this._opportunitySharingRulesCount;
   }
 
   //───────────────────────────────────────────────────────────────────────────┐
   /**
    * @method      analyzeTerritories
-   * @return      {number}  Number of TM1 Territories in the target org.
-   * @description ???
+   * @return      {number}  Number of TM1 `Territory` records in the target org.
+   * @description Queries the target org for the count of `Territory` records.
    * @public @async
    */
   //───────────────────────────────────────────────────────────────────────────┘
   public async analyzeTerritories():Promise<number> {
+
+    // Define function-local and external debug namespaces.
+    const funcName    = `analyzeTerritories`;
+    const dbgNsLocal  = `${dbgNs}:${funcName}`;
+    const dbgNsExt    = `${this.dbgNs}:${funcName}`;
 
     // Add a delay for dramatic effect.
     await AsyncUtil.waitASecond(this._defaultDelay);
@@ -513,17 +591,19 @@ export class Tm1Analysis extends SfdxFalconModel<Tm1AnalysisOptions> {
       }
     )
     .then((successResult:SfdxFalconResult) => {
-      SfdxFalconDebug.obj(`${dbgNs}analyzeTerritories:successResult:`, successResult);
+      SfdxFalconDebug.obj(`${dbgNsLocal}:successResult:`, successResult);
+      SfdxFalconDebug.obj(`${dbgNsExt}:successResult:`,   successResult);
       this._territoryRecordCount = SfdxUtil.getRecordCountFromResult(successResult);
     })
     .catch((failureResult:SfdxFalconResult|Error) => {
-      SfdxFalconDebug.obj(`${dbgNs}analyzeTerritories:failureResult:`, failureResult);
+      SfdxFalconDebug.obj(`${dbgNsLocal}:failureResult:`, failureResult);
+      SfdxFalconDebug.obj(`${dbgNsExt}:failureResult:`,   failureResult);
       if (failureResult instanceof SfdxFalconResult) {
         // Add additional context and repackage the Error contained by the SfdxFalconResult
         throw failureResult.error(
           new SfdxFalconError ( `The target org (${this._aliasOrUsername}) does not appear to have Territory Management (TM1) enabled.`
                               , `MissingTM1Config`
-                              , `${dbgNs}analyzeTerritories`
+                              , `${dbgNsExt}`
                               ,  failureResult.errObj)
         );
       }
@@ -532,7 +612,8 @@ export class Tm1Analysis extends SfdxFalconModel<Tm1AnalysisOptions> {
       }
     });
 
-    // Return the result.
+    // Set the related build requirement as ready and return the result.
+    this.setReady(funcName);
     return this._territoryRecordCount;
   }
 
@@ -774,6 +855,21 @@ export class Tm1Analysis extends SfdxFalconModel<Tm1AnalysisOptions> {
     // Initialize the "date analyzed" value to NOW.
     const dateNow       = new Date(Date.now());
     this._dateAnalyzed  = dateNow.toString();
+
+    // Specify the "ready" requirements. Determines what's needed for the model
+    // to be ready for use. Use `this.setReady()` to mark completed requirements.
+    this.addReadyRequirement('analyzeAccountShares');
+    this.addReadyRequirement('analyzeAtaRuleItems');
+    this.addReadyRequirement('analyzeAtaRules');
+    this.addReadyRequirement('analyzeGroups');
+    this.addReadyRequirement('analyzeHardTm1Dependencies');
+    this.addReadyRequirement('analyzeSoftTm1Dependencies');
+    this.addReadyRequirement('analyzeAccountSharingRules');
+    this.addReadyRequirement('analyzeLeadSharingRules');
+    this.addReadyRequirement('analyzeOpportunitySharingRules');
+    this.addReadyRequirement('analyzeTerritories');
+    this.addReadyRequirement('analyzeUserTerritoryAssignments');
+    this.addReadyRequirement('gatherOrgInformation');
   }
 
   //───────────────────────────────────────────────────────────────────────────┐
