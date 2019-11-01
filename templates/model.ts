@@ -16,7 +16,7 @@ import  {TypeValidator}           from  '@sfdx-falcon/validator'; // Library. Co
 import  {SfdxFalconModel}         from  '../src/models/model';    // Abstract Class. Used for building classes that encapsulate a domain model, including associated domain-specific operations.
 
 // Import External Types
-import  {SfdxFalconModelOptions}  from  '../src/models/model';    // Abstract Class. Used for building classes that encapsulate a domain model, including associated domain-specific operations.
+import  {SfdxFalconModelOptions}  from  '../src/models/model';    // Interface. Represents the collective options object for classes derived from SfdxFalconModel.
 
 // Import Internal Libraries, Classes, & Functions
 
@@ -129,10 +129,11 @@ export class ClassName extends SfdxFalconModel<ClassNameOptions> {
     TypeValidator.throwOnEmptyNullInvalidObject(opts,                 `${dbgNsLocal}`, `ClassNameOptions`);
     TypeValidator.throwOnEmptyNullInvalidObject(opts.constructorOpts, `${dbgNsLocal}`, `ClassNameOptions.constructorOpts`);
 
-    // Validate specific Constructor Options.
-    const constructorOpts = opts.constructorOpts;
-    TypeValidator.throwOnEmptyNullInvalidString(constructorOpts.optionOne, `${dbgNsLocal}`, `constructorOpts.optionOne`);
-    TypeValidator.throwOnEmptyNullInvalidString(constructorOpts.optionTwo, `${dbgNsLocal}`, `constructorOpts.optionTwo`);
+    // Validate REQUIRED Constructor Options.
+    TypeValidator.throwOnEmptyNullInvalidString(opts.constructorOpts.optionOne, `${dbgNsLocal}`, `constructorOpts.optionOne`);
+
+    // Validate OPTIONAL Constructor Options.
+    if (TypeValidator.isNotNullUndefined(opts.constructorOpts.optionTwo))  TypeValidator.throwOnEmptyNullInvalidString(opts.constructorOpts.optionTwo, `${dbgNsLocal}`, `constructorOpts.optionTwo`);
 
     // Initialize member vars, but put initialization logic that should be repeated
     // on `refresh()` into the `_initialize()` method's implementation instead of here.
@@ -193,6 +194,11 @@ export class ClassName extends SfdxFalconModel<ClassNameOptions> {
     // TODO: Implement this method (what's below is sample implementation only)
     this._memberOne = 'NOT_SPECIFIED';
     this._memberTwo = [];
+
+    // Specify the "ready" requirements. Determines what's needed for the model
+    // to be ready for use. Use `this.setReady()` to mark completed requirements.
+    this.addReadyRequirement('Step_One');
+    this.addReadyRequirement('Step_Two');
   }
 
   //───────────────────────────────────────────────────────────────────────────┐
