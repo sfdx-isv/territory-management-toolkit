@@ -50,7 +50,7 @@ SfdxFalconDebug.msg(`${dbgNs}:`, `Debugging initialized for ${dbgNs}`);
 //─────────────────────────────────────────────────────────────────────────────────────────────────┘
 export interface Tm1AnalysisOptions extends SfdxFalconModelOptions {
   /**
-   * Required. Used by the `constructor()` method of `Tm1AnalysisOptions`.
+   * Required. Used by the `constructor()` method of `Tm1Analysis`.
    */
   constructorOpts: {
     /**
@@ -620,12 +620,17 @@ export class Tm1Analysis extends SfdxFalconModel<Tm1AnalysisOptions> {
   //───────────────────────────────────────────────────────────────────────────┐
   /**
    * @method      analyzeUserTerritoryAssignments
-   * @return      {number}  Number of TM1 UserTerritory records in the target org.
-   * @description ???
+   * @return      {number}  Number of TM1 `UserTerritory` records in the target org.
+   * @description Queries the target org for the count of `UserTerritory` records.
    * @public @async
    */
   //───────────────────────────────────────────────────────────────────────────┘
   public async analyzeUserTerritoryAssignments():Promise<number> {
+
+    // Define function-local and external debug namespaces.
+    const funcName    = `analyzeUserTerritoryAssignments`;
+    const dbgNsLocal  = `${dbgNs}:${funcName}`;
+    const dbgNsExt    = `${this.dbgNs}:${funcName}`;
 
     // Add a delay for dramatic effect.
     await AsyncUtil.waitASecond(this._defaultDelay);
@@ -646,17 +651,19 @@ export class Tm1Analysis extends SfdxFalconModel<Tm1AnalysisOptions> {
       }
     )
     .then((successResult:SfdxFalconResult) => {
-      SfdxFalconDebug.obj(`${dbgNs}analyzeUserTerritoryAssignments:successResult:`, successResult);
+      SfdxFalconDebug.obj(`${dbgNsLocal}:successResult:`, successResult);
+      SfdxFalconDebug.obj(`${dbgNsExt}:successResult:`,   successResult);
       this._userTerritoryRecordCount = SfdxUtil.getRecordCountFromResult(successResult);
     })
     .catch((failureResult:SfdxFalconResult|Error) => {
-      SfdxFalconDebug.obj(`${dbgNs}analyzeUserTerritoryAssignments:failureResult:`, failureResult);
+      SfdxFalconDebug.obj(`${dbgNsLocal}:failureResult:`, failureResult);
+      SfdxFalconDebug.obj(`${dbgNsExt}:failureResult:`,   failureResult);
       if (failureResult instanceof SfdxFalconResult) {
         // Add additional context and repackage the Error contained by the SfdxFalconResult
         throw failureResult.error(
           new SfdxFalconError ( `The target org (${this._aliasOrUsername}) does not appear to have Territory Management (TM1) enabled.`
                               , `MissingTM1Config`
-                              , `${dbgNs}analyzeUserTerritoryAssignments`
+                              , `${dbgNsExt}`
                               ,  failureResult.errObj)
         );
       }
@@ -665,7 +672,8 @@ export class Tm1Analysis extends SfdxFalconModel<Tm1AnalysisOptions> {
       }
     });
 
-    // Return the result.
+    // Set the related build requirement as ready and return the result.
+    this.setReady(funcName);
     return this._userTerritoryRecordCount;
   }
 
@@ -673,18 +681,26 @@ export class Tm1Analysis extends SfdxFalconModel<Tm1AnalysisOptions> {
   /**
    * @method      gatherOrgInformation
    * @return      {TM1OrgInfo}  Basic information about the target TM1 org.
-   * @description ???
+   * @description Validates whether or not the supplied "alias or username"
+   *              actually references an authenticated user to the local CLI.
+   *              If it does, then return a core set of TM1 Org Information.
    * @public @async
    */
   //───────────────────────────────────────────────────────────────────────────┘
   public async gatherOrgInformation():Promise<TM1OrgInfo> {
+
+    // Define function-local and external debug namespaces.
+    const funcName    = `gatherOrgInformation`;
+    const dbgNsLocal  = `${dbgNs}:${funcName}`;
+    const dbgNsExt    = `${this.dbgNs}:${funcName}`;
 
     // Add a delay for dramatic effect.
     await AsyncUtil.waitASecond(this._defaultDelay);
 
     // Convert the "alias or username" to a for-sure username.
     this._orgInfo.username = (await Aliases.fetch(this._aliasOrUsername)) || this._aliasOrUsername;
-    SfdxFalconDebug.str(`${dbgNs}gatherOrgInformation:orgInfo.username`, this._orgInfo.username);
+    SfdxFalconDebug.str(`${dbgNsLocal}:_orgInfo.username`,  this._orgInfo.username);
+    SfdxFalconDebug.str(`${dbgNsExt}:_orgInfo.username`,    this._orgInfo.username);
 
     // Try to get the AuthInfo data for that username.
     const authInfo = await AuthInfo.create({
@@ -693,10 +709,11 @@ export class Tm1Analysis extends SfdxFalconModel<Tm1AnalysisOptions> {
     .catch(authInfoError => {
       throw new SfdxFalconError ( `The supplied Alias or Username (${this._aliasOrUsername}) does not map to any authenticated orgs in the local environment.`
                                 , `InvalidAliasOrUsername`
-                                , `${dbgNs}gatherOrgInformation`
+                                , `${dbgNsExt}`
                                 , authInfoError);
     }) as AuthInfo;
-    SfdxFalconDebug.obj(`${dbgNs}gatherOrgInformation:authInfo.fields`, authInfo.getFields());
+    SfdxFalconDebug.obj(`${dbgNsLocal}:authInfo.fields:`, authInfo.getFields());
+    SfdxFalconDebug.obj(`${dbgNsExt}:authInfo.fields:`,   authInfo.getFields());
 
     // Get the Alias, Org ID, login URL, and Created Org Instance from the retrieved Auth Info.
     this._orgInfo.alias               = (this._aliasOrUsername !== this._orgInfo.username) ? this._aliasOrUsername : undefined;
@@ -704,7 +721,8 @@ export class Tm1Analysis extends SfdxFalconModel<Tm1AnalysisOptions> {
     this._orgInfo.loginUrl            = authInfo.getFields().loginUrl;
     this._orgInfo.createdOrgInstance  = authInfo.getFields().createdOrgInstance;
 
-    // Return the result.
+    // Set the related build requirement as ready and return the result.
+    this.setReady(funcName);
     return this._orgInfo;
   }
 
