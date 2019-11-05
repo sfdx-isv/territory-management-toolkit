@@ -220,15 +220,15 @@ export abstract class SfdxFalconModel<T extends SfdxFalconModelOptions> {
 
     // If the caller provided options, make sure it's a valid object. Otherwise just initialize an empty object.
     if (typeof opts !== 'undefined') {
-      TypeValidator.throwOnNullInvalidObject(opts, `${dbgNsExt}:${funcName}`, `SfdxFalconModelOptions`);
+      TypeValidator.throwOnNullInvalidObject(opts, `${dbgNsExt}:${funcName}`, `SfdxFalconModelBaseOptions`);
     }
     else {
       opts = {};
     }
 
     // Validate the members of the options object, if provided.
-    if (typeof opts.dbgNsExt    !== 'undefined')  TypeValidator.throwOnEmptyNullInvalidString (opts.dbgNsExt,   `${dbgNsExt}:${funcName}`,  `SfdxFalconModelOptions.dbgNsExt`);
-    if (typeof opts.trapErrors  !== 'undefined')  TypeValidator.throwOnNullInvalidBoolean     (opts.trapErrors, `${dbgNsExt}:${funcName}`,  `SfdxFalconModelOptions.trapErrors`);
+    if (typeof opts.dbgNsExt    !== 'undefined')  TypeValidator.throwOnEmptyNullInvalidString (opts.dbgNsExt,   `${dbgNsExt}:${funcName}`,  `SfdxFalconModelBaseOptions.dbgNsExt`);
+    if (typeof opts.trapErrors  !== 'undefined')  TypeValidator.throwOnNullInvalidBoolean     (opts.trapErrors, `${dbgNsExt}:${funcName}`,  `SfdxFalconModelBaseOptions.trapErrors`);
 
     // Initialize member variables.
     this.trapErrors   = (typeof opts.trapErrors !== 'undefined') ? opts.trapErrors : false;
