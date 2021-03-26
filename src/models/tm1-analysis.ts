@@ -63,9 +63,9 @@ export interface Tm1AnalysisOptions extends SfdxFalconModelOptions {
     defaultDelay?:  number;
   };
   /**
-   * Required/Optional. Used by the `build()` method of `Tm1AnalysisOptions`.
+   * Unused. By setting this to `undefined` we are indicating that we DO NOT want to expose these options.
    */
-  buildOpts?: undefined; // NOTE: Set this to `undefined` if you DO NOT want to expose these options.
+  buildOpts?: undefined;
   /**
    * Required/Optional. Used by the `load()` method of `Tm1AnalysisOptions`.
    */

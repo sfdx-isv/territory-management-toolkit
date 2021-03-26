@@ -1,3 +1,16 @@
+/**
+ * **TEMPLATE NOTES: Follow these instructions to customize this template.**
+ * 1. Do a case-sensitive, partial match replace of `ClassName` with the name of your class.
+ * 2. Do a case-sensitive, partial match replace of `source-file-name` with the name of your source file.
+ * 3. Customize the `ClassNameOptions` interface per the requirements of your class. Note that the
+ *    the name of this interface will have changed based on the replace you did in step 1.
+ * 4. Add member variables and acessors.
+ * 5. Implement your constructor. Additional instructions TBA.
+ * 6. Implement the `???` method... Additional instructions TBA.
+ * 7. Implement whatever classes and methods are required.
+ * 8. Delete all **TEMPLATE NOTE** comments.
+ */
+
 //─────────────────────────────────────────────────────────────────────────────────────────────────┐
 /**
  * @author        Vivek M. Chawla <@VivekMChawla>
@@ -48,6 +61,8 @@ export interface ClassNameOptions extends SfdxFalconModelOptions {
   };
   /**
    * Required/Optional. Used by the `build()` method of `ClassName`.
+   *  -- OR --
+   * Unused. By setting this to `undefined` we are indicating that we DO NOT want to expose these options.
    */
   //buildOpts?: undefined; // NOTE: Set this to `undefined` if you DO NOT want to expose these options.
   buildOpts: {
@@ -62,6 +77,8 @@ export interface ClassNameOptions extends SfdxFalconModelOptions {
   };
   /**
    * Required/Optional. Used by the `load()` method of `ClassName`.
+   *  -- OR --
+   * Unused. By setting this to `undefined` we are indicating that we DO NOT want to expose these options.
    */
   //loadOpts?: undefined; // NOTE: Set this to `undefined` if you DO NOT want to expose these options.
   loadOpts: {

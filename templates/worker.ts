@@ -178,7 +178,8 @@ export class ClassName extends SfdxFalconWorker<ClassNameOptions> {
    * @return      {ClassNameReport} JSON representation of this `ClassName`
    *              object's status.
    * @description Generates a JSON representation providing details about the
-   *              status of the operations performed by this `ClassName` object.
+   *              status of the operations performed by this `ClassName`
+   *              object.
    * @protected
    */
   //───────────────────────────────────────────────────────────────────────────┘

@@ -69,7 +69,7 @@ interface InterviewAnswers {
  * @public
  */
 //─────────────────────────────────────────────────────────────────────────────────────────────────┘
-export default class Tm1Analyze extends SfdxFalconYeomanGenerator<InterviewAnswers> {
+export class Tm1Analyze extends SfdxFalconYeomanGenerator<InterviewAnswers> {
 
   // Define class members specific to this Generator.
   protected tm1AnalyzeFilePaths:      TM1AnalyzeFilePaths;  // Report data that will be created as part of the TM1 Analyze process.
@@ -421,3 +421,6 @@ export default class Tm1Analyze extends SfdxFalconYeomanGenerator<InterviewAnswe
     return this._default_end();
   }
 }
+
+// Export the Generator class as a default so the Yeoman Environment can pick it up.
+export default Tm1Analyze;
